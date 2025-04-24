@@ -2,6 +2,5 @@
 deployment:
   tasks:
     - export DEPLOYMENT_PATH="$HOME/public_html/AAIS"
-    - /usr/local/bin/composer install --working-dir $DEPLOYMENT_PATH --no-dev --optimize-autoloader
     - /bin/chmod -R 755 $DEPLOYMENT_PATH
     - /bin/chmod 644 $DEPLOYMENT_PATH/index.php
