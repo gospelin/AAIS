@@ -1,0 +1,77 @@
+# Environment-specific files
+.env
+.env.local
+.env.*.local
+
+# Logs and temporary files
+error_log
+*.log
+logs/
+*.log.*
+*.tmp
+*.temp
+tmp/
+temp/
+cache/
+*.cache
+
+# Session files
+session/
+sessions/
+
+# User-uploaded or generated content
+uploads/
+storage/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.swp
+*.swo
+
+# Composer dependencies
+vendor/
+composer.phar
+composer-setup.php
+# composer.lock  # Uncomment if you don't want to track it
+
+# cPanel-specific files
+.cpanel/
+.htpasswds
+/access-logs/
+cpanel_error_log
+# .cpanel.yml  # Uncomment if you don't want to track it
+
+# Testing and coverage files
+coverage/
+*.cover
+*.coverage
+tests/_output/*
+tests/_support/_generated/
+
+# Framework-specific (uncomment if applicable)
+# Laravel
+#/storage/*.key
+#/storage/logs/*
+#/public/hot
+#/public/storage
+#/bootstrap/cache/*
+#Homestead.yaml
+#Homestead.json
+
+# Symfony
+/var/cache/*
+/var/logs/*
+/var/sessions/*
+/bin/console
+
+# CodeIgniter
+#/application/cache/*
+#/application/logs/*
+#/system/cache/*
