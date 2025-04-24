@@ -3,6 +3,9 @@ deployment:
   tasks:
     - export DEPLOYMENT_PATH="$HOME/public_html/AAIS"
     - /bin/cp -r .git/.. $DEPLOYMENT_PATH
+    - /bin/cp index.php $DEPLOYMENT_PATH
+    - /bin/cp static/style.css $DEPLOYMENT_PATH
+    - /bin/cp -R images $DEPLOYMENT_PATH
     - /usr/local/bin/composer install --working-dir $DEPLOYMENT_PATH --no-dev --optimize-autoloader
     - /bin/chmod -R 755 $DEPLOYMENT_PATH
     - /bin/chmod 644 $DEPLOYMENT_PATH/index.php
