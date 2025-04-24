@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+.htaccess
 
 # Logs and temporary files
 error_log
