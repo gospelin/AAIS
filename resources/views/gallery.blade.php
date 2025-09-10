@@ -612,18 +612,18 @@
 
             // Category, Video Gallery, and CTA Section Animations
             ['.category-section', '.video-gallery', '.gallery-cta'].forEach(section => {
-                gsap.from(`${section} .gsap-stagger`, {
-                    scrollTrigger: {
-                        trigger: section,
-                        start: 'top 80%',
-                        toggleActions: 'play none none reset'
-                    },
-                    opacity: 0,
-                    y: 50,
-                    duration: 0.8,
-                    ease: 'power3.out',
-                    stagger: { each: 0.1, from: 'center' }
-                });
+                // gsap.from(`${section} .gsap-stagger`, {
+                //     scrollTrigger: {
+                //         trigger: section,
+                //         start: 'top 80%',
+                //         toggleActions: 'play none none reset'
+                //     },
+                //     opacity: 0,
+                //     y: 50,
+                //     duration: 0.8,
+                //     ease: 'power3.out',
+                //     stagger: { each: 0.1, from: 'center' }
+                // });
 
                 gsap.from(`${section} .gsap-fade-up`, {
                     scrollTrigger: {
