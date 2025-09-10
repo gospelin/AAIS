@@ -274,7 +274,7 @@
             <div class="row">
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery1.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery1.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -282,7 +282,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery2.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery2.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -290,7 +290,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery3.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery3.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -298,7 +298,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery4.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery4.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -306,7 +306,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery5.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery5.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -314,7 +314,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery6.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery6.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -322,7 +322,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery7.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery7.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -330,7 +330,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery8.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery8.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -338,7 +338,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery9.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery9.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -346,7 +346,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery10.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery10.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
@@ -354,7 +354,7 @@
                 </div>
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('images/class/gallery11.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <img src="{{ asset('images/class/gallery11.JPG') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
