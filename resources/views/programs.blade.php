@@ -270,7 +270,7 @@
         <div class="container">
             <h2 class="section-heading">Interested in Our Programs?</h2>
             <p class="lead gsap-fade-up">Contact us to learn more about how we can support your child’s education.</p>
-            <a href="#contact" class="btn btn-pulse mt-3 gsap-scale">Get in Touch</a>
+            <a href="{{ route('contact') }}" class="btn btn-pulse mt-3 gsap-scale">Get in Touch</a>
         </div>
     </section>
 @endsection

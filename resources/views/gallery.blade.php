@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gallery | ' . config('app.name'))
+@section('title', 'Gallery | Aunty Anne\'s International School')
 
 @push('styles')
     <style>
@@ -53,17 +53,28 @@
             margin: 0 auto;
         }
 
-        /* Gallery Grid Section */
-        .gallery-grid {
+        /* Category Sections */
+        .category-section {
             padding: 5rem 0;
             background: var(--light-gray);
         }
 
-        .gallery-grid .section-heading {
+        .category-section:nth-child(even) {
+            background: var(--white);
+        }
+
+        .category-section .section-heading {
             font-family: var(--font-display);
             font-size: clamp(2rem, 4vw, 2.5rem);
             color: var(--dark-green);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-section .lead {
+            font-family: var(--font-primary);
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            color: var(--dark-gray);
+            margin-bottom: 2rem;
         }
 
         .gallery-item {
@@ -114,19 +125,26 @@
         /* Video Gallery Section */
         .video-gallery {
             padding: 5rem 0;
+            background: var(--light-gray);
         }
 
         .video-gallery .section-heading {
             font-family: var(--font-display);
             font-size: clamp(2rem, 4vw, 2.5rem);
             color: var(--dark-green);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .video-gallery .lead {
+            font-family: var(--font-primary);
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            color: var(--dark-gray);
+            margin-bottom: 2rem;
         }
 
         .video-responsive {
             position: relative;
-            padding-bottom: 56.25%;
-            /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
             height: 0;
             overflow: hidden;
             border-radius: 15px;
@@ -142,6 +160,46 @@
             height: 100%;
         }
 
+        /* CTA Section */
+        .gallery-cta {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            text-align: center;
+        }
+
+        .gallery-cta .section-heading {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .gallery-cta .lead {
+            font-family: var(--font-primary);
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .gallery-cta .btn-pulse {
+            background: var(--gold);
+            color: var(--dark-green);
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .gallery-cta .btn-pulse:hover {
+            background: var(--white);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .gallery-hero .intro-title {
@@ -152,8 +210,9 @@
                 font-size: clamp(1rem, 2vw, 1.5rem);
             }
 
-            .gallery-grid .section-heading,
-            .video-gallery .section-heading {
+            .category-section .section-heading,
+            .video-gallery .section-heading,
+            .gallery-cta .section-heading {
                 font-size: 1.8rem;
             }
 
@@ -161,7 +220,10 @@
                 height: 200px;
             }
 
-            .gallery-overlay p {
+            .gallery-overlay p,
+            .category-section .lead,
+            .video-gallery .lead,
+            .gallery-cta .lead {
                 font-size: 1rem;
             }
         }
@@ -175,8 +237,9 @@
                 font-size: clamp(0.9rem, 1.8vw, 1.2rem);
             }
 
-            .gallery-grid .section-heading,
-            .video-gallery .section-heading {
+            .category-section .section-heading,
+            .video-gallery .section-heading,
+            .gallery-cta .section-heading {
                 font-size: 1.5rem;
             }
 
@@ -184,7 +247,10 @@
                 height: 150px;
             }
 
-            .gallery-overlay p {
+            .gallery-overlay p,
+            .category-section .lead,
+            .video-gallery .lead,
+            .gallery-cta .lead {
                 font-size: 0.9rem;
             }
         }
@@ -196,95 +262,337 @@
     <section class="gallery-hero">
         <div class="container text-center">
             <h1 class="intro-title gsap-fade-up">Our Gallery</h1>
-            <p class="intro-subtitle gsap-fade-up" data-delay="0.2">A glimpse into life at Aunty Anne’s International
-                School.</p>
+            <p class="intro-subtitle gsap-fade-up" data-delay="0.2">A glimpse into life at Aunty Anne’s International School.</p>
         </div>
     </section>
 
-    <!-- Gallery Grid Section -->
-    <section class="gallery-grid py-5 bg-light">
+    <!-- Classroom Activities Section -->
+    <section class="category-section">
         <div class="container">
-            <h2 class="section-heading text-center gsap-fade-up">Photo Gallery</h2>
-            <p class="lead text-center gsap-fade-up" data-delay="0.2">Explore moments from our vibrant school community.</p>
+            <h2 class="section-heading text-center gsap-fade-up">Classroom Activities</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Engaging learning moments in our classrooms.</p>
             <div class="row">
                 <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery1.jpg') }}" alt="Classroom Activity" class="img-fluid"
-                            loading="lazy">
+                        <img src="{{ asset('images/class/gallery1.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Classroom Activity</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0.1">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery2.jpg') }}" alt="Sports Day" class="img-fluid"
-                            loading="lazy">
+                        <img src="{{ asset('images/class/gallery2.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery3.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery4.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery5.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery6.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery7.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery8.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery9.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery10.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/class/gallery11.jpg') }}" alt="Classroom Activity 1" class="img-fluid" loading="lazy">
+                        <div class="gallery-overlay">
+                            <p>Classroom Activity</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add more images here if available -->
+            </div>
+        </div>
+    </section>
+    {{--
+    <!-- Sports Day Section -->
+    <section class="category-section">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">Sports Day</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Exciting moments from our annual sports events.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/gallery2.jpg') }}" alt="Sports Day 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Sports Day</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0.2">
+                <!-- Add more images here if available -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Cultural Day Section -->
+    <section class="category-section">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">Cultural Day</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Celebrating diversity and culture at our school.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery3.jpg') }}" alt="Cultural Day" class="img-fluid"
-                            loading="lazy">
+                        <img src="{{ asset('images/gallery3.jpg') }}" alt="Cultural Day 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Cultural Day</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0.3">
+                <!-- Add more images here if available -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Science Fair Section -->
+    <section class="category-section">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">Science Fair</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Showcasing student innovation and creativity.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery4.jpg') }}" alt="Science Fair" class="img-fluid"
-                            loading="lazy">
+                        <img src="{{ asset('images/gallery4.jpg') }}" alt="Science Fair 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>Science Fair</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0.4">
+                <!-- Add more images here if available -->
+            </div>
+        </div>
+    </section>
+    --}}
+    <!-- Graduation Ceremony 2025 Section -->
+    <section class="category-section">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">Graduation Ceremony 2025</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Celebrating our 2025 graduates’ achievements.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery5.jpg') }}" alt="Graduation Ceremony" class="img-fluid"
-                            loading="lazy">
-                        <div class="gallery-overlay">
-                            <p>Graduation Ceremony</p>
-                        </div>
+                        <img src="{{ asset('images/grad_25/IMG_20250730_154802.jpg') }}" alt="Graduation Ceremony 2025" class="img-fluid" loading="lazy">
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0.5">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
                     <div class="gallery-item">
-                        <img src="{{ asset('static/images/gallery6.jpg') }}" alt="School Trip" class="img-fluid"
-                            loading="lazy">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_155138.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_155224.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_155307.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_160340.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_160342.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_160558.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_160648.jpg') }}" alt="Graduation Ceremony 2025" class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_160702.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_164051.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_164508.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_164512.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_164518.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_164900.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_165511.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_165631.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_165701.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_165745.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div>
+                {{--
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/grad_25/IMG_20250730_170119.jpg') }}" alt="Graduation Ceremony 2025"
+                            class="img-fluid" loading="lazy">
+                    </div>
+                </div> --}}
+                <!-- Add more 2025 graduation images here -->
+            </div>
+        </div>
+    </section>
+
+    {{--
+    <!-- School Trip Section -->
+    <section class="category-section">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">School Trip</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Memorable adventures from our school trips.</p>
+            <div class="row">
+                <div class="col-md-4 col-sm-6 mb-4 gsap-stagger" data-stagger-delay="0">
+                    <div class="gallery-item">
+                        <img src="{{ asset('images/gallery6.jpg') }}" alt="School Trip 1" class="img-fluid" loading="lazy">
                         <div class="gallery-overlay">
                             <p>School Trip</p>
                         </div>
+                    </div>
+                </div>
+                <!-- Add more images here if available -->
+            </div>
+        </div>
+    </section>
+    --}}
+
+    <!-- Video Gallery Section -->
+    <section class="video-gallery">
+        <div class="container">
+            <h2 class="section-heading text-center gsap-fade-up">Video Gallery</h2>
+            <p class="lead text-center gsap-fade-up" data-delay="0.2">Watch highlights from our school events and activities.</p>
+            <div class="row">
+                <div class="col-md-6 gsap-stagger" data-stagger-delay="0">
+                    <div class="video-responsive">
+                        <iframe src="https://www.youtube.com/embed/sample-video" title="School Tour" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="col-md-6 gsap-stagger" data-stagger-delay="0.1">
+                    <div class="video-responsive">
+                        <iframe src="https://www.youtube.com/embed/sample-video2" title="Annual Day Celebration" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Video Gallery Section -->
-    <section class="video-gallery py-5">
+    <!-- CTA Section -->
+    <section class="gallery-cta">
         <div class="container">
-            <h2 class="section-heading text-center gsap-fade-up">Video Gallery</h2>
-            <p class="lead text-center gsap-fade-up" data-delay="0.2">Watch highlights from our school events and
-                activities.</p>
-            <div class="row">
-                <div class="col-md-6 gsap-stagger" data-stagger-delay="0">
-                    <div class="video-responsive">
-                        <iframe src="https://www.youtube.com/embed/sample-video" title="School Tour" frameborder="0"
-                            allowfullscreen></iframe>
-                    </div>
-                </div>
-                <div class="col-md-6 gsap-stagger" data-stagger-delay="0.1">
-                    <div class="video-responsive">
-                        <iframe src="https://www.youtube.com/embed/sample-video2" title="Annual Day Celebration"
-                            frameborder="0" allowfullscreen></iframe>
-                    </div>
-                </div>
-            </div>
+            <h2 class="section-heading">Want to See More?</h2>
+            <p class="lead gsap-fade-up">Contact us to learn about our vibrant school community.</p>
+            <a href="#contact" class="btn btn-pulse mt-3 gsap-scale">Get in Touch</a>
         </div>
     </section>
 @endsection
@@ -302,8 +610,8 @@
                 stagger: { each: 0.2, from: 'start' }
             });
 
-            // Gallery Grid and Video Gallery Section Animations
-            ['.gallery-grid', '.video-gallery'].forEach(section => {
+            // Category, Video Gallery, and CTA Section Animations
+            ['.category-section', '.video-gallery', '.gallery-cta'].forEach(section => {
                 gsap.from(`${section} .gsap-stagger`, {
                     scrollTrigger: {
                         trigger: section,
@@ -329,6 +637,20 @@
                     ease: 'power3.out',
                     stagger: { each: 0.2, from: 'start' }
                 });
+
+                if (section === '.gallery-cta') {
+                    gsap.from(`${section} .gsap-scale`, {
+                        scrollTrigger: {
+                            trigger: section,
+                            start: 'top 80%',
+                            toggleActions: 'play none none reset'
+                        },
+                        opacity: 0,
+                        scale: 0.9,
+                        duration: 1,
+                        ease: 'power3.out'
+                    });
+                }
             });
         });
     </script>

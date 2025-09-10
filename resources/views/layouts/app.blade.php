@@ -224,7 +224,7 @@
                             <li><a href="{{ route('programs') }}" class="text-white">Programs</a></li>
                             <li><a href="{{ route('gallery') }}" class="text-white">Gallery</a></li>
                             <li><a href="{{ route('contact') }}" class="text-white">Contact</a></li>
-                            <li><a href="{{ route('newsletter') }}" class="text-white">Newsletter</a></li>
+                            <li><a href="{{ route('news') }}" class="text-white">News</a></li>
                         </ul>
                     </div>
                     <div class="col-12 col-md-6 col-lg-3 footer-section">
