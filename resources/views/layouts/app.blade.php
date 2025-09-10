@@ -181,14 +181,6 @@
                             href="{{ route('gallery') }}">Gallery</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('contact') ? 'active' : '' }}"
-                            href="{{ route('contact') }}">Contact Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('newsletter') ? 'active' : '' }}"
-                            href="{{ route('newsletter') }}">Newsletter</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="https://gigo.pythonanywhere.com/portal" target="_blank">Portal</a>
                     </li>
                     @auth
