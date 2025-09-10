@@ -333,7 +333,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .cta-button {
-    background: var(--gradient-primary);
+    background: var(--primary-green);
     padding: 0.8rem 2rem;
     border-radius: 50px;
     color: white;
@@ -694,7 +694,7 @@ body::-webkit-scrollbar-thumb:hover {
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1.5rem;
-    background: var(--gradient-primary);
+    background: var(--primary-green);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -715,7 +715,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: var(--primary-green);
     padding: 0.8rem 2rem;
     border-radius: 50px;
     color: white;
@@ -759,7 +759,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .floating-element {
     position: absolute;
-    background: var(--gradient-primary);
+    background: var(--primary-green);
     border-radius: 50%;
     opacity: 0.15;
     animation: float 20s infinite linear;
