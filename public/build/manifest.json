@@ -1,0 +1,46 @@
+{
+  "_vendor-Cxdga-Vu.js": {
+    "file": "assets/vendor-Cxdga-Vu.js",
+    "name": "vendor"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-n8XzEm1N.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/backdrop.css": {
+    "file": "assets/backdrop-BjOBboAL.css",
+    "src": "resources/css/backdrop.css",
+    "isEntry": true,
+    "names": [
+      "backdrop.css"
+    ]
+  },
+  "resources/css/styles.css": {
+    "file": "assets/styles-DBM4XJSS.css",
+    "src": "resources/css/styles.css",
+    "isEntry": true,
+    "names": [
+      "styles.css"
+    ]
+  },
+  "resources/js/animations.js": {
+    "file": "assets/animations-z-2F_Hwq.js",
+    "name": "animations",
+    "src": "resources/js/animations.js",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-L6PTagxz.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor-Cxdga-Vu.js",
+      "resources/js/animations.js"
+    ]
+  }
+}
