@@ -216,30 +216,34 @@
         </main>
 
         <footer class="footer" role="contentinfo">
-            <div class="container">
+            <div class="container-fluid">
                 <div class="row footer-content g-4">
-                    <div class="col-6 col-md-3 col-lg-3 footer-section">
+                    <div class="col-12 col-md-6 col-lg-3 footer-section">
                         <h3>{{ config('app.name') }} (AAIS)</h3>
                         <p>Leading the future of education with innovative approaches that empower students to achieve
                             excellence.</p>
                     </div>
-                    <div class="col-6 col-md-3 col-lg-3 footer-section">
+                    <div class="col-12 col-md-6 col-lg-3 footer-section">
                         <h3>Quick Links</h3>
-                        <p><a href="{{ route('home') }}" class="text-white">Home</a></p>
-                        <p><a href="{{ route('about') }}" class="text-white">About Us</a></p>
-                        <p><a href="{{ route('admissions') }}" class="text-white">Admissions</a></p>
-                        <p><a href="{{ route('programs') }}" class="text-white">Programs</a></p>
-                        <p><a href="{{ route('gallery') }}" class="text-white">Gallery</a></p>
-                        <p><a href="{{ route('contact') }}" class="text-white">Contact</a></p>
-                        <p><a href="{{ route('newsletter') }}" class="text-white">Newsletter</a></p>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ route('home') }}" class="text-white">Home</a></li>
+                            <li><a href="{{ route('about') }}" class="text-white">About Us</a></li>
+                            <li><a href="{{ route('admissions') }}" class="text-white">Admissions</a></li>
+                            <li><a href="{{ route('programs') }}" class="text-white">Programs</a></li>
+                            <li><a href="{{ route('gallery') }}" class="text-white">Gallery</a></li>
+                            <li><a href="{{ route('contact') }}" class="text-white">Contact</a></li>
+                            <li><a href="{{ route('newsletter') }}" class="text-white">Newsletter</a></li>
+                        </ul>
                     </div>
-                    <div class="col-6 col-md-4 col-lg-3 footer-section">
+                    <div class="col-12 col-md-6 col-lg-3 footer-section">
                         <h3>Contact</h3>
-                        <p><i class="fas fa-map-marker-alt"></i> No 6 Oomnne Drive, Abayi, Aba</p>
-                        <p><i class="fas fa-phone-alt"></i> +234-806-967-8968</p>
-                        <p><i class="fas fa-envelope"></i> <a href="mailto:info@auntyannesschools.com.ng"
-                                class="text-white">contact@auntyannesschools.com.ng</a></p>
-                        <div class="social-icons mt-3">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-map-marker-alt me-2"></i> No 6 Oomnne Drive, Abayi, Aba</li>
+                            <li><i class="fas fa-phone-alt me-2"></i> +234-806-967-8968</li>
+                            <li><i class="fas fa-envelope me-2"></i> <a href="mailto:info@auntyannesschools.com.ng"
+                                    class="text-white">contact@auntyannesschools.com.ng</a></li>
+                        </ul>
+                        <div class="social-icons mt-3 d-flex justify-content-start gap-3">
                             <a href="https://facebook.com/auntyannesschools" target="_blank" aria-label="Facebook"><i
                                     class="fab fa-facebook-f"></i></a>
                             <a href="https://twitter.com/auntyannesschools" target="_blank" aria-label="Twitter"><i
@@ -248,18 +252,18 @@
                                     class="fab fa-instagram"></i></a>
                         </div>
                     </div>
-                    <div class="col-6 col-md-4 col-lg-3 footer-section">
+                    <div class="col-12 col-md-6 col-lg-3 footer-section">
                         <h3>Newsletter</h3>
                         <form action="#" method="POST">
                             @csrf
-                            <div class="input-group mb-3">
+                            <div class="mb-3">
                                 <input type="text" class="form-control" name="name" placeholder="Enter Your Name" required
                                     maxlength="255" value="{{ old('name') }}" aria-label="Your Name">
                             </div>
                             @error('name')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
-                            <div class="input-group mb-3">
+                            <div class="mb-3">
                                 <input type="email" class="form-control" name="email" placeholder="Enter Your Email"
                                     required maxlength="255" value="{{ old('email') }}" aria-label="Your Email">
                             </div>
@@ -271,8 +275,8 @@
                         </form>
                     </div>
                 </div>
-                <div class="text-center mt-4">
-                    <p>© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                <div class="text-center mt-4 border-top pt-3">
+                    <p class="mb-0">© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
                 </div>
             </div>
         </footer>
