@@ -70,7 +70,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .logo-text {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 2vw, 1rem);
     font-weight: 700;
     background: var(--gradient-primary);
     background-clip: text;
@@ -1152,12 +1152,8 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .footer-content {
-    max-width: 1500px;
     margin: 0 auto;
     padding: 0 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 3rem;
 }
 
 .footer-section h3 {

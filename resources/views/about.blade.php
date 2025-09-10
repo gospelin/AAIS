@@ -5,16 +5,6 @@
 @push('styles')
     <style>
         /* About Page Specific Styles */
-        :root {
-            --primary-green: #21a055;
-            --dark-green: #006400;
-            --gold: #D4AF37;
-            --white: #ffffff;
-            --dark-gray: #6c757d;
-            --light-gray: #f8f9fa;
-            --font-display: "Playfair Display", serif;
-            --font-primary: "Inter", sans-serif;
-        }
 
         /* Introductory Banner */
         .about-intro {
@@ -39,7 +29,7 @@
 
         .about-intro .intro-title {
             font-family: var(--font-display);
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-size: clamp(2rem, 5vw, 3rem);
             font-weight: 800;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
@@ -47,7 +37,7 @@
 
         .about-intro .intro-subtitle {
             font-family: var(--font-primary);
-            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
             font-weight: 300;
             max-width: 800px;
             margin: 0 auto;
@@ -60,13 +50,13 @@
 
         .about-main .section-heading {
             font-family: var(--font-display);
-            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-size: clamp(1.75rem, 4vw, 2.25rem);
             color: var(--dark-green);
             margin-bottom: 1.5rem;
         }
 
         .about-main .lead {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.2rem, 1.1rem);
             line-height: 1.8;
             color: var(--dark-gray);
             margin-bottom: 1.5rem;
@@ -81,7 +71,7 @@
             position: relative;
             padding-left: 40px;
             margin-bottom: 1rem;
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.1rem, 1.2rem);
         }
 
         .about-main .values-list li::before {
@@ -112,17 +102,18 @@
             border-radius: 50%;
             border: 4px solid var(--gold);
             margin-bottom: 1rem;
+            object-fit: cover;
         }
 
         .director-info h3 {
             font-family: var(--font-display);
-            font-size: 1.8rem;
+            font-size: clamp(1.5rem, 1.8rem, 1.8rem);
             color: var(--dark-green);
             margin: 0;
         }
 
         .director-info p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.1rem, 1.2rem);
             color: var(--dark-gray);
             margin: 0;
         }
@@ -134,7 +125,7 @@
         }
 
         .about-cta .lead {
-            font-size: 1.3rem;
+            font-size: clamp(1.1rem, 1.3rem, 1.3rem);
         }
 
         .about-cta .btn-pulse {
@@ -227,13 +218,13 @@
 
         .timeline-content h3 {
             font-family: var(--font-display);
-            font-size: 1.5rem;
+            font-size: clamp(1.3rem, 1.5rem, 1.5rem);
             color: var(--dark-green);
             margin-bottom: 0.5rem;
         }
 
         .timeline-content p {
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1rem, 1.1rem);
             color: var(--dark-gray);
         }
 
@@ -258,16 +249,15 @@
 
         .impact-card h3 {
             font-family: var(--font-display);
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 2.5rem, 2.5rem);
             color: var(--primary-green);
             margin-bottom: 0.5rem;
         }
 
         .impact-card p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.2rem, 1.2rem);
             color: var(--dark-gray);
         }
-
 
         /* Location Section */
         .location-section {
@@ -275,10 +265,21 @@
         }
 
         .location-section .map-responsive {
-            border-radius: 15px;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
             overflow: hidden;
+            border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             border: 3px solid var(--gold);
+        }
+
+        .location-section .map-responsive iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         /* FAQs Section */
@@ -289,7 +290,7 @@
 
         .faqs-section .accordion-button {
             font-family: var(--font-display);
-            font-size: 1.3rem;
+            font-size: clamp(1.1rem, 1.3rem, 1.3rem);
             color: var(--dark-green);
             border-left: 5px solid var(--primary-green);
         }
@@ -300,18 +301,18 @@
         }
 
         .faqs-section .accordion-body {
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1rem, 1.1rem);
             color: var(--dark-gray);
         }
 
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .about-intro .intro-title {
-                font-size: clamp(2rem, 4vw, 2.5rem);
+                font-size: clamp(1.75rem, 4vw, 2.25rem);
             }
 
             .about-intro .intro-subtitle {
-                font-size: clamp(1rem, 2vw, 1.5rem);
+                font-size: clamp(0.9rem, 2vw, 1.25rem);
             }
 
             .director-photo {
@@ -319,7 +320,7 @@
             }
 
             .director-info h3 {
-                font-size: 1.5rem;
+                font-size: clamp(1.2rem, 1.5rem, 1.5rem);
             }
 
             .timeline::before {
@@ -346,11 +347,11 @@
 
         @media (max-width: 576px) {
             .about-intro .intro-title {
-                font-size: clamp(1.8rem, 3.5vw, 2rem);
+                font-size: clamp(1.5rem, 3.5vw, 1.75rem);
             }
 
             .about-intro .intro-subtitle {
-                font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+                font-size: clamp(0.8rem, 1.8vw, 1rem);
             }
 
             .director-photo {
@@ -358,11 +359,11 @@
             }
 
             .director-info h3 {
-                font-size: 1.2rem;
+                font-size: clamp(1rem, 1.2rem, 1.2rem);
             }
 
             .impact-card h3 {
-                font-size: 2rem;
+                font-size: clamp(1.5rem, 2rem, 2rem);
             }
         }
     </style>
@@ -380,9 +381,9 @@
     <!-- Mission, Vision, and Director Section -->
     <section class="about-main py-5">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center g-4">
                 <!-- Mission, Vision, and Values -->
-                <div class="col-lg-7 gsap-slide-left">
+                <div class="col-12 col-lg-7 gsap-slide-left">
                     <div class="content-card">
                         <h2 class="section-heading">Our Mission</h2>
                         <p class="lead">At {{ config('app.name') }}, our mission is to nurture a community of lifelong learners who are prepared to thrive in a dynamic world. We are dedicated to providing a well-rounded education that fosters intellectual growth, character development, and a commitment to global citizenship.</p>
@@ -399,8 +400,8 @@
                     </div>
                 </div>
                 <!-- Director's Image -->
-                <div class="col-lg-5 text-center gsap-slide-right">
-                    <div class="director-card gsap-tilt">
+                <div class="col-12 col-lg-5 text-center gsap-slide-right">
+                    <div class="director-card gsap-tilt mx-auto">
                         <img src="{{ asset('images/anne_isaac.jpg') }}" alt="Mrs. Anne Isaac, Director" class="director-photo" loading="lazy">
                         <div class="director-info">
                             <h3>Mrs. Anne Isaac</h3>
@@ -441,14 +442,14 @@
         <div class="container">
             <h2 class="section-heading text-center gsap-fade-up">Our Impact</h2>
             <p class="lead text-center gsap-fade-up" data-delay="0.2">See how {{ config('app.name') }} is making a difference in education and beyond.</p>
-            <div class="row mt-4">
+            <div class="row mt-4 g-4">
                 @foreach([
     ['stat' => '500+', 'description' => 'Students Graduated with Excellence'],
     ['stat' => '20+', 'description' => 'Community Projects Supported'],
     ['stat' => '95%', 'description' => 'Student Satisfaction Rate'],
     ['stat' => '50+', 'description' => 'Awards and Recognitions']
 ] as $index => $impact)
-                    <div class="col-md-3 col-sm-6 gsap-stagger" data-stagger-delay="{{ $index * 0.1 }}">
+                    <div class="col-12 col-sm-6 col-md-3 gsap-stagger" data-stagger-delay="{{ $index * 0.1 }}">
                         <div class="impact-card">
                             <h3 class="counter" data-target="{{ preg_replace('/[^0-9]/', '', $impact['stat']) }}">{{ $impact['stat'] }}</h3>
                             <p>{{ $impact['description'] }}</p>
@@ -471,10 +472,10 @@
     <!-- Location Section -->
     <section class="location-section py-5">
         <div class="container">
-            <h2 class="section-heading gsap-fade-up">Our Campus</h2>
+            <h2 class="section-heading text-center gsap-fade-up">Our Campus</h2>
             <p class="lead text-center gsap-fade-up" data-delay="0.2">Come explore our vibrant learning environment in person.</p>
             <div class="map-responsive gsap-scale">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d993.4329494977746!2d7.3309549798887925!3d5.146810527312397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10429b8a252a1025%3A0x9ac7285163476022!2sAunty%20Anne's%20International%20School%20Aba!5e0!3m2!1sen!2sng!4v1714916226431!5m2!1sen!2sng" width="600" height="450" style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d993.4329494977746!2d7.3309549798887925!3d5.146810527312397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x10429b8a252a1025%3A0x9ac7285163476022!2sAunty%20Anne's%20International%20School%20Aba!5e0!3m2!1sen!2sng!4v1714916226431!5m2!1sen!2sng" style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
         </div>
     </section>

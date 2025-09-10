@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
     <meta name="description"
@@ -45,35 +45,35 @@
     <!-- Structured Data for SEO -->
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
-        '@type' => 'School',
-        'name' => "{{ config('app.name') }}",
-        'address' => [
-            '@type' => 'PostalAddress',
-            'streetAddress' => "No 6 Oomnne Drive by winner's bus-stop opposite Ngwa high school",
-            'addressLocality' => 'Abayi, Aba',
-            'addressRegion' => 'Abia',
-            'addressCountry' => 'NG'
-        ],
-        'telephone' => '+234-806-967-8968, +234-803-668-8517',
-        'email' => 'info@auntyannesschools.com.ng',
-        'url' => 'https://auntyannesschools.com.ng',
-        'logo' => [
-            '@type' => 'ImageObject',
-            'url' => 'https://auntyannesschools.com.ng/images/school_logo.png',
-            'description' => "Aunty Anne's International School Logo"
-        ],
-        'founder' => [
-            '@type' => 'Person',
-            'name' => 'Mrs. Anne Isaac'
-        ],
-        'contactPoint' => [
-            '@type' => 'ContactPoint',
-            'telephone' => '+234-806-967-8968',
-            'contactType' => 'Customer Service',
-            'email' => 'info@auntyannesschools.com.ng'
-        ]
-    ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    '@context' => 'https://schema.org',
+    '@type' => 'School',
+    'name' => "{{ config('app.name') }}",
+    'address' => [
+        '@type' => 'PostalAddress',
+        'streetAddress' => "No 6 Oomnne Drive by winner's bus-stop opposite Ngwa high school",
+        'addressLocality' => 'Abayi, Aba',
+        'addressRegion' => 'Abia',
+        'addressCountry' => 'NG'
+    ],
+    'telephone' => '+234-806-967-8968, +234-803-668-8517',
+    'email' => 'info@auntyannesschools.com.ng',
+    'url' => 'https://auntyannesschools.com.ng',
+    'logo' => [
+        '@type' => 'ImageObject',
+        'url' => 'https://auntyannesschools.com.ng/images/school_logo.png',
+        'description' => "Aunty Anne's International School Logo"
+    ],
+    'founder' => [
+        '@type' => 'Person',
+        'name' => 'Mrs. Anne Isaac'
+    ],
+    'contactPoint' => [
+        '@type' => 'ContactPoint',
+        'telephone' => '+234-806-967-8968',
+        'contactType' => 'Customer Service',
+        'email' => 'info@auntyannesschools.com.ng'
+    ]
+], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
     </script>
 
     <!-- Google Analytics -->
@@ -91,11 +91,11 @@
 <body>
     <div class="d-flex flex-column min-vh-100">
         <header class="sticky-top" role="banner">
-            <nav class="navbar navbar-expand-xl navbar-light bg-white shadow-sm">
-                <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+                <div class="container-fluid">
                     <a class="school-name navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                         <img src="{{ asset('images/school_logo.png') }}" alt="Aunty Anne's International School Logo"
-                            loading="lazy" class="d-inline-block align-top" style="height: 50px; margin-right: 10px;">
+                            loading="lazy" class="d-inline-block align-top img-fluid" style="max-height: 50px; margin-right: 10px;">
                         <span class="logo-text">{{ config('app.name') }}</span>
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarNav"
@@ -104,6 +104,7 @@
                         <span class="toggler-icon middle-bar"></span>
                         <span class="toggler-icon bottom-bar"></span>
                     </button>
+
                     <div class="navbar-nav ms-auto d-none d-xl-flex">
                         <ul class="navbar-nav">
                             <li class="nav-item">
@@ -215,62 +216,64 @@
         </main>
 
         <footer class="footer" role="contentinfo">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>{{ config('app.name') }} (AAIS)</h3>
-                    <p>Leading the future of education with innovative approaches that empower students to achieve
-                        excellence.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Quick Links</h3>
-                    <p><a href="{{ route('home') }}" class="text-white">Home</a></p>
-                    <p><a href="{{ route('about') }}" class="text-white">About Us</a></p>
-                    <p><a href="{{ route('admissions') }}" class="text-white">Admissions</a></p>
-                    <p><a href="{{ route('programs') }}" class="text-white">Programs</a></p>
-                    <p><a href="{{ route('gallery') }}" class="text-white">Gallery</a></p>
-                    <p><a href="{{ route('contact') }}" class="text-white">Contact</a></p>
-                    <p><a href="{{ route('newsletter') }}" class="text-white">Newsletter</a></p>
-                </div>
-                <div class="footer-section">
-                    <h3>Contact</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> No 6 Oomnne Drive, Abayi, Aba</p>
-                    <p><i class="fas fa-phone-alt"></i> +234-806-967-8968</p>
-                    <p><i class="fas fa-envelope"></i> <a href="mailto:info@auntyannesschools.com.ng"
-                            class="text-white">contact@auntyannesschools.com.ng</a></p>
-                    <div class="social-icons">
-                        <a href="https://facebook.com/auntyannesschools" target="_blank" aria-label="Facebook"><i
-                                class="fab fa-facebook-f"></i></a>
-                        <a href="https://twitter.com/auntyannesschools" target="_blank" aria-label="Twitter"><i
-                                class="fab fa-twitter"></i></a>
-                        <a href="https://instagram.com/auntyannesschools" target="_blank" aria-label="Instagram"><i
-                                class="fab fa-instagram"></i></a>
+            <div class="container">
+                <div class="row footer-content g-4">
+                    <div class="col-6 col-md-3 col-lg-3 footer-section">
+                        <h3>{{ config('app.name') }} (AAIS)</h3>
+                        <p>Leading the future of education with innovative approaches that empower students to achieve
+                            excellence.</p>
                     </div>
-                </div>
-                <div class="footer-section">
-                    <h3>Newsletter</h3>
-                    <form action="#" method="POST">
-                        @csrf
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" name="name" placeholder="Enter Your Name" required
-                                maxlength="255" value="{{ old('name') }}" aria-label="Your Name">
+                    <div class="col-6 col-md-3 col-lg-3 footer-section">
+                        <h3>Quick Links</h3>
+                        <p><a href="{{ route('home') }}" class="text-white">Home</a></p>
+                        <p><a href="{{ route('about') }}" class="text-white">About Us</a></p>
+                        <p><a href="{{ route('admissions') }}" class="text-white">Admissions</a></p>
+                        <p><a href="{{ route('programs') }}" class="text-white">Programs</a></p>
+                        <p><a href="{{ route('gallery') }}" class="text-white">Gallery</a></p>
+                        <p><a href="{{ route('contact') }}" class="text-white">Contact</a></p>
+                        <p><a href="{{ route('newsletter') }}" class="text-white">Newsletter</a></p>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 footer-section">
+                        <h3>Contact</h3>
+                        <p><i class="fas fa-map-marker-alt"></i> No 6 Oomnne Drive, Abayi, Aba</p>
+                        <p><i class="fas fa-phone-alt"></i> +234-806-967-8968</p>
+                        <p><i class="fas fa-envelope"></i> <a href="mailto:info@auntyannesschools.com.ng"
+                                class="text-white">contact@auntyannesschools.com.ng</a></p>
+                        <div class="social-icons mt-3">
+                            <a href="https://facebook.com/auntyannesschools" target="_blank" aria-label="Facebook"><i
+                                    class="fab fa-facebook-f"></i></a>
+                            <a href="https://twitter.com/auntyannesschools" target="_blank" aria-label="Twitter"><i
+                                    class="fab fa-twitter"></i></a>
+                            <a href="https://instagram.com/auntyannesschools" target="_blank" aria-label="Instagram"><i
+                                    class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 footer-section">
+                        <h3>Newsletter</h3>
+                        <form action="#" method="POST">
+                            @csrf
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" name="name" placeholder="Enter Your Name" required
+                                    maxlength="255" value="{{ old('name') }}" aria-label="Your Name">
+                            </div>
                             @error('name')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
-                        </div>
-                        <div class="input-group mb-3">
-                            <input type="email" class="form-control" name="email" placeholder="Enter Your Email"
-                                required maxlength="255" value="{{ old('email') }}" aria-label="Your Email">
+                            <div class="input-group mb-3">
+                                <input type="email" class="form-control" name="email" placeholder="Enter Your Email"
+                                    required maxlength="255" value="{{ old('email') }}" aria-label="Your Email">
+                            </div>
                             @error('email')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
-                        </div>
-                        <button class="btn btn-primary" type="submit"
-                            aria-label="Subscribe to Newsletter">Subscribe</button>
-                    </form>
+                            <button class="btn btn-primary w-100" type="submit"
+                                aria-label="Subscribe to Newsletter">Subscribe</button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-            <div class="text-center mt-3">
-                <p>© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                <div class="text-center mt-4">
+                    <p>© {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                </div>
             </div>
         </footer>
 
