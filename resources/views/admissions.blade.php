@@ -305,7 +305,7 @@
     <section class="admissions-requirements py-5">
         <div class="container">
             <h2 class="section-heading text-center">Admission Requirements</h2>
-            <p class="lead text-center">Ensure you have the following documents ready for a smooth application process.</p>
+            <p class="lead text-center gsap-fade-up">Ensure you have the following documents ready for a smooth application process.</p>
             <div class="row justify-content-center">
                 <div class="col-md-8 gsap-stagger" data-stagger-delay="0">
                     <div class="requirements-list">
@@ -326,7 +326,7 @@
     <section class="admissions-cta py-5 text-center">
         <div class="container">
             <h2 class="section-heading">Ready to Apply?</h2>
-            <p class="lead">Take the first step towards a world-class education for your child.</p>
+            <p class="lead gsap-fade-up">Take the first step towards a world-class education for your child.</p>
             <a href="#contact" class="btn btn-pulse mt-3 gsap-scale">Contact Us for Inquiries</a>
         </div>
     </section>
