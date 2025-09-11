@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gallery | Aunty Anne\'s International School')
+@section('title', 'Gallery | ' . config('app.name'))
 
 @push('styles')
     <style>

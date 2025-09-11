@@ -8,12 +8,15 @@ gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 // Expose libraries globally
 
-// Import animations
-import './animations';
+
 window.gsap = gsap;
+
 window.ScrollTrigger = ScrollTrigger;
 window.TextPlugin = TextPlugin;
 
 window.Alpine = Alpine;
 
 Alpine.start();
+
+// Import animations
+import './animations';

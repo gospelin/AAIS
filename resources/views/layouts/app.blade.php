@@ -137,7 +137,7 @@
                             </li>
                             @auth
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                                    <a class="nav-link" href="{{ route('student.dashboard') }}">Dashboard</a>
                                 </li>
                                 <li class="nav-item">
                                     <form method="POST" action="{{ route('logout') }}">
@@ -185,7 +185,7 @@
                     </li>
                     @auth
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                            <a class="nav-link" href="{{ route('student.dashboard') }}">Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <form method="POST" action="{{ route('logout') }}">

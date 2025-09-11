@@ -10,9 +10,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bacon/bacon-qr-code": "^2.0",
         "laravel/breeze": "^2.3",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "phpoffice/phpspreadsheet": "^5.1",
+        "pragmarx/google2fa-laravel": "^2.3",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
