@@ -22,11 +22,24 @@ use App\Enums\TermEnum;
 
 class AdminBaseController extends Controller
 {
+    /**
+     * Get the current academic session and term.
+     *
+     * @param bool $usePreference
+     * @return array [session, term]
+     */
     protected function getCurrentSessionAndTerm($usePreference = false)
     {
         return AcademicSession::getCurrentSessionAndTerm($usePreference);
     }
 
+    /**
+     * Log an activity to the audit log.
+     *
+     * @param string $message
+     * @param array $context
+     * @return void
+     */
     protected function logActivity($message, array $context = [])
     {
         AuditLog::create([
@@ -36,6 +49,13 @@ class AdminBaseController extends Controller
         ]);
     }
 
+    /**
+     * Build the base query for students with class joins.
+     *
+     * @param AcademicSession $currentSession
+     * @param string|null $term
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     protected function getStudentsQuery($currentSession, $term = null)
     {
         $termOrder = [
@@ -47,7 +67,7 @@ class AdminBaseController extends Controller
         $targetTermOrder = $termOrder[$term] ?? 1;
 
         return Student::select('students.*', 'classes.name as class_name', 'classes.hierarchy')
-            ->leftJoin('student_class_history', function ($join) use ($currentSession) {
+            ->leftJoin('student_class_history', function ($join) use ($currentSession, $targetTermOrder) {
                 $join->on('students.id', '=', 'student_class_history.student_id')
                     ->where('student_class_history.session_id', '=', $currentSession->id)
                     ->where('student_class_history.is_active', '=', true)
@@ -68,6 +88,18 @@ class AdminBaseController extends Controller
             ->with(['feePayments', 'classHistory']);
     }
 
+    /**
+     * Apply filters to the students query.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $studentsQuery
+     * @param string $enrollmentStatus
+     * @param string $feeStatus
+     * @param string $approvalStatus
+     * @param AcademicSession $currentSession
+     * @param TermEnum $currentTerm
+     * @param string|null $term
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     protected function applyFiltersToStudentsQuery($studentsQuery, $enrollmentStatus, $feeStatus, $approvalStatus, $currentSession, $currentTerm, $term = null)
     {
         $termOrder = [
@@ -153,22 +185,32 @@ class AdminBaseController extends Controller
         return $studentsQuery;
     }
 
+    /**
+     * Group students by class name and sort.
+     *
+     * @param array|Collection $students
+     * @return Collection
+     */
     protected function groupStudentsByClass($students)
     {
-        $grouped = collect($students)->groupBy(function ($item) {
+        return collect($students)->groupBy(function ($item) {
             return $item->class_name ?? 'Unassigned';
-        });
-
-        return $grouped->map(function ($group, $className) {
+        })->map(function ($group, $className) {
             return $group->sortBy(function ($student) {
                 return strtolower($student->first_name) . strtolower($student->last_name);
             })->values();
         })->sortBy(function ($group, $className) {
             $hierarchy = Classes::where('name', $className)->first()?->hierarchy ?? 999;
             return $hierarchy;
-        })->toArray();
+        });
     }
 
+    /**
+     * Calculate grade based on total score.
+     *
+     * @param float $total
+     * @return string
+     */
     protected function calculateGrade($total)
     {
         if ($total >= 95)
@@ -190,6 +232,12 @@ class AdminBaseController extends Controller
         return "F";
     }
 
+    /**
+     * Generate remark based on total score.
+     *
+     * @param float $total
+     * @return string
+     */
     protected function generateRemark($total)
     {
         if ($total >= 95)
@@ -211,6 +259,12 @@ class AdminBaseController extends Controller
         return "Failed";
     }
 
+    /**
+     * Get pass/excellent thresholds for a class hierarchy.
+     *
+     * @param int $classHierarchy
+     * @return array ['pass' => int, 'excellent' => int]
+     */
     protected function getThreshold($classHierarchy)
     {
         if ($classHierarchy <= 3) {
@@ -222,6 +276,13 @@ class AdminBaseController extends Controller
         }
     }
 
+    /**
+     * Generate principal's remark based on average and thresholds.
+     *
+     * @param float $average
+     * @param array $threshold
+     * @return string
+     */
     protected function generatePrincipalRemark($average, $threshold)
     {
         if ($average >= $threshold['excellent']) {

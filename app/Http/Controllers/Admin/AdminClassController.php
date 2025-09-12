@@ -35,7 +35,7 @@ class AdminClassController extends AdminBaseController
             $validated = $request->validate([
                 'name' => 'required|string|max:50|unique:classes,name',
                 'section' => 'nullable|string|max:20',
-                'hierarchy' => 'required|integer|min:1|unique:classes,hierarchy', // Added min:1
+                'hierarchy' => 'required|integer|min:1|unique:classes,hierarchy',
             ]);
 
             $class = Classes::create($validated);
@@ -125,6 +125,7 @@ class AdminClassController extends AdminBaseController
         $class = Classes::findOrFail($id);
         return view('admin.classes.delete_class', compact('class'));
     }
+
     public function selectClass(Request $request, string $action)
     {
         $classes = Classes::orderBy('hierarchy')->get();
@@ -137,7 +138,7 @@ class AdminClassController extends AdminBaseController
             $className = Classes::find($validated['class_id'])->name;
 
             return redirect()->route('admin.students_by_class', [
-                'class_name' => urlencode($className),
+                'className' => urlencode($className),
                 'action' => $action
             ]);
         }
@@ -166,6 +167,7 @@ class AdminClassController extends AdminBaseController
 
         return view('admin.classes.students_by_class', compact(
             'studentsClasses',
+            'students',  // Added for pagination
             'class',
             'action',
             'currentSession',
@@ -187,7 +189,7 @@ class AdminClassController extends AdminBaseController
         $nextClass = Classes::where('hierarchy', $currentClass->hierarchy + 1)->first();
 
         if (!$nextClass) {
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('error', 'No higher class available for promotion.');
         }
 
@@ -221,11 +223,11 @@ class AdminClassController extends AdminBaseController
                 'new_class_id' => $nextClass->id
             ]);
 
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('success', "Student promoted to {$nextClass->name} successfully!");
         } catch (\Exception $e) {
             Log::error("Error promoting student {$studentId}: " . $e->getMessage());
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('error', 'Error promoting student.');
         }
     }
@@ -241,7 +243,7 @@ class AdminClassController extends AdminBaseController
         $previousClass = Classes::where('hierarchy', $currentClass->hierarchy - 1)->first();
 
         if (!$previousClass) {
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('error', 'No lower class available for demotion.');
         }
 
@@ -275,11 +277,11 @@ class AdminClassController extends AdminBaseController
                 'new_class_id' => $previousClass->id
             ]);
 
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('success', "Student demoted to {$previousClass->name} successfully!");
         } catch (\Exception $e) {
             Log::error("Error demoting student {$studentId}: " . $e->getMessage());
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($currentClass->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('error', 'Error demoting student.');
         }
     }
@@ -312,15 +314,15 @@ class AdminClassController extends AdminBaseController
                     'class_id' => $class->id
                 ]);
 
-                return redirect()->route('admin.students_by_class', ['class_name' => urlencode($class->name), 'action' => $action])
+                return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
                     ->with('success', 'Student class record deleted successfully!');
             }
 
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($class->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
                 ->with('error', 'No active class record found for this student.');
         } catch (\Exception $e) {
             Log::error("Error deleting class record for student {$studentId}: " . $e->getMessage());
-            return redirect()->route('admin.students_by_class', ['class_name' => urlencode($class->name), 'action' => $action])
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
                 ->with('error', 'Error deleting class record.');
         }
     }
