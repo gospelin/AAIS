@@ -93,6 +93,7 @@ cp .env.example .env
 ```
 
 2. **Configure .env**:
+```env
 APP_NAME="Aunty Anne's International School"
 APP_URL=http://localhost:8000
 DB_CONNECTION=mysql
@@ -101,6 +102,7 @@ DB_PORT=3306
 DB_DATABASE=aais
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
+```
 
 3. **Generate Application Key**:
 ```bash
