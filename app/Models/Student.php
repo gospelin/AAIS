@@ -1,11 +1,10 @@
 <?php
-// app/Models/Student.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
 use App\Enums\TermEnum;
 
 class Student extends Model
@@ -78,15 +77,30 @@ class Student extends Model
         $this->attributes['parent_phone_number'] = $value ? Crypt::encryptString($value) : null;
     }
 
-    public function getCurrentClass()
+    public function getCurrentClass($sessionId = null, $term = null)
     {
-        $latestClass = $this->classHistory()->latest('join_date')->first();
-        return $latestClass ? $latestClass->class->name : null;
+        $query = $this->classHistory()->where('is_active', true)->whereNull('leave_date');
+
+        if ($sessionId) {
+            $query->where('session_id', $sessionId);
+        }
+
+        if ($term) {
+            $termValue = $term instanceof TermEnum ? $term->value : $term;
+            $query->where('start_term', '<=', $termValue)
+                ->where(function ($q) use ($termValue) {
+                    $q->whereNull('end_term')
+                        ->orWhere('end_term', '>=', $termValue);
+                });
+        }
+
+        $classHistory = $query->first();
+        return $classHistory ? $classHistory->class->name : null;
     }
 
     public function getCurrentEnrollment()
     {
-        $currentSession = AcademicSession::getCurrentSession();
+        $currentSession = AcademicSession::where('is_current', true)->first();
         if (!$currentSession) {
             return null;
         }
@@ -101,11 +115,16 @@ class Student extends Model
 
     public function getClassBySessionAndTerm($sessionId, $term)
     {
+        $termValue = $term instanceof TermEnum ? $term->value : $term;
         $enrollment = $this->classHistory()
             ->where('session_id', $sessionId)
-            ->where('start_term', $term->value)
             ->where('is_active', true)
             ->whereNull('leave_date')
+            ->where('start_term', '<=', $termValue)
+            ->where(function ($q) use ($termValue) {
+                $q->whereNull('end_term')
+                    ->orWhere('end_term', '>=', $termValue);
+            })
             ->first();
 
         return $enrollment ? $enrollment->class->name : null;
@@ -121,6 +140,7 @@ class Student extends Model
         $classHistoryEntry = $this->classHistory()
             ->where('session_id', $session->id)
             ->where('is_active', true)
+            ->whereNull('leave_date')
             ->first();
 
         return $classHistoryEntry ? $classHistoryEntry->class->name : null;
@@ -128,16 +148,27 @@ class Student extends Model
 
     public static function generateRegNo($sessionYear = null)
     {
-        if (!$sessionYear) {
-            $currentSession = AcademicSession::getCurrentSessionAndTerm(false);
-            $sessionYear = $currentSession ? $currentSession->year : now()->year;
-        }
+        $prefix = config('app.reg_no_prefix', 'AAIS/0559/');
+        $maxRetries = 10;
+        $retryCount = 0;
+
+        $lastStudent = self::orderBy('id', 'desc')->first();
+        $studentId = $lastStudent ? $lastStudent->id + 1 : 1;
 
         do {
-            $randomSuffix = strtoupper(Str::random(4));
-            $regNo = "{$sessionYear}/{$randomSuffix}";
-        } while (self::where('reg_no', $regNo)->exists());
+            $paddedId = str_pad($studentId, 3, '0', STR_PAD_LEFT);
+            $regNo = "{$prefix}{$paddedId}";
 
-        return $regNo;
+            if (!self::where('reg_no', $regNo)->exists()) {
+                return $regNo;
+            }
+
+            $studentId++;
+            $retryCount++;
+
+            if ($retryCount >= $maxRetries) {
+                throw new \Exception('Unable to generate unique registration number after multiple attempts.');
+            }
+        } while (true);
     }
 }

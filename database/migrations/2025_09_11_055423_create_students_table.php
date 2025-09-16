@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('gender', 10);
             $table->date('date_of_birth')->nullable();
             $table->string('parent_name', 70)->nullable();
-            $table->text('parent_phone_number')->nullable(); // Encrypted
+            $table->text('parent_phone_number')->nullable();
             $table->string('address', 255)->nullable();
             $table->string('parent_occupation', 100)->nullable();
             $table->string('state_of_origin', 50)->nullable();
@@ -25,8 +25,9 @@ return new class extends Migration
             $table->timestamp('date_registered')->useCurrent();
             $table->boolean('approved')->default(false);
             $table->string('profile_pic', 255)->nullable();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->timestamps();
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

@@ -12,13 +12,36 @@ use App\Http\Controllers\Admin\AdminTeacherController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+return view('welcome');
+})->name('home');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+Route::get('/news', function () {
+    return view('news');
+})->name('news');
+Route::get('/gallery', function () {
+    return view('gallery');
+})->name('gallery');
+Route::get('/programs', function () {
+    return view('programs');
+})->name('programs');
+
+Route::get('/admissions', function () {
+    return view('admissions');
+})->name('admissions');
+Route::get('/newsletter', function () {
+    return view('newsletter');
+})->name('newsletter');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+        return view('student/dashboard');
+    })->name('student.dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -33,39 +56,63 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/view', [AdminUserController::class, 'viewAdmins'])->name('admin.view_admins');
     Route::get('/edit/{userId}', [AdminUserController::class, 'editAdmin'])->name('admin.edit_admin');
     Route::post('/edit/{userId}', [AdminUserController::class, 'editAdmin']);
-    Route::get('/privileges/{userId}', [AdminUserController::class, 'editAdminPrivileges'])->name('admin.edit_admin_privileges');
+    Route::get('/privileges/{userId}', [AdminUserController::class,'editAdminPrivileges'])->name('admin.edit_admin_privileges');
     Route::post('/privileges/{userId}', [AdminUserController::class, 'editAdminPrivileges']);
     Route::get('/delete/{userId}', [AdminUserController::class, 'deleteAdmin'])->name('admin.delete_admin');
     Route::post('/delete/{userId}', [AdminUserController::class, 'deleteAdmin']);
 
     // Students
+    Route::resource('students', AdminStudentController::class)->only(['index', 'edit', 'update'])->names([
+        'index' => 'admin.students.index',
+        'edit' => 'admin.students.edit',
+        'update' => 'admin.students.update',
+    ]);
+
+    Route::delete('/students/{student}', [AdminStudentController::class, 'destroy'])->name('admin.students.destroy');
+    Route::post('/students/toggle-fee-status/{student}', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.student_toggle_fee_status');
     Route::get('/students/add', [AdminStudentController::class, 'addStudent'])->name('admin.add_student');
     Route::post('/students/add', [AdminStudentController::class, 'addStudent']);
-    Route::resource('students', AdminStudentController::class)->only(['index', 'edit', 'update', 'destroy']);
-    Route::get('/students/{action}', [AdminStudentController::class, 'index'])->name('admin.students');
-    Route::post('/students/{action}', [AdminStudentController::class, 'index']);
-    Route::post('/students/{studentId}/approve', [AdminStudentController::class, 'approveStudent'])->name('admin.approve_student');
-    Route::post('/students/{studentId}/reenroll', [AdminStudentController::class, 'studentReenroll'])->name('admin.student_reenroll');
-    Route::post('/students/{studentId}/toggle-fee', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
-    Route::post('/students/{studentId}/toggle-approval', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.toggle_approval_status');
+    Route::get('/students/stats', [AdminStudentController::class, 'getStats'])->name('admin.student_stats');
+    // Route::post('/students/{studentId}/approve', [AdminStudentController::class, 'approveStudent'])->name('admin.approve_student');
+    // Route::post('/students/{studentId}/reenroll', [AdminStudentController::class, 'studentReenroll'])->name('admin.student_reenroll');
+    // Route::post('/students/{studentId}/toggle-fee', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
+    // Route::post('/students/{studentId}/toggle-approval', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.toggle_approval_status');
+    // Route::get('/students/search/{action}', [AdminStudentController::class, 'searchStudents'])->name('admin.search_students');
+    // Route::post('/students/print-message', [AdminStudentController::class, 'printStudentMessage'])->name('admin.print_student_message');
+    Route::get('/students/bulk-upload', [AdminStudentController::class, 'bulkUpload'])->name('admin.bulk_upload_students');
+    Route::post('/students/bulk-upload', [AdminStudentController::class, 'processBulkUpload']);
+
+    Route::get('/students/reenroll/{student}', [AdminStudentController::class, 'studentReenroll'])->name('admin.student_reenroll');
+    Route::post('/students/reenroll/{student}', [AdminStudentController::class, 'studentReenroll']);
+    Route::get('/students/approve/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.student_approve');
+    Route::post('/students/approve/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.student_approve');
+    // Route::get('/students/toggle-fee/{student}', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
+    // Route::post('/students/toggle-fee/{student}', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
+    // Route::post('/students/toggle-approval/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.toggle_approval_status');
     Route::get('/students/search/{action}', [AdminStudentController::class, 'searchStudents'])->name('admin.search_students');
     Route::post('/students/print-message', [AdminStudentController::class, 'printStudentMessage'])->name('admin.print_student_message');
+    Route::get('/students/mark-as-left/{student}', [AdminStudentController::class, 'markAsLeft'])->name('admin.student_mark_as_left');
+    Route::post('/students/mark-as-left/{student}', [AdminStudentController::class, 'markAsLeft'])->name('admin.student_mark_as_left');
+
+
+    // Catch-all route for custom actions (must be last to avoid conflicts)
+    Route::get('/students/{action}', [AdminStudentController::class, 'index'])->name('admin.students');
 
     // Sessions
     Route::get('/sessions', [AdminSessionController::class, 'manageSessions'])->name('admin.manage_academic_sessions');
-    Route::post('/sessions', [AdminSessionController::class, 'manageSessions']);
-    Route::get('sessions', [AdminSessionController::class, 'manageSessions'])->name('admin.manage_academic_sessions');
-    Route::post('sessions', [AdminSessionController::class, 'store'])->name('admin.manage_academic_sessions.store');
-    Route::get('sessions/{id}/edit', [AdminSessionController::class, 'edit'])->name('admin.manage_academic_sessions.edit');
-    Route::put('sessions/{id}', [AdminSessionController::class, 'update'])->name('admin.manage_academic_sessions.update');
-    Route::get('sessions/{id}/delete', [AdminSessionController::class, 'delete'])->name('admin.manage_academic_sessions.delete');
-    Route::delete('sessions/{id}', [AdminSessionController::class, 'destroy'])->name('admin.manage_academic_sessions.destroy');
-    Route::get('/classes/{class}/delete', [AdminClassController::class, 'delete'])->name('admin.classes.delete');
+    Route::post('/sessions', [AdminSessionController::class, 'store'])->name('admin.manage_academic_sessions.store');
+    Route::get('/sessions/{id}/edit', [AdminSessionController::class, 'edit'])->name('admin.manage_academic_sessions.edit');
+    Route::put('/sessions/{id}', [AdminSessionController::class, 'update'])->name('admin.manage_academic_sessions.update');
+    Route::get('/sessions/{id}/delete', [AdminSessionController::class,'delete'])->name('admin.manage_academic_sessions.delete');
+    Route::delete('/sessions/{id}', [AdminSessionController::class,'destroy'])->name('admin.manage_academic_sessions.destroy');
+    Route::get('/set-current-session', [AdminSessionController::class,'setCurrentSessionForm'])->name('admin.set_current_session');
+    Route::post('/set-current-session', [AdminSessionController::class,'setCurrentSession'])->name('admin.set_current_session.store');
 
     // Classes Management (CRUD)
-    Route::resource('classes', AdminClassController::class)->names('admin.classes')->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+    Route::resource('classes', AdminClassController::class)->names('admin.classes')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::get('/classes/{class}/delete', [AdminClassController::class, 'delete'])->name('admin.classes.delete');
 
-    // Class Selection and Student Actions (existing, unchanged)
+    // Class Selection and Student Actions
     Route::get('/classes/select/{action}', [AdminClassController::class, 'selectClass'])->name('admin.select_class');
     Route::post('/classes/select/{action}', [AdminClassController::class, 'selectClass']);
     Route::get('/classes/{className}/students/{action}', [AdminClassController::class, 'studentsByClass'])->name('admin.students_by_class');
@@ -74,31 +121,34 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::post('/classes/{className}/demote/{studentId}/{action}', [AdminClassController::class, 'demoteStudent'])->name('admin.demote_student');
     Route::post('/classes/{className}/delete-record/{studentId}/{action}', [AdminClassController::class, 'deleteStudentClassRecord'])->name('admin.delete_student_class_record');
 
+    // Fee Status Toggle
+    Route::post('/students/{student}/toggle-fee-status', [AdminClassController::class, 'toggleFeeStatus'])->name('admin.student_toggle_fee_status');
+
     // Subjects
     Route::resource('subjects', AdminSubjectController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
     Route::get('/subjects', [AdminSubjectController::class, 'manageSubjects'])->name('admin.manage_subjects');
     Route::post('/subjects', [AdminSubjectController::class, 'manageSubjects']);
     Route::post('/subjects/merge', [AdminSubjectController::class, 'mergeSubjects'])->name('admin.merge_subjects');
-    Route::post('/assign-subject-to-class', [AdminSubjectController::class, 'assignSubjectToClass'])->name('admin.assign_subject_to_class');
-    Route::post('/remove-subject-from-class', [AdminSubjectController::class, 'removeSubjectFromClass'])->name('admin.remove_subject_from_class');
-    Route::get('/classes/{className}/edit-subjects', [AdminSubjectController::class, 'editSubjectAssignment'])->name('admin.edit_subject_assignment');
+    Route::post('/assign-subject-to-class', [AdminSubjectController::class,'assignSubjectToClass'])->name('admin.assign_subject_to_class');
+    Route::post('/remove-subject-from-class', [AdminSubjectController::class,'removeSubjectFromClass'])->name('admin.remove_subject_from_class');
+    Route::get('/classes/{className}/edit-subjects', [AdminSubjectController::class,'editSubjectAssignment'])->name('admin.edit_subject_assignment');
     Route::post('/classes/{className}/edit-subjects', [AdminSubjectController::class, 'editSubjectAssignment']);
 
     // Results
-    Route::get('/results/{className}/{studentId}/{action}', [AdminResultController::class, 'manageResults'])->name('admin.manage_results');
+    Route::get('/results/{className}/{studentId}/{action}', [AdminResultController::class,'manageResults'])->name('admin.manage_results');
     Route::post('/results/{className}/{studentId}/{action}', [AdminResultController::class, 'updateResult']);
-    Route::post('/results/update-field', [AdminResultController::class, 'updateResultField'])->name('admin.update_result_field');
+    Route::post('/results/update-field', [AdminResultController::class,'updateResultField'])->name('admin.update_result_field');
     Route::get('/broadsheet/{className}/{action}', [AdminResultController::class, 'broadsheet'])->name('admin.broadsheet');
     Route::post('/broadsheet/{className}/{action}', [AdminResultController::class, 'updateBroadsheet']);
-    Route::get('/broadsheet/{className}/{action}/download', [AdminResultController::class, 'downloadBroadsheet'])->name('admin.download_broadsheet');
+    Route::get('/broadsheet/{className}/{action}/download', [AdminResultController::class,'downloadBroadsheet'])->name('admin.download_broadsheet');
 
     // Teachers
     Route::resource('teachers', AdminTeacherController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
     Route::get('/teachers', [AdminTeacherController::class, 'manageTeachers'])->name('admin.manage_teachers');
     Route::post('/teachers', [AdminTeacherController::class, 'manageTeachers']);
-    Route::post('/assign-subject-to-teacher', [AdminTeacherController::class, 'assignSubjectToTeacher'])->name('admin.assign_subject_to_teacher');
-    Route::post('/assign-teacher-to-class', [AdminTeacherController::class, 'assignTeacherToClass'])->name('admin.assign_teacher_to_class');
-    Route::post('/remove-teacher-from-class', [AdminTeacherController::class, 'removeTeacherFromClass'])->name('admin.remove_teacher_from_class');
+    Route::post('/assign-subject-to-teacher', [AdminTeacherController::class,'assignSubjectToTeacher'])->name('admin.assign_subject_to_teacher');
+    Route::post('/assign-teacher-to-class', [AdminTeacherController::class,'assignTeacherToClass'])->name('admin.assign_teacher_to_class');
+    Route::post('/remove-teacher-from-class', [AdminTeacherController::class,'removeTeacherFromClass'])->name('admin.remove_teacher_from_class');
 });
 
 require __DIR__.'/auth.php';

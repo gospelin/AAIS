@@ -1,28 +1,22 @@
-{{-- resources/views/admin/classes/delete_class.blade.php --}}
-
 @extends('admin.layouts.app')
 
 @section('title', 'Delete Class')
 
-@section('description', 'Confirm deletion of a class for Aunty Anne\'s International School.')
+@section('description', 'Confirm deletion of a class at Aunty Anne\'s International School.')
 
 @push('styles')
     <style>
-        .content-container {
-            max-width: 90rem;
-            margin: 0 auto;
-            padding: var(--space-lg) var(--space-md);
-        }
-
         .form-container {
+            max-width: 600px;
+            margin: 0 auto;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: var(--space-xl);
-            margin-bottom: var(--space-2xl);
+            padding: var(--space-2xl);
             position: relative;
             overflow: hidden;
+            margin-bottom: var(--space-2xl);
         }
 
         .form-container::before {
@@ -47,22 +41,15 @@
             margin-bottom: var(--space-xl);
         }
 
-        .confirm-message {
-            font-size: clamp(1rem, 2.5vw, 1.125rem);
-            color: var(--text-primary);
-            text-align: center;
+        .warning-text {
+            color: var(--error);
+            font-size: clamp(0.875rem, 2vw, 0.9375rem);
             margin-bottom: var(--space-lg);
+            text-align: center;
         }
 
-        .btn-container {
-            display: flex;
-            gap: var(--space-md);
-            justify-content: center;
-        }
-
-        .btn-submit,
-        .btn-cancel {
-            background: var(--gradient-primary);
+        .btn-delete {
+            background: var(--error);
             border: none;
             color: var(--white);
             font-size: clamp(0.875rem, 2.5vw, 1rem);
@@ -71,29 +58,43 @@
             border-radius: var(--radius-lg);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 200px;
-            text-align: center;
+            width: 100%;
+            margin-top: var(--space-md);
+        }
+
+        .btn-delete:hover,
+        .btn-delete:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            color: var(--white);
         }
 
         .btn-cancel {
-            background: var(--glass-bg);
+            background: var(--bg-secondary);
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            font-weight: 600;
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            margin-top: var(--space-sm);
+            text-align: center;
+            text-decoration: none;
         }
 
-        .btn-submit:hover,
-        .btn-submit:focus-visible,
         .btn-cancel:hover,
         .btn-cancel:focus-visible {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            background: var(--primary-green);
+            color: var(--white);
         }
 
         .alert {
             padding: var(--space-md);
             border-radius: var(--radius-md);
-            margin-bottom: var(--space-lg);
-            font-size: clamp(0.875rem, 2vw, 0.9375rem);
+            margin-bottom: var(--space-md);
         }
 
         .alert-error {
@@ -101,49 +102,25 @@
             border: 1px solid var(--error);
             color: var(--text-primary);
         }
-
-        @media (max-width: 768px) {
-            .form-container {
-                padding: var(--space-xl);
-            }
-
-            .btn-container {
-                flex-direction: column;
-                gap: var(--space-sm);
-            }
-
-            .btn-submit,
-            .btn-cancel {
-                width: 100%;
-            }
-        }
     </style>
 @endpush
 
 @section('content')
     <div class="content-container">
-        <!-- Error Messages -->
         @if (session('error'))
-            <div class="alert alert-error">
-                {{ session('error') }}
-            </div>
+            <div class="alert alert-error">{{ session('error') }}</div>
         @endif
 
         <div class="form-container">
-            <h2 class="form-header">Delete Class</h2>
-            <p class="confirm-message">Are you sure you want to delete the class <strong>{{ $class->name }}</strong>? This
-                action cannot be undone.</p>
-            <form method="POST" action="{{ route('admin.classes.destroy', $class->id) }}" id="deleteClassForm">
+            <h2 class="form-header">Delete Class: {{ $class->name }}</h2>
+            <p class="warning-text">Are you sure you want to delete the class "{{ $class->name }}"? This action cannot be undone.</p>
+            <form method="POST" action="{{ route('admin.classes.destroy', $class->id) }}">
                 @csrf
                 @method('DELETE')
-                <div class="btn-container">
-                    <button type="submit" class="btn-submit">
-                        <i class="bx bx-trash"></i> Delete Class
-                    </button>
-                    <a href="{{ route('admin.classes') }}" class="btn-cancel">
-                        <i class="bx bx-x"></i> Cancel
-                    </a>
-                </div>
+                <button type="submit" class="btn-delete">
+                    <i class="bx bx-trash"></i> Delete Class
+                </button>
+                <a href="{{ route('admin.classes.index') }}" class="btn-cancel">Cancel</a>
             </form>
         </div>
     </div>
@@ -151,18 +128,9 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const form = document.getElementById('deleteClassForm');
-
-                form.addEventListener('submit', (e) => {
-                    if (!confirm('Are you sure you want to delete this class?')) {
-                        e.preventDefault();
-                    }
-                });
-
-                // GSAP Animations
                 gsap.from('.form-container', { opacity: 0, y: 20, duration: 0.6 });
-                gsap.from('.confirm-message', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
-                gsap.from('.btn-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.4 });
+                gsap.from('.warning-text', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
+                gsap.from('button, a', { opacity: 0, y: 20, stagger: 0.1, duration: 0.6, delay: 0.4 });
             });
         </script>
     @endpush

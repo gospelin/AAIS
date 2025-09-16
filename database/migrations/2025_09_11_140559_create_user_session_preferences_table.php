@@ -9,11 +9,13 @@ return new class extends Migration
     {
         Schema::create('user_session_preferences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade')->unique();
-            $table->unsignedBigInteger('session_id')->default(1);
-            $table->foreign('session_id')->references('id')->on('academic_sessions')->onDelete('cascade');
+            $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade');
+            $table->foreignId('session_id')->constrained('academic_sessions')->onDelete('cascade');
+            // $table->foreign('session_id')->references('id')->on('academic_sessions')->onDelete('cascade');
             $table->enum('current_term', ['First', 'Second', 'Third'])->default('First');
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
+
         });
     }
 

@@ -12,7 +12,8 @@ return new class extends Migration
             $table->string('name', 50)->unique();
             $table->string('section', 20)->nullable();
             $table->integer('hierarchy')->unique();
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

@@ -12,7 +12,8 @@ return new class extends Migration
             $table->string('name', 100)->unique();
             $table->string('section', 100)->nullable();
             $table->boolean('deactivated')->default(false);
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Classes;
 use App\Models\Student;
 use App\Models\StudentClassHistory;
+use App\Models\FeePayment;
 use App\Enums\TermEnum;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
@@ -128,7 +129,12 @@ class AdminClassController extends AdminBaseController
 
     public function selectClass(Request $request, string $action)
     {
+        $this->authorize('manage_classes');
+
         $classes = Classes::orderBy('hierarchy')->get();
+        $currentSessionData = $this->getCurrentSessionAndTerm(true);
+        $currentSession = $currentSessionData[0];
+        $currentTerm = $currentSessionData[1];
 
         if ($request->isMethod('post')) {
             $validated = $request->validate([
@@ -143,14 +149,21 @@ class AdminClassController extends AdminBaseController
             ]);
         }
 
-        return view('admin.classes.select_class', compact('classes', 'action'));
+        return view('admin.classes.select_class', compact('classes', 'action', 'currentSession', 'currentTerm'));
     }
-
+    
     public function studentsByClass(Request $request, string $className, string $action)
     {
+        $this->authorize('manage_classes');
+
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
         $currentSession = $currentSessionData[0];
         $currentTerm = $currentSessionData[1];
+
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->route('admin.select_class', ['action' => $action])
+                ->with('error', 'No current academic session or term set.');
+        }
 
         $class = Classes::where('name', urldecode($className))->firstOrFail();
         $studentsQuery = $this->getStudentsQuery($currentSession, $currentTerm->value)
@@ -167,7 +180,7 @@ class AdminClassController extends AdminBaseController
 
         return view('admin.classes.students_by_class', compact(
             'studentsClasses',
-            'students',  // Added for pagination
+            'students',
             'class',
             'action',
             'currentSession',
@@ -180,13 +193,20 @@ class AdminClassController extends AdminBaseController
 
     public function promoteStudent(Request $request, string $className, $studentId, string $action)
     {
+        $this->authorize('manage_classes');
+
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
         $currentSession = $currentSessionData[0];
         $currentTerm = $currentSessionData[1];
 
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($className), 'action' => $action])
+                ->with('error', 'No current academic session or term set.');
+        }
+
         $student = Student::findOrFail($studentId);
         $currentClass = Classes::where('name', urldecode($className))->firstOrFail();
-        $nextClass = Classes::where('hierarchy', $currentClass->hierarchy + 1)->first();
+        $nextClass = Classes::getNextClass($currentClass->hierarchy);
 
         if (!$nextClass) {
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
@@ -194,6 +214,8 @@ class AdminClassController extends AdminBaseController
         }
 
         try {
+            DB::beginTransaction();
+
             $currentHistory = StudentClassHistory::where('student_id', $studentId)
                 ->where('session_id', $currentSession->id)
                 ->where('class_id', $currentClass->id)
@@ -223,24 +245,34 @@ class AdminClassController extends AdminBaseController
                 'new_class_id' => $nextClass->id
             ]);
 
+            DB::commit();
+
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('success', "Student promoted to {$nextClass->name} successfully!");
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error("Error promoting student {$studentId}: " . $e->getMessage());
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
-                ->with('error', 'Error promoting student.');
+                ->with('error', 'Error promoting student: ' . $e->getMessage());
         }
     }
 
     public function demoteStudent(Request $request, string $className, $studentId, string $action)
     {
+        $this->authorize('manage_classes');
+
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
         $currentSession = $currentSessionData[0];
         $currentTerm = $currentSessionData[1];
 
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($className), 'action' => $action])
+                ->with('error', 'No current academic session or term set.');
+        }
+
         $student = Student::findOrFail($studentId);
         $currentClass = Classes::where('name', urldecode($className))->firstOrFail();
-        $previousClass = Classes::where('hierarchy', $currentClass->hierarchy - 1)->first();
+        $previousClass = Classes::getPreviousClass($currentClass->hierarchy);
 
         if (!$previousClass) {
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
@@ -248,6 +280,8 @@ class AdminClassController extends AdminBaseController
         }
 
         try {
+            DB::beginTransaction();
+
             $currentHistory = StudentClassHistory::where('student_id', $studentId)
                 ->where('session_id', $currentSession->id)
                 ->where('class_id', $currentClass->id)
@@ -277,24 +311,37 @@ class AdminClassController extends AdminBaseController
                 'new_class_id' => $previousClass->id
             ]);
 
+            DB::commit();
+
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
                 ->with('success', "Student demoted to {$previousClass->name} successfully!");
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error("Error demoting student {$studentId}: " . $e->getMessage());
             return redirect()->route('admin.students_by_class', ['className' => urlencode($currentClass->name), 'action' => $action])
-                ->with('error', 'Error demoting student.');
+                ->with('error', 'Error demoting student: ' . $e->getMessage());
         }
     }
 
     public function deleteStudentClassRecord(Request $request, string $className, $studentId, string $action)
     {
-        $student = Student::findOrFail($studentId);
+        $this->authorize('manage_classes');
+
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
         $currentSession = $currentSessionData[0];
         $currentTerm = $currentSessionData[1];
+
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->route('admin.students_by_class', ['className' => urlencode($className), 'action' => $action])
+                ->with('error', 'No current academic session or term set.');
+        }
+
+        $student = Student::findOrFail($studentId);
         $class = Classes::where('name', urldecode($className))->firstOrFail();
 
         try {
+            DB::beginTransaction();
+
             $history = StudentClassHistory::where('student_id', $studentId)
                 ->where('session_id', $currentSession->id)
                 ->where('class_id', $class->id)
@@ -314,41 +361,102 @@ class AdminClassController extends AdminBaseController
                     'class_id' => $class->id
                 ]);
 
+                DB::commit();
+
                 return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
                     ->with('success', 'Student class record deleted successfully!');
             }
 
+            DB::commit();
             return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
                 ->with('error', 'No active class record found for this student.');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error("Error deleting class record for student {$studentId}: " . $e->getMessage());
             return redirect()->route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action])
-                ->with('error', 'Error deleting class record.');
+                ->with('error', 'Error deleting class record: ' . $e->getMessage());
         }
     }
 
     public function searchStudentsByClass(Request $request, string $className, string $action)
     {
+        $this->authorize('manage_classes');
+
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
         $currentSession = $currentSessionData[0];
         $currentTerm = $currentSessionData[1];
-        $class = Classes::where('name', urldecode($className))->firstOrFail();
 
-        $query = $request->input('query', '');
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->route('admin.select_class', ['action' => $action])
+                ->with('error', 'No current academic session or term set.');
+        }
+
+        $class = Classes::where('name', urldecode($className))->firstOrFail();
         $studentsQuery = $this->getStudentsQuery($currentSession, $currentTerm->value)
             ->where('classes.id', $class->id);
 
+        $query = $request->input('query', '');
         if ($query) {
             $studentsQuery->where(function ($q) use ($query) {
                 $q->whereRaw('LOWER(students.first_name) LIKE ?', ['%' . strtolower($query) . '%'])
-                  ->orWhereRaw('LOWER(students.last_name) LIKE ?', ['%' . strtolower($query) . '%'])
-                  ->orWhere('students.reg_no', 'LIKE', '%' . $query . '%');
+                    ->orWhereRaw('LOWER(students.last_name) LIKE ?', ['%' . strtolower($query) . '%'])
+                    ->orWhere('students.reg_no', 'LIKE', '%' . $query . '%');
             });
         }
 
         $students = $studentsQuery->orderBy('students.first_name')->get();
         $studentsClasses = $this->groupStudentsByClass($students);
 
-        return view('admin.classes.search_results', compact('studentsClasses', 'class', 'action', 'currentSession', 'currentTerm'));
+        return view('admin.classes.search_results', compact('studentsClasses', 'class', 'action', 'currentSession', 'currentTerm', 'query'));
+    }
+
+    public function toggleFeeStatus(Request $request, Student $student)
+    {
+        $this->authorize('manage_classes');
+
+        $currentSessionData = $this->getCurrentSessionAndTerm(true);
+        $currentSession = $currentSessionData[0];
+        $currentTerm = $currentSessionData[1];
+
+        if (!$currentSession || !$currentTerm) {
+            return redirect()->back()->with('error', 'No current academic session or term set.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $feePayment = FeePayment::where('student_id', $student->id)
+                ->where('session_id', $currentSession->id)
+                ->where('term', $currentTerm->value)
+                ->first();
+
+            if ($feePayment) {
+                $newStatus = !$feePayment->has_paid_fee;
+                $feePayment->update(['has_paid_fee' => $newStatus]);
+                $actionText = $newStatus ? 'marked as paid' : 'marked as unpaid';
+            } else {
+                FeePayment::create([
+                    'student_id' => $student->id,
+                    'session_id' => $currentSession->id,
+                    'term' => $currentTerm->value,
+                    'has_paid_fee' => true,
+                ]);
+                $actionText = 'marked as paid';
+            }
+
+            $this->logActivity("Fee status {$actionText} for student {$student->reg_no}", [
+                'student_id' => $student->id,
+                'session_id' => $currentSession->id,
+                'term' => $currentTerm->value
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', "Fee status {$actionText} for {$student->full_name}!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error toggling fee status for student {$student->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Error updating fee status: ' . $e->getMessage());
+        }
     }
 }

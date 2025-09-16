@@ -8,10 +8,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('class_subject', function (Blueprint $table) {
-            $table->foreignId('class_id')->constrained()->onDelete('cascade');
-            $table->foreignId('subject_id')->constrained()->onDelete('cascade');
+            $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
+            $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->primary(['class_id', 'subject_id']);
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

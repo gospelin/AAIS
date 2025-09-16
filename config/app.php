@@ -124,4 +124,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'reg_no_prefix' => env('REG_NO_PREFIX', 'AAIS/0559/'),
+
 ];

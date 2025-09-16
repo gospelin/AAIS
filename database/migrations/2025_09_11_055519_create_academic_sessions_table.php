@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('year', 20)->unique();
             $table->boolean('is_current')->default(false);
-            $table->enum('current_term', ['First', 'Second', 'Third'])->default('First');
-            $table->timestamps();
+            $table->enum('current_term', ['First', 'Second', 'Third'])->nullable();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

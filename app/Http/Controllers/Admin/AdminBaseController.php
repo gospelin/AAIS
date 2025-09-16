@@ -25,12 +25,23 @@ class AdminBaseController extends Controller
     /**
      * Get the current academic session and term.
      *
-     * @param bool $usePreference
+     * @param bool $required
      * @return array [session, term]
      */
-    protected function getCurrentSessionAndTerm($usePreference = false)
+    protected function getCurrentSessionAndTerm($required = false)
     {
-        return AcademicSession::getCurrentSessionAndTerm($usePreference);
+        try {
+            [$session, $term] = AcademicSession::getCurrentSessionAndTerm(true);
+
+            if ($required && (!$session || !$term)) {
+                throw new \Exception('No current session or term set.');
+            }
+
+            return [$session, $term];
+        } catch (\Exception $e) {
+            Log::error("Error fetching current session and term: " . $e->getMessage());
+            return [null, null];
+        }
     }
 
     /**
@@ -186,23 +197,30 @@ class AdminBaseController extends Controller
     }
 
     /**
-     * Group students by class name and sort.
+     * Group students by class and sort by name.
      *
-     * @param array|Collection $students
-     * @return Collection
+     * @param array|\Illuminate\Support\Collection $students
+     * @return \Illuminate\Support\Collection
      */
     protected function groupStudentsByClass($students)
     {
-        return collect($students)->groupBy(function ($item) {
-            return $item->class_name ?? 'Unassigned';
-        })->map(function ($group, $className) {
-            return $group->sortBy(function ($student) {
-                return strtolower($student->first_name) . strtolower($student->last_name);
-            })->values();
-        })->sortBy(function ($group, $className) {
-            $hierarchy = Classes::where('name', $className)->first()?->hierarchy ?? 999;
-            return $hierarchy;
-        });
+        return collect($students)
+            ->filter(function ($student) {
+                if (!is_object($student) || !($student instanceof Student)) {
+                    Log::warning("Invalid student data detected in groupStudentsByClass", [
+                        'data' => is_object($student) ? get_class($student) : gettype($student)
+                    ]);
+                    return false;
+                }
+                return true;
+            })
+            ->groupBy('class_name')
+            ->map(function ($studentsInClass) {
+                return $studentsInClass->sortBy(function ($student) {
+                    return strtolower($student->first_name) . strtolower($student->last_name);
+                })->values();
+            })
+            ->sortKeys();
     }
 
     /**
@@ -213,22 +231,14 @@ class AdminBaseController extends Controller
      */
     protected function calculateGrade($total)
     {
-        if ($total >= 95)
-            return "A+";
-        if ($total >= 80)
-            return "A";
-        if ($total >= 70)
-            return "B+";
-        if ($total >= 65)
-            return "B";
-        if ($total >= 60)
-            return "C+";
-        if ($total >= 50)
-            return "C";
-        if ($total >= 40)
-            return "D";
-        if ($total >= 30)
-            return "E";
+        if ($total >= 95) return "A+";
+        if ($total >= 80) return "A";
+        if ($total >= 70) return "B+";
+        if ($total >= 65) return "B";
+        if ($total >= 60) return "C+";
+        if ($total >= 50) return "C";
+        if ($total >= 40) return "D";
+        if ($total >= 30) return "E";
         return "F";
     }
 
@@ -240,22 +250,14 @@ class AdminBaseController extends Controller
      */
     protected function generateRemark($total)
     {
-        if ($total >= 95)
-            return "Outstanding";
-        if ($total >= 80)
-            return "Excellent";
-        if ($total >= 70)
-            return "Very Good";
-        if ($total >= 65)
-            return "Good";
-        if ($total >= 60)
-            return "Credit";
-        if ($total >= 50)
-            return "Credit";
-        if ($total >= 40)
-            return "Poor";
-        if ($total >= 30)
-            return "Very Poor";
+        if ($total >= 95) return "Outstanding";
+        if ($total >= 80) return "Excellent";
+        if ($total >= 70) return "Very Good";
+        if ($total >= 65) return "Good";
+        if ($total >= 60) return "Credit";
+        if ($total >= 50) return "Credit";
+        if ($total >= 40) return "Poor";
+        if ($total >= 30) return "Very Poor";
         return "Failed";
     }
 

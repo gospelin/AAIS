@@ -689,8 +689,8 @@
                 <ul class="nav-list list-unstyled">
                     <!-- Student Management -->
                     <li class="nav-item">
-                        <a href="#studentManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#studentManagement" aria-expanded="false">
+                        <a href="#studentManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#studentManagement"
+                            aria-expanded="false">
                             <i class='bx bxs-graduation nav-icon'></i> <span>Student Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -702,37 +702,31 @@
                                 <li><a href="{{ route('admin.students', ['action' => 'view_students']) }}"
                                         class="{{ request()->routeIs('admin.students') && request('action') === 'view_students' ? 'active' : '' }}"><i
                                             class="bx bx-list-ul nav-icon"></i><span>View All Students</span></a></li>
-                                <li><a href="{{ route('admin.students', ['action' => 'toggle_approval_status']) }}"
-                                        class="{{ request()->routeIs('admin.students') && request('action') === 'toggle_approval_status' ? 'active' : '' }}"><i
-                                            class="bx bx-check-circle nav-icon"></i><span>Approve/Deactivate
-                                            Students</span></a></li>
-                                <li><a href="{{ route('admin.students', ['action' => 'edit']) }}"
-                                        class="{{ request()->routeIs('admin.students') && request('action') === 'edit' ? 'active' : '' }}"><i
-                                            class="bx bx-edit nav-icon"></i><span>Edit Student Details</span></a></li>
                                 <li><a href="{{ route('admin.students', ['action' => 'toggle_fees_status']) }}"
                                         class="{{ request()->routeIs('admin.students') && request('action') === 'toggle_fees_status' ? 'active' : '' }}"><i
                                             class="bx bx-money nav-icon"></i><span>Check Fees Status</span></a></li>
                                 <li><a href="{{ route('admin.students', ['action' => 'delete_from_school']) }}"
                                         class="{{ request()->routeIs('admin.students') && request('action') === 'delete_from_school' ? 'active' : '' }}"><i
-                                            class="bx bx-trash nav-icon"></i><span>Delete Student Records</span></a>
-                                </li>
+                                            class="bx bx-trash nav-icon"></i><span>Delete Student Records</span></a></li>
                                 <li><a href="{{ route('admin.select_class', ['action' => 'promote']) }}"
                                         class="{{ request()->routeIs('admin.select_class') && request('action') === 'promote' ? 'active' : '' }}"><i
                                             class="bx bx-arrow-up nav-icon"></i><span>Promote Students</span></a></li>
                                 <li><a href="{{ route('admin.select_class', ['action' => 'demote']) }}"
                                         class="{{ request()->routeIs('admin.select_class') && request('action') === 'demote' ? 'active' : '' }}"><i
                                             class="bx bx-arrow-down nav-icon"></i><span>Demote Students</span></a></li>
-                                <li><a href="#" class=""><i class="bx bx-upload nav-icon"></i><span>Bulk Upload
-                                            Students</span></a></li>
-                                <li><a href="#" class=""><i class="bx bx-search nav-icon"></i><span>Search and Filter
-                                            Students</span></a></li>
+                                <li><a href="{{ route('admin.bulk_upload_students') }}"
+                                        class="{{ request()->routeIs('admin.bulk_upload_students') ? 'active' : '' }}"><i
+                                            class="bx bx-upload nav-icon"></i><span>Bulk Upload Students</span></a></li>
+                                <li><a href="{{ route('admin.search_students', ['action' => 'view_students']) }}"
+                                        class="{{ request()->routeIs('admin.search_students') ? 'active' : '' }}"><i
+                                            class="bx bx-search nav-icon"></i><span>Search and Filter Students</span></a></li>
                             </ul>
                         </div>
                     </li>
                     <!-- Class Management -->
                     <li class="nav-item">
-                        <a href="#classManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#classManagement" aria-expanded="false">
+                        <a href="#classManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#classManagement"
+                            aria-expanded="false">
                             <i class='bx bxs-group nav-icon'></i><span>Class Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -765,8 +759,8 @@
                     </li>
                     <!-- Subject Management -->
                     <li class="nav-item">
-                        <a href="#subjectManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#subjectManagement" aria-expanded="false">
+                        <a href="#subjectManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#subjectManagement"
+                            aria-expanded="false">
                             <i class="fas fa-book nav-icon"></i><span>Subject Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -793,8 +787,8 @@
                     </li>
                     <!-- Result Management -->
                     <li class="nav-item">
-                        <a href="#resultManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#resultManagement" aria-expanded="false">
+                        <a href="#resultManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#resultManagement"
+                            aria-expanded="false">
                             <i class="fas fa-chart-line nav-icon"></i><span>Result Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -822,8 +816,8 @@
                     </li>
                     <!-- Teacher Management -->
                     <li class="nav-item">
-                        <a href="#teacherManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#teacherManagement" aria-expanded="false">
+                        <a href="#teacherManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#teacherManagement"
+                            aria-expanded="false">
                             <i class="fas fa-chalkboard-teacher nav-icon"></i><span>Staff Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -845,15 +839,27 @@
                     </li>
                     <!-- Manage Academic Session -->
                     <li class="nav-item">
-                        <a href="{{ route('admin.manage_academic_sessions') }}"
-                            class="nav-link {{ request()->routeIs('admin.manage_academic_sessions') ? 'active' : '' }}">
-                            <i class="fas fa-calendar-alt nav-icon"></i><span>Manage academic_sessions</span>
+                        <a href="#sessionManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#sessionManagement"
+                            aria-expanded="false">
+                            <i class="fas fa-calendar-alt nav-icon"></i><span>Session Management</span>
+                            <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
+                        <div class="collapse" id="sessionManagement">
+                            <ul class="nav-list nav-sublist list-unstyled">
+                                <li><a href="{{ route('admin.manage_academic_sessions') }}"
+                                        class="{{ request()->routeIs('admin.manage_academic_sessions') ? 'active' : '' }}"><i
+                                            class="bx bx-calendar nav-icon"></i><span>Manage Academic Sessions</span></a></li>
+                                <li><a href="{{ route('admin.set_current_session') }}"
+                                        class="{{ request()->routeIs('admin.set_current_session') ? 'active' : '' }}"><i
+                                            class="bx bx-calendar-check nav-icon"></i><span>Set Current Session & Term</span></a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                     <!-- Admin Management -->
                     <li class="nav-item">
-                        <a href="#adminManagement" class="nav-link" data-bs-toggle="collapse"
-                            data-bs-target="#adminManagement" aria-expanded="false">
+                        <a href="#adminManagement" class="nav-link" data-bs-toggle="collapse" data-bs-target="#adminManagement"
+                            aria-expanded="false">
                             <i class="fas fa-user-shield nav-icon"></i><span>Admin Management</span>
                             <i class="bx bx-chevron-down ms-auto"></i>
                         </a>
@@ -864,16 +870,16 @@
                                             class="{{ request()->routeIs('admin.create_admin') ? 'active' : '' }}"><i
                                                 class="bx bx-user-plus nav-icon"></i><span>Create Admin User</span></a></li>
                                     <li><a href="{{ route('admin.view_admins') }}"
-                                            class="{{ request()->routeIs('admin.view_admin') ? 'active' : '' }}"><i
-                                                class="bx bx-list-ul nav-icon"></i><span>View admin</span></a></li>
+                                            class="{{ request()->routeIs('admin.view_admins') ? 'active' : '' }}"><i
+                                                class="bx bx-list-ul nav-icon"></i><span>View Admins</span></a></li>
                                     <li><a href="{{ route('admin.view_admins') }}"
-                                            class="{{ request()->routeIs('admin.view_admin') ? 'active' : '' }}"><i
+                                            class="{{ request()->routeIs('admin.view_admins') ? 'active' : '' }}"><i
                                                 class="bx bx-edit nav-icon"></i><span>Edit Admin Details</span></a></li>
                                     <li><a href="{{ route('admin.view_admins') }}"
-                                            class="{{ request()->routeIs('admin.view_admin') ? 'active' : '' }}"><i
+                                            class="{{ request()->routeIs('admin.view_admins') ? 'active' : '' }}"><i
                                                 class="bx bx-shield-alt nav-icon"></i><span>Edit Privileges</span></a></li>
                                     <li><a href="{{ route('admin.view_admins') }}"
-                                            class="{{ request()->routeIs('admin.view_admin') ? 'active' : '' }}"><i
+                                            class="{{ request()->routeIs('admin.view_admins') ? 'active' : '' }}"><i
                                                 class="bx bx-trash nav-icon"></i><span>Delete Admin</span></a></li>
                                 @endif
                             </ul>

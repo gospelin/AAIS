@@ -1,5 +1,5 @@
 <?php
-// app/Models/AcademicSession.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,8 +12,6 @@ class AcademicSession extends Model
 {
     use HasFactory;
 
-    // protected $table = 'academic_sessions';
-
     protected $fillable = [
         'year',
         'is_current',
@@ -22,6 +20,7 @@ class AcademicSession extends Model
 
     protected $casts = [
         'is_current' => 'boolean',
+        'current_term' => 'string' // Explicitly cast to string to allow null
     ];
 
     public static function getCurrentSession()
@@ -37,33 +36,32 @@ class AcademicSession extends Model
 
         $preference = UserSessionPreference::where('user_id', auth()->id())->first();
 
-        if ($preference) {
-            $session = self::find($preference->session_id);
+        if ($preference && $session = self::find($preference->session_id)) {
             $term = $preference->current_term ? TermEnum::from($preference->current_term) : null;
         } else {
-            $legacySession = self::where('is_current', true)->first();
+            $session = self::where('is_current', true)->first();
 
-            if ($legacySession) {
-                $session = $legacySession;
-                $term = $legacySession->current_term ? TermEnum::from($legacySession->current_term) : TermEnum::FIRST;
-
-                $preference = UserSessionPreference::create([
-                    'user_id' => auth()->id(),
-                    'session_id' => $session->id,
-                    'current_term' => $term->value
-                ]);
-            } else {
+            if (!$session) {
                 $session = self::orderBy('year', 'desc')->first();
-                if (!$session) {
-                    return $includeTerm ? [null, null] : null;
-                }
-                $term = TermEnum::FIRST;
+                $term = $session ? TermEnum::FIRST : null;
 
-                $preference = UserSessionPreference::create([
-                    'user_id' => auth()->id(),
-                    'session_id' => $session->id,
-                    'current_term' => $term->value
-                ]);
+                if ($session && auth()->check()) {
+                    UserSessionPreference::create([
+                        'user_id' => auth()->id(),
+                        'session_id' => $session->id,
+                        'current_term' => $term ? $term->value : null,
+                    ]);
+                }
+            } else {
+                $term = $session->current_term ? TermEnum::from($session->current_term) : TermEnum::FIRST;
+
+                if (auth()->check()) {
+                    UserSessionPreference::create([
+                        'user_id' => auth()->id(),
+                        'session_id' => $session->id,
+                        'current_term' => $term->value,
+                    ]);
+                }
             }
         }
 
@@ -72,7 +70,7 @@ class AcademicSession extends Model
 
     public function classHistory()
     {
-        return $this->hasMany(StudentClassHistory::class);
+        return $this->hasMany(StudentClassHistory::class, 'session_id');
     }
 
     public function results()
@@ -87,6 +85,6 @@ class AcademicSession extends Model
 
     public function userPreferences()
     {
-        return $this->hasMany(UserSessionPreference::class);
+        return $this->hasMany(UserSessionPreference::class, 'session_id');
     }
 }

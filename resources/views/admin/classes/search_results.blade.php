@@ -1,38 +1,11 @@
-{{-- resources/views/admin/classes/search_results.blade.php --}}
-
 @extends('admin.layouts.app')
 
-@section('title', 'Search Results for {{ $class->name }}')
-
-@section('description', 'Search results for students in {{ $class->name }} at Aunty Anne\'s International School.')
-
-@push('styles')
+@section('title', 'Search Results for {{ $class->name }}')@section('description', 'Search results for students in {{ $class->name }} at Aunty Anne\'s International School.')@push('styles')
     <style>
         .content-container {
             max-width: 90rem;
             margin: 0 auto;
             padding: var(--space-lg) var(--space-md);
-        }
-
-        .form-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: var(--space-xl);
-            margin-bottom: var(--space-2xl);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .form-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
         }
 
         .form-header {
@@ -47,106 +20,44 @@
             margin-bottom: var(--space-xl);
         }
 
-        .form-section {
-            margin-bottom: var(--space-xl);
+        .search-container {
+            max-width: 400px;
+            margin: var(--space-lg) auto;
         }
 
-        .form-section-title {
-            font-family: var(--font-display);
-            font-size: clamp(1rem, 2.5vw, 1.125rem);
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--space-md);
-            padding-left: var(--space-sm);
-            border-left: 3px solid var(--primary-green);
+        .search-form {
+            display: flex;
+            gap: var(--space-sm);
         }
 
-        .form-group {
-            margin-bottom: var(--space-md);
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .form-label {
-            display: block;
-            font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: var(--space-xs);
-        }
-
-        .form-control {
-            width: 100%;
+        .search-input {
+            flex: 1;
             background: var(--bg-secondary);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             padding: var(--space-sm) var(--space-md);
             color: var(--text-primary);
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            transition: all 0.2s ease;
         }
 
-        .form-control:focus {
+        .search-input:focus {
             outline: none;
             border-color: var(--primary-green);
             box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.2);
         }
 
-        .form-control::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-
-        .btn-submit {
+        .btn-search {
             background: var(--gradient-primary);
             border: none;
             color: var(--white);
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
-            font-weight: 600;
-            padding: var(--space-md) var(--space-lg);
-            border-radius: var(--radius-lg);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 100%;
-            margin-top: var(--space-md);
-        }
-
-        .btn-submit:hover,
-        .btn-submit:focus-visible {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-            color: var(--white);
-        }
-
-        .btn-action {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            font-size: clamp(0.75rem, 2vw, 0.875rem);
-            padding: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
             border-radius: var(--radius-md);
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .btn-action:hover,
-        .btn-action:focus-visible {
-            background: var(--primary-green);
-            border-color: var(--primary-green);
-            color: var(--white);
-        }
-
-        .btn-promote:hover {
-            background: var(--primary-green);
-        }
-
-        .btn-demote:hover {
-            background: var(--warning);
-        }
-
-        .btn-delete:hover {
-            background: var(--error);
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         .student-table {
@@ -184,11 +95,38 @@
             background: rgba(33, 160, 85, 0.1);
         }
 
+        .action-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            padding: var(--space-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover,
+        .action-btn:focus-visible {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
+        }
+
+        .fee-status-paid {
+            color: var(--primary-green);
+            font-weight: 500;
+        }
+
+        .fee-status-unpaid {
+            color: var(--error);
+            font-weight: 500;
+        }
+
         .alert {
             padding: var(--space-md);
             border-radius: var(--radius-md);
             margin-bottom: var(--space-lg);
-            font-size: clamp(0.875rem, 2vw, 0.9375rem);
         }
 
         .alert-success {
@@ -203,42 +141,19 @@
             color: var(--text-primary);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 0.25em 0.5em;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .bg-success {
-            background: var(--primary-green);
-            color: var(--white);
-        }
-
-        .bg-danger {
-            background: var(--error);
-            color: var(--white);
-        }
-
-        .bg-warning {
-            background: var(--warning);
-            color: var(--text-primary);
-        }
-
         @media (max-width: 768px) {
-            .form-container {
-                padding: var(--space-xl);
-            }
-
-            .form-group {
-                max-width: 100%;
-            }
-
             .student-table th,
             .student-table td {
                 padding: var(--space-sm);
                 font-size: clamp(0.75rem, 2vw, 0.875rem);
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-input, .btn-search {
+                width: 100%;
             }
         }
     </style>
@@ -246,148 +161,107 @@
 
 @section('content')
     <div class="content-container">
-        <!-- Success/Error Messages -->
         @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if (session('error'))
-            <div class="alert alert-error">
-                {{ session('error') }}
-            </div>
+            <div class="alert alert-error">{{ session('error') }}</div>
         @endif
 
+        <h2 class="form-header">Search Results for {{ $class->name }} ({{ $currentSession->year }} - {{ $currentTerm->name }})</h2>
+
         <!-- Search Form -->
-        <div class="form-container">
-            <h2 class="form-header">
-                @switch($action)
-                    @case('view_students')
-                        Search Students in {{ $class->name }}
-                        @break
-                    @case('promote')
-                        Search Students to Promote in {{ $class->name }}
-                        @break
-                    @case('demote')
-                        Search Students to Demote in {{ $class->name }}
-                        @break
-                    @case('delete_from_class')
-                        Search Students to Delete from {{ $class->name }}
-                        @break
-                    @case('manage_result')
-                        Search Students for Results in {{ $class->name }}
-                        @break
-                    @case('generate_broadsheet')
-                        Search Students for Broadsheet in {{ $class->name }}
-                        @break
-                    @case('download_broadsheet')
-                        Search Students for Broadsheet Download in {{ $class->name }}
-                        @break
-                    @default
-                        Search Students in {{ $class->name }}
-                @endswitch
-            </h2>
-            <form method="GET" action="{{ route('admin.search_students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" id="searchForm">
+        <div class="search-container">
+            <form method="POST" action="{{ route('admin.search_students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" class="search-form">
                 @csrf
-                <div class="form-section">
-                    <h3 class="form-section-title">Search Students</h3>
-                    <div class="form-group">
-                        <label for="query" class="form-label">Search by Name or Registration Number</label>
-                        <input type="text" name="query" id="query" class="form-control" value="{{ old('query') }}" placeholder="Enter name or registration number">
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit">
-                    <i class="bx bx-search"></i> Search
-                </button>
+                <input type="text" name="query" class="search-input" value="{{ $query }}" placeholder="Search by name or reg number">
+                <button type="submit" class="btn-search"><i class="bx bx-search"></i></button>
             </form>
         </div>
 
-        <!-- Search Results -->
+        <!-- Students Table -->
         <div class="student-table">
             <table>
                 <thead>
                     <tr>
-                        <th>Student Name</th>
-                        <th>Registration Number</th>
-                        <th>Enrollment Status</th>
+                        <th>Name</th>
+                        <th>Reg Number</th>
                         <th>Fee Status</th>
                         <th>Approval Status</th>
-                        @if(in_array($action, ['promote', 'demote', 'delete_from_class']))
-                            <th>Actions</th>
-                        @endif
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($studentsClasses as $student)
+                    @forelse($studentsClasses[$class->name] ?? [] as $student)
                         <tr>
-                            <td>{{ $student->first_name }} {{ $student->last_name }}</td>
+                            <td>{{ $student->full_name }}</td>
                             <td>{{ $student->reg_no }}</td>
                             <td>
-                                <span class="badge {{ $student->is_active ? 'bg-success' : 'bg-danger' }}">
-                                    {{ $student->is_active ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                            <td>
                                 @php
-                                    $feePayment = $student->feePayments->where('session_id', $currentSession->id)->where('term', $currentTerm->value)->first();
+                                    $feePayment = $student->feePayments->where('session_id', $currentSession->id)
+                                        ->where('term', $currentTerm->value)
+                                        ->first();
                                 @endphp
-                                <span class="badge {{ $feePayment && $feePayment->has_paid_fee ? 'bg-success' : 'bg-warning' }}">
+                                <span class="fee-status-{{ $feePayment && $feePayment->has_paid_fee ? 'paid' : 'unpaid' }}">
                                     {{ $feePayment && $feePayment->has_paid_fee ? 'Paid' : 'Unpaid' }}
                                 </span>
                             </td>
+                            <td>{{ $student->approved ? 'Approved' : 'Unapproved' }}</td>
                             <td>
-                                <span class="badge {{ $student->approved ? 'bg-success' : 'bg-warning' }}">
-                                    {{ $student->approved ? 'Approved' : 'Pending' }}
-                                </span>
+                                <div class="d-flex gap-2">
+                                    @if($action == 'view_students')
+                                        <form action="{{ route('admin.student_toggle_fee_status', $student->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-btn" title="Toggle Fee Status">
+                                                <i class="bx bx-money"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($action == 'promote')
+                                        <form action="{{ route('admin.promote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-btn" title="Promote Student">
+                                                <i class="bx bx-up-arrow-alt"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($action == 'demote')
+                                        <form action="{{ route('admin.demote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-btn" title="Demote Student">
+                                                <i class="bx bx-down-arrow-alt"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($action == 'delete_from_class')
+                                        <form action="{{ route('admin.delete_student_class_record', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="action-btn" title="Delete from Class">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
-                            @if(in_array($action, ['promote', 'demote', 'delete_from_class']))
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        @if($action == 'promote')
-                                            <form method="POST" action="{{ route('admin.promote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" style="display: inline;">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-promote" title="Promote Student">
-                                                    <i class="bx bx-arrow-up"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        @if($action == 'demote')
-                                            <form method="POST" action="{{ route('admin.demote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" style="display: inline;">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-demote" title="Demote Student">
-                                                    <i class="bx bx-arrow-down"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        @if($action == 'delete_from_class')
-                                            <form method="POST" action="{{ route('admin.delete_student_class_record', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to remove this student from the class?')">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-delete" title="Delete from Class">
-                                                    <i class="bx bx-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ in_array($action, ['promote', 'demote', 'delete_from_class']) ? 6 : 5 }}" class="text-center text-[var(--text-secondary)]">No students found.</td>
+                            <td colspan="5" class="text-center text-[var(--text-secondary)]">No students found.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <div class="text-center">
+            <a href="{{ route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" class="btn-cancel">Back to All Students</a>
         </div>
     </div>
 
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                // GSAP Animations
-                gsap.from('.form-container', { opacity: 0, y: 20, duration: 0.6 });
-                gsap.from('.form-group', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
+                gsap.from('.form-header', { opacity: 0, y: 20, duration: 0.6 });
+                gsap.from('.search-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
                 gsap.from('.student-table', { opacity: 0, y: 20, duration: 0.6, delay: 0.4 });
+                gsap.from('.btn-cancel', { opacity: 0, y: 20, duration: 0.6, delay: 0.6 });
             });
         </script>
     @endpush

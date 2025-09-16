@@ -15,10 +15,6 @@ class UsersTableSeeder extends Seeder
      */
     public function run(): void
     {
-        // Role::create(['name' => 'admin']);
-        // Role::create(['name' => 'staff']);
-        // Role::create(['name' => 'student']);
-
         // Create permissions
         $permissions = [
             'manage_users',
@@ -31,25 +27,27 @@ class UsersTableSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrcreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        $admin = Role::create(['name' => 'admin']);
+        $admin = Role::firstOrcreate(['name' => 'admin']);
         $admin->givePermissionTo($permissions);
 
-        $teacher = Role::create(['name' => 'teacher']);
+        $teacher = Role::firstOrcreate(['name' => 'teacher']);
         $teacher->givePermissionTo(['view_reports']);
 
-        $student = Role::create(['name' => 'student']);
+        $student = Role::firstOrcreate(['name' => 'student']);
         $student->givePermissionTo(['view_reports']);
 
 
         User::create([
+            'id'=> 1,
             'name' => 'Admin',
             'username' => 'admin',
             'password' => bcrypt('Tripled@121'),
             'mfa_secret' => (new \PragmaRX\Google2FA\Google2FA())->generateSecretKey(),
+            'active' => 1,
             'status' => 'active',
             'email_verified_at' => now(),
             'notifications' => true,

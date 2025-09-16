@@ -198,7 +198,7 @@
                         <div class="form-group">
                             <label for="date_of_birth" class="form-label">Date of Birth</label>
                             <input type="date" name="date_of_birth" id="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" 
-                                   value="{{ old('date_of_birth') }}">
+                                   value="{{ old('date_of_birth') }}" placeholder="Select date of birth (optional)">
                             @error('date_of_birth')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -219,17 +219,17 @@
                     <h3 class="form-section-title">Parent/Guardian Information</h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="parent_name" class="form-label required">Parent/Guardian Name</label>
+                            <label for="parent_name" class="form-label">Parent/Guardian Name</label>
                             <input type="text" name="parent_name" id="parent_name" class="form-control @error('parent_name') is-invalid @enderror" 
-                                   value="{{ old('parent_name') }}" placeholder="Enter parent/guardian name" required>
+                                   value="{{ old('parent_name') }}" placeholder="Enter parent/guardian name (optional)">
                             @error('parent_name')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="parent_phone_number" class="form-label required">Parent/Guardian Phone Number</label>
+                            <label for="parent_phone_number" class="form-label">Parent/Guardian Phone Number</label>
                             <input type="tel" name="parent_phone_number" id="parent_phone_number" class="form-control @error('parent_phone_number') is-invalid @enderror" 
-                                   value="{{ old('parent_phone_number') }}" placeholder="Enter phone number (e.g., +234xxxxxxxxx)" required>
+                                   value="{{ old('parent_phone_number') }}" placeholder="Enter phone number (e.g., +234xxxxxxxxx) (optional)">
                             @error('parent_phone_number')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -243,9 +243,9 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="address" class="form-label required">Address</label>
+                            <label for="address" class="form-label">Address</label>
                             <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror" rows="3" 
-                                      placeholder="Enter full address">{{ old('address') }}</textarea>
+                                      placeholder="Enter full address (optional)">{{ old('address') }}</textarea>
                             @error('address')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
@@ -275,21 +275,27 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="class_select" class="form-label required">Class/Section</label>
-                            <select id="class_select" class="form-control form-select" required>
+                            <select id="class_select" class="form-control form-select @error('class_id') is-invalid @enderror" required>
                                 <option value="">Select Class</option>
                                 @foreach($classChoices as $class)
                                     <option value="{{ $class->id }}" data-term="{{ $currentTerm->value }}">{{ $class->name }}</option>
                                 @endforeach
                             </select>
+                            @error('class_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="form-group">
                             <label for="term_select" class="form-label required">Starting Term</label>
-                            <select id="term_select" class="form-control form-select" required>
+                            <select id="term_select" class="form-control form-select @error('start_term') is-invalid @enderror" required>
                                 <option value="">Select Term</option>
                                 @foreach($termChoices as $term)
                                     <option value="{{ $term->value }}" {{ $term->value == $currentTerm->value ? 'selected' : '' }}>{{ $term->label }}</option>
                                 @endforeach
                             </select>
+                            @error('start_term')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>

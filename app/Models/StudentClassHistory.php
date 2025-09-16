@@ -1,5 +1,5 @@
 <?php
-// app/Models/StudentClassHistory.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +11,7 @@ class StudentClassHistory extends Model
 {
     use HasFactory;
 
-    protected $table = 'student_class_history';  // Explicitly set table name to match migration
+    protected $table = 'student_class_history';
 
     protected $fillable = [
         'student_id',
@@ -60,7 +60,8 @@ class StudentClassHistory extends Model
         return $this->session_id == $sessionId &&
             $this->is_active &&
             is_null($this->leave_date) &&
-            $startOrder <= $targetOrder && $targetOrder <= $endOrder;
+            $startOrder <= $targetOrder &&
+            $targetOrder <= $endOrder;
     }
 
     public function markAsLeft($term)
@@ -69,37 +70,15 @@ class StudentClassHistory extends Model
             throw new \InvalidArgumentException("Invalid term: {$term}");
         }
 
-        $termOrder = [
-            TermEnum::FIRST->value => 1,
-            TermEnum::SECOND->value => 2,
-            TermEnum::THIRD->value => 3
-        ];
-
-        $startOrder = $termOrder[$this->start_term] ?? 1;
-        $leaveOrder = $termOrder[$term] ?? 1;
-
-        if ($leaveOrder <= $startOrder) {
-            $this->is_active = false;
-        }
-
-        $this->end_term = $term;
-        $this->leave_date = Carbon::now('Africa/Lagos');
-        $this->save();
+        $this->update([
+            'is_active' => false,
+            'leave_date' => Carbon::now('Africa/Lagos'),
+            'end_term' => $term,
+        ]);
     }
 
     public function reenroll($sessionId, $classId, $term)
     {
-        if ($this->is_active && is_null($this->leave_date)) {
-            throw new \InvalidArgumentException('Student is already active');
-        }
-
-        $this->session_id = $sessionId;
-        $this->class_id = $classId;
-        $this->start_term = $term;
-        $this->end_term = null;
-        $this->join_date = Carbon::now('Africa/Lagos');
-        $this->leave_date = null;
-        $this->is_active = true;
-        $this->save();
+        throw new \BadMethodCallException('Use AdminStudentController::studentReenroll to handle reenrollment.');
     }
 }

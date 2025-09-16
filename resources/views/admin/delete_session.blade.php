@@ -1,5 +1,3 @@
-{{-- resources/views/admin/delete_session.blade.php --}}
-
 @extends('admin.layouts.app')
 
 @section('title', 'Delete Academic Session')
@@ -132,7 +130,8 @@
         <div class="form-container">
             <h2 class="form-header">Delete Academic Session</h2>
             <p class="confirm-message">Are you sure you want to delete the academic session
-                <strong>{{ $session->year }}</strong>? This action cannot be undone.</p>
+                <strong>{{ $session->year }}</strong>? This action cannot be undone.
+            </p>
             <form method="POST" action="{{ route('admin.manage_academic_sessions.destroy', $session->id) }}"
                 id="deleteSessionForm">
                 @csrf
