@@ -100,6 +100,19 @@ class AdminBaseController extends Controller
     }
 
     /**
+     * Group students by class name.
+     *
+     * @param \Illuminate\Database\Eloquent\Collection $students
+     * @return array
+     */
+    protected function groupStudentsByClass($students)
+    {
+        return $students->groupBy('class_name')->sortBy(function ($group, $className) {
+            return $group->first()->hierarchy ?? 9999;
+        })->toArray();
+    }
+
+    /**
      * Apply filters to the students query.
      *
      * @param \Illuminate\Database\Eloquent\Builder $studentsQuery
@@ -197,33 +210,6 @@ class AdminBaseController extends Controller
     }
 
     /**
-     * Group students by class and sort by name.
-     *
-     * @param array|\Illuminate\Support\Collection $students
-     * @return \Illuminate\Support\Collection
-     */
-    protected function groupStudentsByClass($students)
-    {
-        return collect($students)
-            ->filter(function ($student) {
-                if (!is_object($student) || !($student instanceof Student)) {
-                    Log::warning("Invalid student data detected in groupStudentsByClass", [
-                        'data' => is_object($student) ? get_class($student) : gettype($student)
-                    ]);
-                    return false;
-                }
-                return true;
-            })
-            ->groupBy('class_name')
-            ->map(function ($studentsInClass) {
-                return $studentsInClass->sortBy(function ($student) {
-                    return strtolower($student->first_name) . strtolower($student->last_name);
-                })->values();
-            })
-            ->sortKeys();
-    }
-
-    /**
      * Calculate grade based on total score.
      *
      * @param float $total
@@ -231,14 +217,22 @@ class AdminBaseController extends Controller
      */
     protected function calculateGrade($total)
     {
-        if ($total >= 95) return "A+";
-        if ($total >= 80) return "A";
-        if ($total >= 70) return "B+";
-        if ($total >= 65) return "B";
-        if ($total >= 60) return "C+";
-        if ($total >= 50) return "C";
-        if ($total >= 40) return "D";
-        if ($total >= 30) return "E";
+        if ($total >= 95)
+            return "A+";
+        if ($total >= 80)
+            return "A";
+        if ($total >= 70)
+            return "B+";
+        if ($total >= 65)
+            return "B";
+        if ($total >= 60)
+            return "C+";
+        if ($total >= 50)
+            return "C";
+        if ($total >= 40)
+            return "D";
+        if ($total >= 30)
+            return "E";
         return "F";
     }
 
@@ -250,14 +244,22 @@ class AdminBaseController extends Controller
      */
     protected function generateRemark($total)
     {
-        if ($total >= 95) return "Outstanding";
-        if ($total >= 80) return "Excellent";
-        if ($total >= 70) return "Very Good";
-        if ($total >= 65) return "Good";
-        if ($total >= 60) return "Credit";
-        if ($total >= 50) return "Credit";
-        if ($total >= 40) return "Poor";
-        if ($total >= 30) return "Very Poor";
+        if ($total >= 95)
+            return "Outstanding";
+        if ($total >= 80)
+            return "Excellent";
+        if ($total >= 70)
+            return "Very Good";
+        if ($total >= 65)
+            return "Good";
+        if ($total >= 60)
+            return "Credit";
+        if ($total >= 50)
+            return "Credit";
+        if ($total >= 40)
+            return "Poor";
+        if ($total >= 30)
+            return "Very Poor";
         return "Failed";
     }
 

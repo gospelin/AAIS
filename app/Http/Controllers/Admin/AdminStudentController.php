@@ -129,6 +129,8 @@ class AdminStudentController extends AdminBaseController
                 return redirect()->route('admin.manage_academic_sessions')->with('error', 'No current session or term set. Please set one first.');
             }
 
+            $sessionId = $request->input('session_id', $currentSession->id);
+            $selectedSession = AcademicSession::findOrFail($sessionId);
             $termInput = $request->input('term', $defaultTerm->value);
             $currentTerm = TermEnum::tryFrom($termInput) ?? $defaultTerm;
 
@@ -136,75 +138,32 @@ class AdminStudentController extends AdminBaseController
             $feeStatus = $request->input('fee_status', '');
             $approvalStatus = $request->input('approval_status', '');
 
-            $query = Student::query()->with([
-                'classHistory' => function ($q) use ($currentSession, $currentTerm) {
-                    $q->where('session_id', $currentSession->id);
-                },
-                'classHistory.class',
-                'feePayments'
-            ]);
+            $studentsQuery = $this->getStudentsQuery($selectedSession, $currentTerm->value);
+            $studentsQuery = $this->applyFiltersToStudentsQuery(
+                $studentsQuery,
+                $enrollmentStatus,
+                $feeStatus,
+                $approvalStatus,
+                $selectedSession,
+                $currentTerm,
+                $currentTerm->value
+            );
 
-            if ($enrollmentStatus === 'active') {
-                $query->whereHas('classHistory', function ($q) use ($currentSession, $currentTerm) {
-                    $q->where('session_id', $currentSession->id)
-                        ->where('is_active', true)
-                        ->whereNull('leave_date')
-                        ->where('start_term', '<=', $currentTerm->value)
-                        ->where(function ($q) use ($currentTerm) {
-                            $q->whereNull('end_term')
-                                ->orWhere('end_term', '>=', $currentTerm->value);
-                        });
-                });
-            } elseif ($enrollmentStatus === 'inactive') {
-                $query->whereDoesntHave('classHistory', function ($q) use ($currentSession, $currentTerm) {
-                    $q->where('session_id', $currentSession->id)
-                        ->where('is_active', true)
-                        ->whereNull('leave_date')
-                        ->where('start_term', '<=', $currentTerm->value)
-                        ->where(function ($q) use ($currentTerm) {
-                            $q->whereNull('end_term')
-                                ->orWhere('end_term', '>=', $currentTerm->value);
-                        });
-                })->orWhereHas('classHistory', function ($q) use ($currentSession, $currentTerm) {
-                    $q->where('session_id', $currentSession->id)
-                        ->where('is_active', false)
-                        ->whereNotNull('leave_date');
-                });
-            }
-
-            if ($feeStatus) {
-                $query->whereHas('feePayments', function ($q) use ($currentSession, $currentTerm, $feeStatus) {
-                    $q->where('session_id', $currentSession->id)
-                        ->where('term', $currentTerm->value)
-                        ->where('has_paid_fee', $feeStatus === 'paid');
-                }, $feeStatus === 'unpaid' ? '<' : '>=', 1);
-            }
-
-            if ($approvalStatus) {
-                $query->where('approved', $approvalStatus === 'approved');
-            }
-
-            $paginatedStudents = $query->paginate(10);
-            $studentsClasses = $paginatedStudents->groupBy(function ($student) use ($currentSession, $currentTerm) {
-                $classHistory = $student->classHistory
-                    ->where('session_id', $currentSession->id)
-                    ->firstWhere(function ($history) use ($currentSession, $currentTerm) {
-                        return $history->isActiveInTerm($currentSession->id, $currentTerm->value);
-                    });
-
-                return $classHistory && $classHistory->class
-                    ? $classHistory->class->name
-                    : ($student->getCurrentClass($currentSession->id, $currentTerm) ?? 'Unassigned');
-            });
+            $students = $studentsQuery->orderBy('classes.hierarchy')
+                ->orderBy('students.first_name')
+                ->orderBy('students.last_name')
+                ->paginate(10);
 
             $statsResponse = $this->getStats($request);
             $stats = $statsResponse instanceof JsonResponse ? $statsResponse->getData(true) : [];
 
+            $sessions = AcademicSession::orderBy('year', 'desc')->get();
+
             if ($request->ajax()) {
-                return view('admin.students.pagination', compact('studentsClasses', 'currentSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus'))->render();
+                return view('admin.students.pagination', compact('students', 'selectedSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'sessions'))->render();
             }
 
-            return view('admin.students.view_students', compact('studentsClasses', 'paginatedStudents', 'currentSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'stats'));
+            return view('admin.students.view_students', compact('students', 'selectedSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'stats', 'sessions'));
         } catch (\Exception $e) {
             Log::error('Error in index: ' . $e->getMessage());
             return redirect()->route('admin.manage_academic_sessions')->with('error', 'An error occurred while fetching students. Please ensure a current session is set.');
@@ -213,53 +172,65 @@ class AdminStudentController extends AdminBaseController
 
     public function edit(Request $request, Student $student)
     {
-        $currentSessionData = $this->getCurrentSessionAndTerm(true);
-        $currentSession = $currentSessionData[0];
-        $currentTerm = $currentSessionData[1];
+        try {
+            [$currentSession, $defaultTerm] = $this->getCurrentSessionAndTerm(true);
+            if (!$currentSession || !$defaultTerm) {
+                return redirect()->route('admin.manage_academic_sessions')->with('error', 'No current session or term set. Please set one first.');
+            }
 
-        if (!$currentSession || !$currentTerm) {
-            return redirect()->route('admin.manage_academic_sessions')->with('error', 'No current session or term set. Please set one first.');
+            $sessionId = $request->input('session_id', $currentSession->id);
+            $selectedSession = AcademicSession::findOrFail($sessionId);
+            $termInput = $request->input('term', $defaultTerm->value);
+            $selectedTerm = TermEnum::tryFrom($termInput) ?? $defaultTerm;
+
+            $classes = Classes::orderBy('hierarchy')->get();
+            $termChoices = collect(TermEnum::cases())->map(function ($term) {
+                return (object) ['value' => $term->value, 'label' => $term->value];
+            });
+            $classChoices = $classes->map(function ($class) {
+                return (object) ['id' => $class->id, 'name' => $class->name];
+            });
+
+            $currentClassHistory = StudentClassHistory::where('student_id', $student->id)
+                ->where('session_id', $selectedSession->id)
+                ->where('is_active', true)
+                ->whereNull('leave_date')
+                ->where('start_term', '<=', $selectedTerm->value)
+                ->where(function ($q) use ($selectedTerm) {
+                    $q->whereNull('end_term')
+                      ->orWhere('end_term', '>=', $selectedTerm->value);
+                })
+                ->first();
+
+            $currentClassId = $currentClassHistory ? $currentClassHistory->class_id : null;
+            $currentStartTerm = $currentClassHistory ? $currentClassHistory->start_term : $selectedTerm->value;
+            $currentClassName = $currentClassHistory && $currentClassHistory->class
+                ? $currentClassHistory->class->name
+                : 'Unassigned';
+
+            Log::debug("Edit student {$student->reg_no}: ", [
+                'student_id' => $student->id,
+                'session_id' => $selectedSession->id,
+                'selected_term' => $selectedTerm->value,
+                'current_class_id' => $currentClassId,
+                'current_start_term' => $currentStartTerm,
+                'current_class_name' => $currentClassName
+            ]);
+
+            return view('admin.students.edit_student', compact(
+                'student',
+                'classChoices',
+                'termChoices',
+                'selectedSession',
+                'selectedTerm',
+                'currentClassId',
+                'currentStartTerm',
+                'currentClassName'
+            ));
+        } catch (\Exception $e) {
+            Log::error("Error loading edit student view for student {$student->id}: " . $e->getMessage());
+            return redirect()->route('admin.students')->with('error', 'Error loading student edit form.');
         }
-
-        $classes = Classes::orderBy('hierarchy')->get();
-        $termChoices = collect(TermEnum::cases())->map(function ($term) {
-            return (object) ['value' => $term->value, 'label' => $term->value];
-        });
-        $classChoices = $classes->map(function ($class) {
-            return (object) ['id' => $class->id, 'name' => $class->name];
-        });
-
-        $currentClassHistory = StudentClassHistory::where('student_id', $student->id)
-            ->where('session_id', $currentSession->id)
-            ->where('is_active', true)
-            ->whereNull('leave_date')
-            ->first();
-
-        $currentClassId = $currentClassHistory ? $currentClassHistory->class_id : null;
-        $currentStartTerm = $currentClassHistory ? $currentClassHistory->start_term : $currentTerm->value;
-        $currentClassName = $currentClassHistory && $currentClassHistory->class
-            ? $currentClassHistory->class->name
-            : ($student->getCurrentClass($currentSession->id, $currentTerm) ?? 'Unassigned');
-
-        Log::debug("Edit student {$student->reg_no}: ", [
-            'student_id' => $student->id,
-            'session_id' => $currentSession->id,
-            'current_term' => $currentTerm->value,
-            'current_class_id' => $currentClassId,
-            'current_start_term' => $currentStartTerm,
-            'current_class_name' => $currentClassName
-        ]);
-
-        return view('admin.students.edit_student', compact(
-            'student',
-            'classChoices',
-            'termChoices',
-            'currentSession',
-            'currentTerm',
-            'currentClassId',
-            'currentStartTerm',
-            'currentClassName'
-        ));
     }
 
     public function update(Request $request, Student $student)
@@ -288,7 +259,11 @@ class AdminStudentController extends AdminBaseController
                 'religion' => 'nullable|string|max:50',
                 'class_id' => 'required|exists:classes,id',
                 'start_term' => 'required|in:First,Second,Third',
+                'session_id' => 'required|exists:academic_sessions,id',
             ]);
+
+            $selectedSession = AcademicSession::findOrFail($validated['session_id']);
+            $selectedTerm = TermEnum::tryFrom($request->input('term', $currentTerm->value)) ?? $currentTerm;
 
             $student->update([
                 'first_name' => $validated['first_name'],
@@ -306,21 +281,26 @@ class AdminStudentController extends AdminBaseController
             ]);
 
             $currentClassHistory = StudentClassHistory::where('student_id', $student->id)
-                ->where('session_id', $currentSession->id)
+                ->where('session_id', $selectedSession->id)
                 ->where('is_active', true)
                 ->whereNull('leave_date')
+                ->where('start_term', '<=', $selectedTerm->value)
+                ->where(function ($q) use ($selectedTerm) {
+                    $q->whereNull('end_term')
+                      ->orWhere('end_term', '>=', $selectedTerm->value);
+                })
                 ->first();
 
             if ($currentClassHistory && ($currentClassHistory->class_id != $validated['class_id'] || $currentClassHistory->start_term != $validated['start_term'])) {
                 $currentClassHistory->update([
                     'is_active' => false,
                     'leave_date' => Carbon::now('Africa/Lagos'),
-                    'end_term' => $currentTerm->value,
+                    'end_term' => $selectedTerm->value,
                 ]);
 
                 StudentClassHistory::create([
                     'student_id' => $student->id,
-                    'session_id' => $currentSession->id,
+                    'session_id' => $selectedSession->id,
                     'class_id' => $validated['class_id'],
                     'start_term' => $validated['start_term'],
                     'join_date' => Carbon::now('Africa/Lagos'),
@@ -329,7 +309,7 @@ class AdminStudentController extends AdminBaseController
             } elseif (!$currentClassHistory) {
                 StudentClassHistory::create([
                     'student_id' => $student->id,
-                    'session_id' => $currentSession->id,
+                    'session_id' => $selectedSession->id,
                     'class_id' => $validated['class_id'],
                     'start_term' => $validated['start_term'],
                     'join_date' => Carbon::now('Africa/Lagos'),
@@ -341,9 +321,11 @@ class AdminStudentController extends AdminBaseController
                 'student_id' => $student->id,
                 'class_id' => $validated['class_id'],
                 'start_term' => $validated['start_term'],
+                'session_id' => $selectedSession->id,
             ]);
 
-            return redirect()->route('admin.students', ['action' => 'view_students'])->with('success', 'Student updated successfully!');
+            return redirect()->route('admin.students', ['action' => 'view_students', 'session_id' => $selectedSession->id, 'term' => $selectedTerm->value])
+                ->with('success', 'Student updated successfully!');
 
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -576,8 +558,10 @@ class AdminStudentController extends AdminBaseController
                 ->where('term', $validated['term'])
                 ->first();
 
+            $newStatus = !$feePayment || !$feePayment->has_paid_fee;
+
             if ($feePayment) {
-                $feePayment->update(['has_paid_fee' => !$feePayment->has_paid_fee]);
+                $feePayment->update(['has_paid_fee' => $newStatus]);
             } else {
                 FeePayment::create([
                     'student_id' => $studentId,
@@ -589,11 +573,16 @@ class AdminStudentController extends AdminBaseController
 
             $this->logActivity("Toggled fee status for student {$student->reg_no}", [
                 'student_id' => $studentId,
+                'session_id' => $validated['session_id'],
                 'term' => $validated['term'],
-                'has_paid_fee' => $feePayment ? !$feePayment->has_paid_fee : true,
+                'has_paid_fee' => $newStatus,
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Fee status updated successfully']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Fee status updated successfully',
+                'new_status' => $newStatus ? 'paid' : 'unpaid'
+            ]);
         } catch (ValidationException $e) {
             return response()->json(['success' => false, 'message' => $e->errors()], Response::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
@@ -624,11 +613,11 @@ class AdminStudentController extends AdminBaseController
     public function getStats(Request $request)
     {
         try {
-            $currentSession = AcademicSession::where('is_current', true)->firstOrFail();
+            $sessionId = $request->input('session_id', AcademicSession::where('is_current', true)->firstOrFail()->id);
             $currentTerm = TermEnum::tryFrom($request->input('term', TermEnum::FIRST->value)) ?? TermEnum::FIRST;
 
-            $totalStudents = Student::whereHas('classHistory', function ($query) use ($currentSession, $currentTerm) {
-                $query->where('session_id', $currentSession->id)
+            $totalStudents = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
+                $query->where('session_id', $sessionId)
                     ->where('start_term', '<=', $currentTerm->value)
                     ->where(function ($q) use ($currentTerm) {
                         $q->whereNull('end_term')
@@ -638,8 +627,8 @@ class AdminStudentController extends AdminBaseController
                     ->whereNull('leave_date');
             })->count();
 
-            $approvedStudents = Student::whereHas('classHistory', function ($query) use ($currentSession, $currentTerm) {
-                $query->where('session_id', $currentSession->id)
+            $approvedStudents = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
+                $query->where('session_id', $sessionId)
                     ->where('start_term', '<=', $currentTerm->value)
                     ->where(function ($q) use ($currentTerm) {
                         $q->whereNull('end_term')
@@ -649,13 +638,13 @@ class AdminStudentController extends AdminBaseController
                     ->whereNull('leave_date');
             })->where('approved', true)->count();
 
-            $feesPaid = FeePayment::where('session_id', $currentSession->id)
+            $feesPaid = FeePayment::where('session_id', $sessionId)
                 ->where('term', $currentTerm->value)
                 ->where('has_paid_fee', true)
                 ->count();
 
-            $feesNotPaid = Student::whereHas('classHistory', function ($query) use ($currentSession, $currentTerm) {
-                $query->where('session_id', $currentSession->id)
+            $feesNotPaid = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
+                $query->where('session_id', $sessionId)
                     ->where('start_term', '<=', $currentTerm->value)
                     ->where(function ($q) use ($currentTerm) {
                         $q->whereNull('end_term')
@@ -663,8 +652,8 @@ class AdminStudentController extends AdminBaseController
                     })
                     ->where('is_active', true)
                     ->whereNull('leave_date');
-            })->whereDoesntHave('feePayments', function ($query) use ($currentSession, $currentTerm) {
-                $query->where('session_id', $currentSession->id)
+            })->whereDoesntHave('feePayments', function ($query) use ($sessionId, $currentTerm) {
+                $query->where('session_id', $sessionId)
                     ->where('term', $currentTerm->value)
                     ->where('has_paid_fee', true);
             })->count();
@@ -704,10 +693,12 @@ class AdminStudentController extends AdminBaseController
                 });
             }
 
-            $students = $studentsQuery->orderBy('classes.hierarchy')->orderBy('students.first_name')->get();
-            $studentsClasses = $this->groupStudentsByClass($students);
+            $students = $studentsQuery->orderBy('classes.hierarchy')
+                ->orderBy('students.first_name')
+                ->orderBy('students.last_name')
+                ->paginate(10);
 
-            return view('admin.students.search_results', compact('studentsClasses', 'action', 'currentSession', 'currentTerm'));
+            return view('admin.students.search_results', compact('students', 'action', 'currentSession', 'currentTerm'));
         } catch (\Exception $e) {
             Log::error("Error searching students: " . $e->getMessage());
             return back()->with('error', 'Error searching students.');

@@ -21,13 +21,15 @@ class StudentClassHistory extends Model
         'end_term',
         'join_date',
         'leave_date',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
         'join_date' => 'datetime',
         'leave_date' => 'datetime',
         'is_active' => 'boolean',
+        'start_term' => TermEnum::class,
+        'end_term' => TermEnum::class,
     ];
 
     public function session()
@@ -50,11 +52,11 @@ class StudentClassHistory extends Model
         $termOrder = [
             TermEnum::FIRST->value => 1,
             TermEnum::SECOND->value => 2,
-            TermEnum::THIRD->value => 3
+            TermEnum::THIRD->value => 3,
         ];
 
-        $startOrder = $termOrder[$this->start_term] ?? 1;
-        $endOrder = $this->end_term ? ($termOrder[$this->end_term] ?? 4) : 4;
+        $startOrder = isset($this->start_term) ? ($termOrder[$this->start_term->value] ?? 1) : 1;
+        $endOrder = isset($this->end_term) ? ($termOrder[$this->end_term->value] ?? 4) : 4;
         $targetOrder = $termOrder[$term] ?? 1;
 
         return $this->session_id == $sessionId &&

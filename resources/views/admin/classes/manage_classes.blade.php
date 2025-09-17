@@ -339,9 +339,11 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination">
-            {{ $classes->links() }}
-        </div>
+        @if (is_object($classes) && method_exists($classes, 'links'))
+            <div class="pagination">
+                {{ $classes->links('vendor.pagination.bootstrap-5') }}
+            </div>
+        @endif
     </div>
 
     @push('scripts')

@@ -35,6 +35,7 @@ class Student extends Model
         'date_registered' => 'datetime',
         'date_of_birth' => 'date',
         'approved' => 'boolean',
+        'gender' => 'string',
     ];
 
     public function results()

@@ -132,15 +132,6 @@
             margin-bottom: var(--space-2xl);
         }
 
-        .student-section-header {
-            font-family: var(--font-display);
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
-            font-weight: 600;
-            color: var(--text-primary);
-            padding: var(--space-md) var(--space-lg);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
         .student-table {
             width: 100%;
             border-collapse: collapse;
@@ -171,6 +162,12 @@
             background: rgba(33, 160, 85, 0.1);
         }
 
+        .action-buttons {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
         .action-btn {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -189,35 +186,36 @@
             color: var(--white);
         }
 
-        .pagination-container {
+        .pagination {
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: var(--space-lg);
+            margin-top: var(--space-xl);
         }
 
-        .pagination-link {
+        .pagination .page-item {
+            margin: 0 var(--space-xs);
+        }
+
+        .pagination .page-link {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
             padding: var(--space-sm) var(--space-md);
-            margin: 0 var(--space-xs);
             border-radius: var(--radius-md);
-            text-decoration: none;
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
             transition: all 0.2s ease;
         }
 
-        .pagination-link:hover,
-        .pagination-link.active {
+        .pagination .page-link:hover {
             background: var(--primary-green);
             border-color: var(--primary-green);
             color: var(--white);
         }
 
-        .pagination-link.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .pagination .active .page-link {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
         }
 
         @media (max-width: 768px) {
@@ -244,15 +242,20 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 @endpush
 
 @section('content')
     <div class="content-container">
-        @if(!$currentSession)
+        @if(!$selectedSession)
             <div class="alert alert-danger">
-                No current academic session is set. Please <a href="{{ route('admin.manage_academic_sessions') }}">set a current
+                No academic session is selected. Please <a href="{{ route('admin.manage_academic_sessions') }}">select a
                     session</a> to view students.
             </div>
         @else
@@ -286,6 +289,26 @@
                 <form id="filterForm" action="{{ route('admin.students', ['action' => $action]) }}" method="GET">
                     <div class="filter-grid">
                         <div class="form-group">
+                            <label for="session_id" class="form-label">Academic Session</label>
+                            <select name="session_id" id="session_id" class="form-select">
+                                @foreach($sessions as $session)
+                                    <option value="{{ $session->id }}" {{ $selectedSession->id == $session->id ? 'selected' : '' }}>
+                                        {{ $session->year }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="term" class="form-label">Term</label>
+                            <select name="term" id="term" class="form-select">
+                                @foreach(\App\Enums\TermEnum::cases() as $term)
+                                    <option value="{{ $term->value }}" {{ $term->value === ($currentTerm instanceof \App\Enums\TermEnum ? $currentTerm->value : $currentTerm) ? 'selected' : '' }}>
+                                        {{ $term->value }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="enrollment_status" class="form-label">Enrollment Status</label>
                             <select name="enrollment_status" id="enrollment_status" class="form-select">
                                 <option value="active" {{ $enrollmentStatus == 'active' ? 'selected' : '' }}>Active</option>
@@ -309,24 +332,13 @@
                                 </option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="term" class="form-label">Term</label>
-                            <select name="term" id="term" class="form-select">
-                                @foreach(\App\Enums\TermEnum::cases() as $term)
-                                    <option value="{{ $term->value }}" {{ $term->value === ($currentTerm instanceof \App\Enums\TermEnum ? $currentTerm->value : $currentTerm) ? 'selected' : '' }}>
-                                        {{ $term->value }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
                     </div>
                 </form>
             </div>
 
             <!-- Students List -->
-            @if($studentsClasses->isEmpty())
-                <div class="student-section">
-                    <h3 class="student-section-header">No Classes Found</h3>
+            <div class="student-section">
+                @if($students->isEmpty())
                     <table class="student-table">
                         <tbody>
                             <tr>
@@ -335,109 +347,115 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            @else
-                @foreach($studentsClasses as $className => $students)
-                    <div class="student-section">
-                        <h3 class="student-section-header">{{ $className }}</h3>
-                        <table class="student-table">
-                            <thead>
+                @else
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Registration No</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Last Name</th>
+                                <th>Class Name</th>
+                                <th>Gender</th>
+                                <th>Enrollment Status</th>
+                                <th>Fee Status</th>
+                                <th>Approval Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($students as $student)
                                 <tr>
-                                    <th>Registration No</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th>Last Name</th>
-                                    <th>Class Name</th>
-                                    <th>Gender</th>
-                                    <th>Enrollment Status</th>
-                                    <th>Fee Status</th>
-                                    <th>Approval Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($students as $index => $student)
-                                    <tr>
-                                        <td>{{ $student->reg_no }}</td>
-                                        <td>{{ $student->first_name }}</td>
-                                        <td>{{ $student->middle_name ?? 'N/A' }}</td>
-                                        <td>{{ $student->last_name }}</td>
-                                        <td>{{ $student->getCurrentClass($currentSession->id, $currentTerm) ?? 'Unassigned' }}</td>
-                                        <td>{{ ucfirst($student->gender) }}</td>
-                                        <td>
-                                            @php
-                                                $isActiveInTerm = $student->classHistory
-                                                    ->where('session_id', $currentSession->id)
-                                                    ->contains(function ($history) use ($currentSession, $currentTerm) {
-                                                        return $history->isActiveInTerm($currentSession->id, $currentTerm->value);
-                                                    });
-                                            @endphp
-                                            @if($isActiveInTerm)
-                                                <span class="badge badge-success">Active</span>
-                                            @else
-                                                <span class="badge badge-danger">Inactive</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($student->feePayments->where('session_id', $currentSession->id)->where('term', $currentTerm->value)->where('has_paid_fee', true)->count() > 0)
-                                                <span class="badge badge-success">Paid</span>
-                                            @else
-                                                <span class="badge badge-danger">Unpaid</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($student->approved)
-                                                <span class="badge badge-success">Approved</span>
-                                            @else
-                                                <span class="badge badge-danger">Not Approved</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <a href="{{ route('admin.students.edit', $student->id) }}" class="btn btn-sm btn-primary">
-                                                    <i class="bx bx-edit"></i> Edit
-                                                </a>
-                                                <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST" style="display:inline;"
-                                                    onsubmit="return confirm('Are you sure you want to permanently delete this student?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger">
-                                                        <i class="bx bx-trash"></i> Delete
-                                                    </button>
-                                                </form>
-                                                @if(!$student->approved)
-                                                    <a href="{{ route('admin.student_approve', $student->id) }}" class="btn btn-sm btn-success">
-                                                        <i class="bx bx-check"></i> Approve
-                                                    </a>
-                                                @endif
-                                                @if($isActiveInTerm)
-                                                    <a href="{{ route('admin.student_mark_as_left', $student->id) }}" class="btn btn-sm btn-warning">
-                                                        <i class="bx bx-exit"></i> Mark as Left
-                                                    </a>
-                                                @else
-                                                    <a href="{{ route('admin.student_reenroll', $student->id) }}" class="btn btn-sm btn-info">
-                                                        <i class="bx bx-user-plus"></i> Re-enroll
-                                                    </a>
-                                                @endif
-                                                <button type="button" class="btn btn-sm btn-secondary toggle-fee-status" data-student-id="{{ $student->id }}"
-                                                    data-session-id="{{ $currentSession->id }}" data-term="{{ $currentTerm->value }}"
-                                                    data-status="{{ $student->feePayments->where('session_id', $currentSession->id)->where('term', $currentTerm->value)->where('has_paid_fee', true)->count() > 0 ? 'paid' : 'unpaid' }}">
-                                                    <i class="bx bx-wallet"></i>
-                                                    {{ $student->feePayments->where('session_id', $currentSession->id)->where('term', $currentTerm->value)->where('has_paid_fee', true)->count() > 0 ? 'Mark as Unpaid' : 'Mark as Paid' }}
+                                    <td>{{ $student->reg_no }}</td>
+                                    <td>{{ $student->first_name }}</td>
+                                    <td>{{ $student->middle_name ?? 'N/A' }}</td>
+                                    <td>{{ $student->last_name }}</td>
+                                    <td>{{ $student->class_name ?? 'Unassigned' }}</td>
+                                    <td>{{ ucfirst($student->gender) }}</td>
+                                    <td>
+                                        @php
+                                            $isActiveInTerm = $student->classHistory
+                                                ->where('session_id', $selectedSession->id)
+                                                ->contains(function ($history) use ($selectedSession, $currentTerm) {
+                                                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
+                                                });
+                                        @endphp
+                                        @if($isActiveInTerm)
+                                            <span class="badge badge-success">Active</span>
+                                        @else
+                                            <span class="badge badge-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $hasPaid = $student->feePayments
+                                                ->where('session_id', $selectedSession->id)
+                                                ->where('term', $currentTerm->value)
+                                                ->where('has_paid_fee', true)
+                                                ->count() > 0;
+                                        @endphp
+                                        @if($hasPaid)
+                                            <span class="badge badge-success">Paid</span>
+                                        @else
+                                            <span class="badge badge-danger">Unpaid</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($student->approved)
+                                            <span class="badge badge-success">Approved</span>
+                                        @else
+                                            <span class="badge badge-danger">Not Approved</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ route('admin.students.edit', ['student' => $student->id, 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                                                class="btn btn-sm btn-primary action-btn">
+                                                <i class="bx bx-edit"></i> Edit
+                                            </a>
+                                            <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST"
+                                                style="display:inline;"
+                                                onsubmit="return confirm('Are you sure you want to permanently delete this student?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger action-btn">
+                                                    <i class="bx bx-trash"></i> Delete
                                                 </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                            </form>
+                                            @if($isActiveInTerm)
+                                                <a href="{{ route('admin.student_mark_as_left', $student->id) }}"
+                                                    class="btn btn-sm btn-warning action-btn">
+                                                    <i class="bx bx-exit"></i> Mark as Left
+                                                </a>
+                                            @else
+                                                <a href="{{ route('admin.student_reenroll', $student->id) }}"
+                                                    class="btn btn-sm btn-info action-btn">
+                                                    <i class="bx bx-user-plus"></i> Re-enroll
+                                                </a>
+                                            @endif
+                                            <button type="button" class="btn btn-sm btn-secondary toggle-fee-status action-btn"
+                                                data-student-id="{{ $student->id }}" data-session-id="{{ $selectedSession->id }}"
+                                                data-term="{{ $currentTerm->value }}" data-status="{{ $hasPaid ? 'paid' : 'unpaid' }}">
+                                                <i class="bx bx-wallet"></i>
+                                                {{ $hasPaid ? 'Mark as Unpaid' : 'Mark as Paid' }}
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-sm {{ $student->approved ? 'btn-warning' : 'btn-success' }} toggle-approval-status action-btn"
+                                                data-student-id="{{ $student->id }}"
+                                                data-status="{{ $student->approved ? 'approved' : 'unapproved' }}">
+                                                <i class="bx bx-check"></i>
+                                                {{ $student->approved ? 'Unapprove' : 'Approve' }}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div class="pagination">
+                        {{ $students->links('vendor.pagination.bootstrap-5') }}
                     </div>
-                @endforeach
-            @endif
-
-            <!-- Pagination -->
-            <div class="pagination-container">
-                {{ $paginatedStudents->appends(request()->query())->links('vendor.pagination.custom') }}
+                @endif
             </div>
         @endif
     </div>
@@ -464,14 +482,28 @@
                 };
 
                 function updateStats() {
+                    const sessionId = document.getElementById('session_id')?.value || '{{ $selectedSession->id }}';
                     const term = document.getElementById('term')?.value || '{{ $currentTerm instanceof \App\Enums\TermEnum ? $currentTerm->value : ($currentTerm ?: 'First') }}';
-                    fetch('{{ route('admin.student_stats') }}?term=' + encodeURIComponent(term), {
+                    fetch(`{{ route('admin.student_stats') }}?session_id=${encodeURIComponent(sessionId)}&term=${encodeURIComponent(term)}`, {
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
                         }
                     })
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.text().then(text => {
+                                    throw new Error(`HTTP error! Status: ${response.status}, Response: ${text.substring(0, 500)}...`);
+                                });
+                            }
+                            if (response.headers.get('content-type')?.includes('application/json')) {
+                                return response.json();
+                            } else {
+                                return response.text().then(text => {
+                                    throw new Error(`Expected JSON response, but received: ${text.substring(0, 500)}...`);
+                                });
+                            }
+                        })
                         .then(data => {
                             document.querySelector(selectors.totalStudentsStat).textContent = data.total_students || 0;
                             document.querySelector(selectors.approvedStudentsStat).textContent = data.approved_students || 0;
@@ -488,8 +520,9 @@
                         const sessionId = button.getAttribute('data-session-id');
                         const term = button.getAttribute('data-term');
                         const currentStatus = button.getAttribute('data-status');
+                        const url = '{{ route('admin.student_toggle_fee_status', ':student') }}'.replace(':student', studentId);
 
-                        fetch('{{ route('admin.student_toggle_fee_status', ':student') }}'.replace(':student', studentId), {
+                        fetch(url, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -501,15 +534,29 @@
                                 term: term
                             })
                         })
-                            .then(response => response.json())
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.text().then(text => {
+                                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text.substring(0, 500)}...`);
+                                    });
+                                }
+                                if (response.headers.get('content-type')?.includes('application/json')) {
+                                    return response.json();
+                                } else {
+                                    return response.text().then(text => {
+                                        throw new Error(`Expected JSON response, but received: ${text.substring(0, 500)}...`);
+                                    });
+                                }
+                            })
                             .then(data => {
                                 if (data.success) {
-                                    button.setAttribute('data-status', currentStatus === 'paid' ? 'unpaid' : 'paid');
-                                    button.innerHTML = `<i class="bx bx-wallet"></i> ${currentStatus === 'paid' ? 'Mark as Paid' : 'Mark as Unpaid'}`;
+                                    const newStatus = data.new_status;
+                                    button.setAttribute('data-status', newStatus);
+                                    button.innerHTML = `<i class="bx bx-wallet"></i> ${newStatus === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}`;
                                     const badge = button.closest('tr').querySelector('td:nth-child(8) .badge');
-                                    badge.textContent = currentStatus === 'paid' ? 'Unpaid' : 'Paid';
-                                    badge.classList.toggle('badge-success', currentStatus === 'unpaid');
-                                    badge.classList.toggle('badge-danger', currentStatus === 'paid');
+                                    badge.textContent = newStatus === 'paid' ? 'Paid' : 'Unpaid';
+                                    badge.classList.toggle('badge-success', newStatus === 'paid');
+                                    badge.classList.toggle('badge-danger', newStatus === 'unpaid');
                                     updateStats();
                                     alert(data.message);
                                 } else {
@@ -517,14 +564,69 @@
                                 }
                             })
                             .catch(error => {
-                                console.error('Error toggling fee status:', error);
                                 alert('Error updating fee status: ' + error.message);
                             });
                     });
                 });
 
-                // Update stats when term changes
+                // Toggle approval status
+                document.querySelectorAll('.toggle-approval-status').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const studentId = button.getAttribute('data-student-id');
+                        const currentStatus = button.getAttribute('data-status');
+                        const url = '{{ route('admin.student_approve', ':student') }}'.replace(':student', studentId);
+
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.text().then(text => {
+                                        throw new Error(`HTTP error! Status: ${response.status}, Response: ${text.substring(0, 500)}...`);
+                                    });
+                                }
+                                if (response.headers.get('content-type')?.includes('application/json')) {
+                                    return response.json();
+                                } else {
+                                    return response.text().then(text => {
+                                        throw new Error(`Expected JSON response, but received: ${text.substring(0, 500)}...`);
+                                    });
+                                }
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    const newStatus = currentStatus === 'approved' ? 'unapproved' : 'approved';
+                                    button.setAttribute('data-status', newStatus);
+                                    button.innerHTML = `<i class="bx bx-check"></i> ${newStatus === 'approved' ? 'Unapprove' : 'Approve'}`;
+                                    button.classList.toggle('btn-success', newStatus === 'approved');
+                                    button.classList.toggle('btn-warning', newStatus === 'unapproved');
+                                    const badge = button.closest('tr').querySelector('td:nth-child(9) .badge');
+                                    badge.textContent = newStatus === 'approved' ? 'Approved' : 'Not Approved';
+                                    badge.classList.toggle('badge-success', newStatus === 'approved');
+                                    badge.classList.toggle('badge-danger', newStatus === 'unapproved');
+                                    updateStats();
+                                    alert(data.message);
+                                } else {
+                                    alert(data.message || 'Error updating approval status');
+                                }
+                            })
+                            .catch(error => {
+                                alert('Error updating approval status: ' + error.message);
+                            });
+                    });
+                });
+
+                // Update stats when session or term changes
+                const sessionSelect = document.getElementById('session_id');
                 const termSelect = document.getElementById('term');
+                if (sessionSelect) {
+                    sessionSelect.addEventListener('change', updateStats);
+                }
                 if (termSelect) {
                     termSelect.addEventListener('change', updateStats);
                 }

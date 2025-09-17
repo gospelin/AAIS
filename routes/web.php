@@ -73,12 +73,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/students/add', [AdminStudentController::class, 'addStudent'])->name('admin.add_student');
     Route::post('/students/add', [AdminStudentController::class, 'addStudent']);
     Route::get('/students/stats', [AdminStudentController::class, 'getStats'])->name('admin.student_stats');
-    // Route::post('/students/{studentId}/approve', [AdminStudentController::class, 'approveStudent'])->name('admin.approve_student');
-    // Route::post('/students/{studentId}/reenroll', [AdminStudentController::class, 'studentReenroll'])->name('admin.student_reenroll');
-    // Route::post('/students/{studentId}/toggle-fee', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
-    // Route::post('/students/{studentId}/toggle-approval', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.toggle_approval_status');
-    // Route::get('/students/search/{action}', [AdminStudentController::class, 'searchStudents'])->name('admin.search_students');
-    // Route::post('/students/print-message', [AdminStudentController::class, 'printStudentMessage'])->name('admin.print_student_message');
     Route::get('/students/bulk-upload', [AdminStudentController::class, 'bulkUpload'])->name('admin.bulk_upload_students');
     Route::post('/students/bulk-upload', [AdminStudentController::class, 'processBulkUpload']);
 
@@ -86,9 +80,6 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::post('/students/reenroll/{student}', [AdminStudentController::class, 'studentReenroll']);
     Route::get('/students/approve/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.student_approve');
     Route::post('/students/approve/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.student_approve');
-    // Route::get('/students/toggle-fee/{student}', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
-    // Route::post('/students/toggle-fee/{student}', [AdminStudentController::class, 'toggleFeeStatus'])->name('admin.toggle_fee_status');
-    // Route::post('/students/toggle-approval/{student}', [AdminStudentController::class, 'toggleApprovalStatus'])->name('admin.toggle_approval_status');
     Route::get('/students/search/{action}', [AdminStudentController::class, 'searchStudents'])->name('admin.search_students');
     Route::post('/students/print-message', [AdminStudentController::class, 'printStudentMessage'])->name('admin.print_student_message');
     Route::get('/students/mark-as-left/{student}', [AdminStudentController::class, 'markAsLeft'])->name('admin.student_mark_as_left');
@@ -122,7 +113,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::post('/classes/{className}/delete-record/{studentId}/{action}', [AdminClassController::class, 'deleteStudentClassRecord'])->name('admin.delete_student_class_record');
 
     // Fee Status Toggle
-    Route::post('/students/{student}/toggle-fee-status', [AdminClassController::class, 'toggleFeeStatus'])->name('admin.student_toggle_fee_status');
+    Route::post('/students/{student}/toggle-fee-status', [AdminClassController::class, 'toggleFeeStatus'])->name('admin.student_toggle_class_fee_status');
 
     // Subjects
     Route::resource('subjects', AdminSubjectController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);

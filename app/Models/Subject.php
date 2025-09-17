@@ -17,6 +17,8 @@ class Subject extends Model
 
     protected $casts = [
         'deactivated' => 'boolean',
+        'name' => 'string',
+        'section' => 'string',
     ];
 
     public function classes()

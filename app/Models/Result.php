@@ -1,9 +1,10 @@
 <?php
-// app/Models/Result.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\TermEnum;
 
 class Result extends Model
 {
@@ -21,11 +22,16 @@ class Result extends Model
         'total',
         'grade',
         'remark',
-        'created_at'
     ];
 
     protected $casts = [
-        'created_at' => 'datetime',
+        'term' => TermEnum::class,
+        'class_assessment' => 'integer',
+        'summative_test' => 'integer',
+        'exam' => 'integer',
+        'total' => 'integer',
+        'grade' => 'string',
+        'remark' => 'string',
     ];
 
     public function student()
@@ -36,6 +42,11 @@ class Result extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(Classes::class);
     }
 
     public function session()

@@ -171,13 +171,15 @@
 
 @section('content')
     <div class="content-container">
-        @if(!$currentSession)
+        @if(!$selectedSession)
             <div class="alert alert-danger">
-                No current academic session is set. Please <a href="{{ route('admin.manage_academic_sessions') }}">set a current session</a> to edit students.
+                No academic session is set. Please <a href="{{ route('admin.manage_academic_sessions') }}">set a session</a> to
+                edit students.
             </div>
         @else
             <div class="form-container">
-                <h2 class="form-header">Edit Student: {{ $student->full_name ?? 'Unknown' }} ({{ $currentClassName }})</h2>
+                <h2 class="form-header">Edit Student: {{ $student->full_name ?? 'Unknown' }} ({{ $currentClassName }}) -
+                    {{ $selectedSession->year }} {{ $selectedTerm->value }} Term</h2>
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
                 @endif
@@ -187,6 +189,8 @@
                 <form method="POST" action="{{ route('admin.students.update', $student->id) }}" id="editStudentForm">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="session_id" value="{{ $selectedSession->id }}">
+                    <input type="hidden" name="term" value="{{ $selectedTerm->value }}">
 
                     {{-- Student Personal Information --}}
                     <div class="form-section">
@@ -194,34 +198,42 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="first_name" class="form-label required">First Name</label>
-                                <input type="text" name="first_name" id="first_name" class="form-control @error('first_name') is-invalid @enderror" 
-                                       value="{{ old('first_name', $student->first_name) }}" placeholder="Enter first name" required>
+                                <input type="text" name="first_name" id="first_name"
+                                    class="form-control @error('first_name') is-invalid @enderror"
+                                    value="{{ old('first_name', $student->first_name) }}" placeholder="Enter first name"
+                                    required>
                                 @error('first_name')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="middle_name" class="form-label">Middle Name</label>
-                                <input type="text" name="middle_name" id="middle_name" class="form-control @error('middle_name') is-invalid @enderror" 
-                                       value="{{ old('middle_name', $student->middle_name) }}" placeholder="Enter middle name (optional)">
+                                <input type="text" name="middle_name" id="middle_name"
+                                    class="form-control @error('middle_name') is-invalid @enderror"
+                                    value="{{ old('middle_name', $student->middle_name) }}"
+                                    placeholder="Enter middle name (optional)">
                                 @error('middle_name')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="last_name" class="form-label required">Last Name</label>
-                                <input type="text" name="last_name" id="last_name" class="form-control @error('last_name') is-invalid @enderror" 
-                                       value="{{ old('last_name', $student->last_name) }}" placeholder="Enter last name" required>
+                                <input type="text" name="last_name" id="last_name"
+                                    class="form-control @error('last_name') is-invalid @enderror"
+                                    value="{{ old('last_name', $student->last_name) }}" placeholder="Enter last name" required>
                                 @error('last_name')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="gender" class="form-label required">Gender</label>
-                                <select name="gender" id="gender" class="form-control form-select @error('gender') is-invalid @enderror" required>
+                                <select name="gender" id="gender"
+                                    class="form-control form-select @error('gender') is-invalid @enderror" required>
                                     <option value="">Select Gender</option>
-                                    <option value="male" {{ old('gender', $student->gender) == 'male' ? 'selected' : '' }}>Male</option>
-                                    <option value="female" {{ old('gender', $student->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                                    <option value="male" {{ old('gender', $student->gender) == 'male' ? 'selected' : '' }}>Male
+                                    </option>
+                                    <option value="female" {{ old('gender', $student->gender) == 'female' ? 'selected' : '' }}>
+                                        Female</option>
                                 </select>
                                 @error('gender')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
@@ -229,16 +241,19 @@
                             </div>
                             <div class="form-group">
                                 <label for="date_of_birth" class="form-label">Date of Birth</label>
-                                <input type="date" name="date_of_birth" id="date_of_birth" class="form-control @error('date_of_birth') is-invalid @enderror" 
-                                       value="{{ old('date_of_birth', $student->date_of_birth ? $student->date_of_birth->format('Y-m-d') : '') }}" placeholder="Select date of birth (optional)">
+                                <input type="date" name="date_of_birth" id="date_of_birth"
+                                    class="form-control @error('date_of_birth') is-invalid @enderror"
+                                    value="{{ old('date_of_birth', $student->date_of_birth ? $student->date_of_birth->format('Y-m-d') : '') }}"
+                                    placeholder="Select date of birth (optional)">
                                 @error('date_of_birth')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="religion" class="form-label">Religion</label>
-                                <input type="text" name="religion" id="religion" class="form-control @error('religion') is-invalid @enderror" 
-                                       value="{{ old('religion', $student->religion) }}" placeholder="Enter religion (optional)">
+                                <input type="text" name="religion" id="religion"
+                                    class="form-control @error('religion') is-invalid @enderror"
+                                    value="{{ old('religion', $student->religion) }}" placeholder="Enter religion (optional)">
                                 @error('religion')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
@@ -252,48 +267,59 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="parent_name" class="form-label">Parent/Guardian Name</label>
-                                <input type="text" name="parent_name" id="parent_name" class="form-control @error('parent_name') is-invalid @enderror" 
-                                       value="{{ old('parent_name', $student->parent_name) }}" placeholder="Enter parent/guardian name (optional)">
+                                <input type="text" name="parent_name" id="parent_name"
+                                    class="form-control @error('parent_name') is-invalid @enderror"
+                                    value="{{ old('parent_name', $student->parent_name) }}"
+                                    placeholder="Enter parent/guardian name (optional)">
                                 @error('parent_name')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="parent_phone_number" class="form-label">Parent/Guardian Phone Number</label>
-                                <input type="tel" name="parent_phone_number" id="parent_phone_number" class="form-control @error('parent_phone_number') is-invalid @enderror" 
-                                       value="{{ old('parent_phone_number', $student->parent_phone_number) }}" placeholder="Enter phone number (optional)">
+                                <input type="tel" name="parent_phone_number" id="parent_phone_number"
+                                    class="form-control @error('parent_phone_number') is-invalid @enderror"
+                                    value="{{ old('parent_phone_number', $student->parent_phone_number) }}"
+                                    placeholder="Enter phone number (optional)">
                                 @error('parent_phone_number')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="parent_occupation" class="form-label">Parent/Guardian Occupation</label>
-                                <input type="text" name="parent_occupation" id="parent_occupation" class="form-control @error('parent_occupation') is-invalid @enderror" 
-                                       value="{{ old('parent_occupation', $student->parent_occupation) }}" placeholder="Enter occupation (optional)">
+                                <input type="text" name="parent_occupation" id="parent_occupation"
+                                    class="form-control @error('parent_occupation') is-invalid @enderror"
+                                    value="{{ old('parent_occupation', $student->parent_occupation) }}"
+                                    placeholder="Enter occupation (optional)">
                                 @error('parent_occupation')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="address" class="form-label">Address</label>
-                                <textarea name="address" id="address" class="form-control @error('address') is-invalid @enderror" rows="3" 
-                                          placeholder="Enter full address (optional)">{{ old('address', $student->address) }}</textarea>
+                                <textarea name="address" id="address"
+                                    class="form-control @error('address') is-invalid @enderror" rows="3"
+                                    placeholder="Enter full address (optional)">{{ old('address', $student->address) }}</textarea>
                                 @error('address')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="state_of_origin" class="form-label">State of Origin</label>
-                                <input type="text" name="state_of_origin" id="state_of_origin" class="form-control @error('state_of_origin') is-invalid @enderror" 
-                                       value="{{ old('state_of_origin', $student->state_of_origin) }}" placeholder="Enter state of origin (optional)">
+                                <input type="text" name="state_of_origin" id="state_of_origin"
+                                    class="form-control @error('state_of_origin') is-invalid @enderror"
+                                    value="{{ old('state_of_origin', $student->state_of_origin) }}"
+                                    placeholder="Enter state of origin (optional)">
                                 @error('state_of_origin')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="form-group">
                                 <label for="local_government_area" class="form-label">Local Government Area</label>
-                                <input type="text" name="local_government_area" id="local_government_area" class="form-control @error('local_government_area') is-invalid @enderror" 
-                                       value="{{ old('local_government_area', $student->local_government_area) }}" placeholder="Enter LGA (optional)">
+                                <input type="text" name="local_government_area" id="local_government_area"
+                                    class="form-control @error('local_government_area') is-invalid @enderror"
+                                    value="{{ old('local_government_area', $student->local_government_area) }}"
+                                    placeholder="Enter LGA (optional)">
                                 @error('local_government_area')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
@@ -307,7 +333,8 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="class_id" class="form-label required">Class/Section</label>
-                                <select name="class_id" id="class_id" class="form-control form-select @error('class_id') is-invalid @enderror" required>
+                                <select name="class_id" id="class_id"
+                                    class="form-control form-select @error('class_id') is-invalid @enderror" required>
                                     <option value="">Select Class</option>
                                     @foreach($classChoices as $class)
                                         <option value="{{ $class->id }}" {{ old('class_id', $currentClassId) == $class->id ? 'selected' : '' }}>
@@ -321,7 +348,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="start_term" class="form-label required">Starting Term</label>
-                                <select name="start_term" id="start_term" class="form-control form-select @error('start_term') is-invalid @enderror" required>
+                                <select name="start_term" id="start_term"
+                                    class="form-control form-select @error('start_term') is-invalid @enderror" required>
                                     <option value="">Select Term</option>
                                     @foreach($termChoices as $term)
                                         <option value="{{ $term->value }}" {{ old('start_term', $currentStartTerm) == $term->value ? 'selected' : '' }}>

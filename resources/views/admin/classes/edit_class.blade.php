@@ -160,7 +160,7 @@
                     <label for="section" class="form-label">Section (Optional)</label>
                     <input type="text" name="section" id="section"
                         class="form-control @error('section') is-invalid @enderror"
-                        value="{{ old('section', $class->section) }}" placeholder="e.g., A">
+                        value="{{ old('section', $class->section) }}" placeholder="e.g., Nursery">
                     @error('section')
                         <div class="text-danger small mt-1">{{ $message }}</div>
                     @enderror

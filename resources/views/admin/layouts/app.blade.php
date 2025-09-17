@@ -13,11 +13,12 @@
     <meta name="keywords" content="admin, school management, students, staff, courses, grades, announcements">
     <meta name="author" content="Aunty Anne's International School">
 
-    <!-- Favicons -->
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon-96x96.png') }}" sizes="96x96" />
-    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}" />
-    <link rel="manifest" href="{{ asset('images/site.webmanifest') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('images/favicons/favicon-96x96.png') }}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicons/favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('images/favicons/site.webmanifest') }}">
+    <link rel="canonical" href="https://auntyannesschools.com.ng">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
