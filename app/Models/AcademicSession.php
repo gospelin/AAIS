@@ -20,9 +20,39 @@ class AcademicSession extends Model
 
     protected $casts = [
         'is_current' => 'boolean',
-        'current_term' => 'string' // Explicitly cast to string to allow null
+        'current_term' => 'string',
     ];
 
+    /**
+     * Get the next session's year in YYYY/YYYY format.
+     *
+     * @return string|null
+     */
+    public function getNextSessionYear()
+    {
+        if (!preg_match('/^\d{4}\/\d{4}$/', $this->year)) {
+            return null; // Invalid format
+        }
+        $yearParts = explode('/', $this->year);
+        $endYear = (int) $yearParts[1];
+        return ($endYear) . '/' . ($endYear + 1);
+    }
+
+    /**
+     * Get the next academic session.
+     *
+     * @return AcademicSession|null
+     */
+    public function getNextSession()
+    {
+        $nextYear = $this->getNextSessionYear();
+        if (!$nextYear) {
+            return null;
+        }
+        return self::where('year', $nextYear)->first();
+    }
+
+    // Rest of the model (getCurrentSession, getCurrentSessionAndTerm, relationships) remains unchanged
     public static function getCurrentSession()
     {
         return self::where('is_current', true)->first();

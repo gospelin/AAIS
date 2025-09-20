@@ -12,31 +12,76 @@
             padding: var(--space-lg) var(--space-md);
         }
 
-        .header-container {
-            margin-bottom: var(--space-xl);
+        .stats-widget {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-2xl);
         }
 
-        .form-header {
-            font-family: var(--font-display);
-            font-size: clamp(1.5rem, 3.5vw, 2rem);
-            font-weight: 700;
-            background: var(--gradient-primary);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-        }
-
-        .filter-container {
+        .stat-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
             padding: var(--space-lg);
-            margin-bottom: var(--space-xl);
+            text-align: center;
+            transition: transform 0.2s ease;
         }
 
-        .form-grid {
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card i {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: var(--primary-green);
+            margin-bottom: var(--space-sm);
+        }
+
+        .stat-card h3 {
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .stat-card p {
+            font-size: clamp(0.875rem, 2vw, 0.9375rem);
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+        }
+
+        .filter-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-2xl);
+            position: relative;
+        }
+
+        .filter-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .filter-header {
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+        }
+
+        .filter-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: var(--space-md);
@@ -122,11 +167,6 @@
         .student-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-            margin-bottom: var(--space-2xl);
         }
 
         .student-table th,
@@ -154,6 +194,12 @@
             background: rgba(33, 160, 85, 0.1);
         }
 
+        .action-buttons {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
         .action-btn {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -172,14 +218,20 @@
             color: var(--white);
         }
 
-        .fee-status-paid {
-            color: var(--primary-green);
-            font-weight: 500;
+        .badge {
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: var(--radius-sm);
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
         }
 
-        .fee-status-unpaid {
+        .badge-success {
+            background: rgba(33, 160, 85, 0.1);
+            color: var(--primary-green);
+        }
+
+        .badge-danger {
+            background: rgba(220, 53, 69, 0.1);
             color: var(--error);
-            font-weight: 500;
         }
 
         .alert {
@@ -194,7 +246,7 @@
             color: var(--text-primary);
         }
 
-        .alert-error {
+        .alert-danger {
             background: rgba(220, 53, 69, 0.1);
             border: 1px solid var(--error);
             color: var(--text-primary);
@@ -204,28 +256,120 @@
             display: flex;
             justify-content: center;
             gap: var(--space-md);
-            margin-top: var(--space-lg);
+            margin-top: var(--space-xl);
         }
 
-        .pagination a, .pagination span {
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--radius-md);
+        .pagination .page-item {
+            margin: 0 var(--space-xs);
+        }
+
+        .pagination .page-link {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            text-decoration: none;
             transition: all 0.2s ease;
         }
 
-        .pagination a:hover, .pagination span.current {
+        .pagination .page-link:hover {
             background: var(--primary-green);
             border-color: var(--primary-green);
             color: var(--white);
         }
 
+        .pagination .active .page-link {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            margin-bottom: var(--space-md);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: var(--space-md);
+            right: var(--space-md);
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .modal-form .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .btn-modal-submit {
+            background: var(--gradient-primary);
+            border: none;
+            color: var(--white);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-modal-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--white);
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
-            .form-grid {
+            .filter-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -235,12 +379,36 @@
                 font-size: clamp(0.75rem, 2vw, 0.875rem);
             }
 
+            .content-container {
+                padding: var(--space-md);
+            }
+
+            .stats-widget {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
             .search-form {
                 flex-direction: column;
             }
 
-            .search-input, .btn-search {
+            .search-input,
+            .btn-search {
                 width: 100%;
+            }
+
+            .student-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-content {
+                width: 95%;
             }
         }
     </style>
@@ -248,145 +416,512 @@
 
 @section('content')
     <div class="content-container">
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-error">{{ session('error') }}</div>
-        @endif
+        @if (!$selectedSession || !$currentTerm)
+            <div class="alert alert-danger">
+                No academic session or term is set. Please <a href="{{ route('admin.select_class', ['action' => $action]) }}">select a class</a>.
+            </div>
+        @else
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">{!! session('error') !!}</div>
+            @endif
 
-        <div class="header-container">
-            <h2 class="form-header">Students in {{ $class->name }} ({{ $currentSession->year }} - {{ $currentTerm->name }})</h2>
-        </div>
-
-        <!-- Filter Form -->
-        <div class="filter-container">
-            <form method="GET" action="{{ route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="enrollment_status" class="form-label">Enrollment Status</label>
-                        <select name="enrollment_status" id="enrollment_status" class="form-select">
-                            <option value="all" {{ $enrollmentStatus == 'all' ? 'selected' : '' }}>All</option>
-                            <option value="active" {{ $enrollmentStatus == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ $enrollmentStatus == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="fee_status" class="form-label">Fee Status</label>
-                        <select name="fee_status" id="fee_status" class="form-select">
-                            <option value="" {{ $feeStatus == '' ? 'selected' : '' }}>All</option>
-                            <option value="paid" {{ $feeStatus == 'paid' ? 'selected' : '' }}>Paid</option>
-                            <option value="unpaid" {{ $feeStatus == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="approval_status" class="form-label">Approval Status</label>
-                        <select name="approval_status" id="approval_status" class="form-select">
-                            <option value="" {{ $approvalStatus == '' ? 'selected' : '' }}>All</option>
-                            <option value="approved" {{ $approvalStatus == 'approved' ? 'selected' : '' }}>Approved</option>
-                            <option value="unapproved" {{ $approvalStatus == 'unapproved' ? 'selected' : '' }}>Unapproved</option>
-                        </select>
-                    </div>
+            <!-- Stats Section -->
+            <div class="stats-widget">
+                <div class="stat-card">
+                    <i class="bi bi-person-fill"></i>
+                    <h3 id="total-students" data-stat="total_students">{{ $stats['total_students'] ?? 0 }}</h3>
+                    <p>Total Students</p>
                 </div>
-                <button type="submit" class="btn-submit">Apply Filters</button>
-            </form>
-        </div>
+                <div class="stat-card">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <h3 id="approved-students" data-stat="approved_students">{{ $stats['approved_students'] ?? 0 }}</h3>
+                    <p>Approved</p>
+                </div>
+                <div class="stat-card">
+                    <i class="bi bi-wallet2"></i>
+                    <h3 id="fees-paid" data-stat="fees_paid">{{ $stats['fees_paid'] ?? 0 }}</h3>
+                    <p>Fees Paid</p>
+                </div>
+                <div class="stat-card">
+                    <i class='bx bx-message-x'></i>
+                    <h3 id="fees-not-paid" data-stat="fees_not_paid">{{ $stats['fees_not_paid'] ?? 0 }}</h3>
+                    <p>Fees Not Paid</p>
+                </div>
+            </div>
 
-        <!-- Search Form -->
-        <div class="search-container">
-            <form method="POST" action="{{ route('admin.search_students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" class="search-form">
-                @csrf
-                <input type="text" name="query" class="search-input" placeholder="Search by name or reg number">
-                <button type="submit" class="btn-search"><i class="bx bx-search"></i></button>
-            </form>
-        </div>
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <h3 class="filter-header">Filter Students in {{ $class->name }} ({{ $selectedSession->year }} - {{ $currentTerm->value }})</h3>
+                <form id="filterForm" action="{{ route('admin.students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" method="GET">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="session_id" class="form-label">Academic Session</label>
+                            <select name="session_id" id="session_id" class="form-select">
+                                @foreach($sessions as $session)
+                                    <option value="{{ $session->id }}" {{ $selectedSession->id == $session->id ? 'selected' : '' }}>{{ $session->year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="term" class="form-label">Term</label>
+                            <select name="term" id="term" class="form-select">
+                                @foreach($termChoices as $term)
+                                    <option value="{{ $term->value }}" {{ $currentTerm->value === $term->value ? 'selected' : '' }}>{{ $term->label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="enrollment_status" class="form-label">Enrollment Status</label>
+                            <select name="enrollment_status" id="enrollment_status" class="form-select">
+                                <option value="active" {{ $enrollmentStatus == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ $enrollmentStatus == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fee_status" class="form-label">Fee Status</label>
+                            <select name="fee_status" id="fee_status" class="form-select">
+                                <option value="" {{ $feeStatus == '' ? 'selected' : '' }}>All</option>
+                                <option value="paid" {{ $feeStatus == 'paid' ? 'selected' : '' }}>Paid</option>
+                                <option value="unpaid" {{ $feeStatus == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="approval_status" class="form-label">Approval Status</label>
+                            <select name="approval_status" id="approval_status" class="form-select">
+                                <option value="" {{ $approvalStatus == '' ? 'selected' : '' }}>All</option>
+                                <option value="approved" {{ $approvalStatus == 'approved' ? 'selected' : '' }}>Approved</option>
+                                <option value="unapproved" {{ $approvalStatus == 'unapproved' ? 'selected' : '' }}>Unapproved</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
-        <!-- Students Table -->
-        <div class="student-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Reg Number</th>
-                        <th>Fee Status</th>
-                        <th>Approval Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($studentsClasses[$class->name] ?? [] as $student)
-                        <tr>
-                            <td>{{ $student->full_name }}</td>
-                            <td>{{ $student->reg_no }}</td>
-                            <td>
-                                @php
-                                    $feePayment = $student->feePayments->where('session_id', $currentSession->id)
-                                        ->where('term', $currentTerm->value)
-                                        ->first();
-                                @endphp
-                                <span class="fee-status-{{ $feePayment && $feePayment->has_paid_fee ? 'paid' : 'unpaid' }}">
-                                    {{ $feePayment && $feePayment->has_paid_fee ? 'Paid' : 'Unpaid' }}
-                                </span>
-                            </td>
-                            <td>{{ $student->approved ? 'Approved' : 'Unapproved' }}</td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    @if($action == 'view_students')
-                                        <form action="{{ route('admin.student_toggle_fee_status', $student->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="action-btn" title="Toggle Fee Status">
-                                                <i class="bx bx-money"></i>
-                                            </button>
-                                        </form>
-                                    @elseif($action == 'promote')
-                                        <form action="{{ route('admin.promote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="action-btn" title="Promote Student">
-                                                <i class="bx bx-up-arrow-alt"></i>
-                                            </button>
-                                        </form>
-                                    @elseif($action == 'demote')
-                                        <form action="{{ route('admin.demote_student', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="action-btn" title="Demote Student">
-                                                <i class="bx bx-down-arrow-alt"></i>
-                                            </button>
-                                        </form>
-                                    @elseif($action == 'delete_from_class')
-                                        <form action="{{ route('admin.delete_student_class_record', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action]) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="action-btn" title="Delete from Class">
-                                                <i class="bx bx-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center text-[var(--text-secondary)]">No students found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+            <!-- Search Form -->
+            <div class="search-container">
+                <form action="{{ route('admin.search_students_by_class', ['className' => urlencode($class->name), 'action' => $action]) }}" method="GET" class="search-form">
+                    <input type="text" name="query" class="search-input" placeholder="Search by name or reg number" value="{{ request('query') }}">
+                    <input type="hidden" name="session_id" value="{{ $selectedSession->id ?? '' }}">
+                    <input type="hidden" name="term" value="{{ $currentTerm->value ?? '' }}">
+                    <input type="hidden" name="enrollment_status" value="{{ $enrollmentStatus }}">
+                    <input type="hidden" name="fee_status" value="{{ $feeStatus }}">
+                    <input type="hidden" name="approval_status" value="{{ $approvalStatus }}">
+                    <button type="submit" class="btn-search"><i class="bx bx-search"></i></button>
+                </form>
+            </div>
 
-        <!-- Pagination -->
-        <div class="pagination">
-            {{ $students->appends(['enrollment_status' => $enrollmentStatus, 'fee_status' => $feeStatus, 'approval_status' => $approvalStatus])->links() }}
-        </div>
+            <!-- Students List -->
+            <div class="student-section">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-spinner"></div>
+                </div>
+                @if($students->isEmpty())
+                    <table class="student-table">
+                        <tbody>
+                            <tr>
+                                <td colspan="10" class="text-center text-[var(--text-secondary)]">No students found for the selected filters.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                @else
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Registration No</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Last Name</th>
+                                <th>Gender</th>
+                                <th>Enrollment Status</th>
+                                <th>Fee Status</th>
+                                <th>Approval Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body">
+                            @foreach($students as $student)
+                                <tr>
+                                    <td>{{ $student->reg_no }}</td>
+                                    <td>{{ $student->first_name }}</td>
+                                    <td>{{ $student->middle_name ?? 'N/A' }}</td>
+                                    <td>{{ $student->last_name }}</td>
+                                    <td>{{ ucfirst($student->gender) }}</td>
+                                    <td>
+                                        @php
+            $isActiveInTerm = $student->classHistory
+                ->where('session_id', $selectedSession->id)
+                ->contains(function ($history) use ($selectedSession, $currentTerm) {
+                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
+                });
+                                        @endphp
+                                        @if($isActiveInTerm)
+                                            <span class="badge badge-success">Active</span>
+                                        @else
+                                            <span class="badge badge-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+            $hasPaid = $student->feePayments
+                ->where('session_id', $selectedSession->id)
+                ->where('term', $currentTerm->value)
+                ->where('has_paid_fee', true)
+                ->count() > 0;
+                                        @endphp
+                                        @if($hasPaid)
+                                            <span class="badge badge-success">Paid</span>
+                                        @else
+                                            <span class="badge badge-danger">Unpaid</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($student->approved)
+                                            <span class="badge badge-success">Approved</span>
+                                        @else
+                                            <span class="badge badge-danger">Not Approved</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            @if($action == 'view_students')
+                                                <button type="button" class="btn btn-sm btn-secondary toggle-fee-status action-btn"
+                                                        data-student-id="{{ $student->id }}"
+                                                        data-session-id="{{ $selectedSession->id }}"
+                                                        data-term="{{ $currentTerm->value }}"
+                                                        data-status="{{ $hasPaid ? 'paid' : 'unpaid' }}">
+                                                    <i class="bx bx-wallet"></i>
+                                                    {{ $hasPaid ? 'Mark as Unpaid' : 'Mark as Paid' }}
+                                                </button>
+                                                <button type="button" class="btn btn-sm {{ $student->approved ? 'btn-warning' : 'btn-success' }} toggle-approval-status action-btn"
+                                                        data-student-id="{{ $student->id }}"
+                                                        data-status="{{ $student->approved ? 'approved' : 'unapproved' }}">
+                                                    <i class="bx bx-check"></i>
+                                                    {{ $student->approved ? 'Unapprove' : 'Approve' }}
+                                                </button>
+                                            @elseif($action == 'promote')
+                                                <button type="button" class="btn btn-sm btn-primary action-btn open-promotion-modal"
+                                                        data-student-id="{{ $student->id }}"
+                                                        data-student-name="{{ $student->first_name }} {{ $student->last_name }}"
+                                                        data-class-name="{{ urlencode($class->name) }}"
+                                                        data-session-id="{{ $selectedSession->id }}"
+                                                        data-term="{{ $currentTerm->value }}"
+                                                        data-action="promote">
+                                                    <i class="bx bx-up-arrow-alt"></i> Promote
+                                                </button>
+                                            @elseif($action == 'demote')
+                                                <button type="button" class="btn btn-sm btn-warning action-btn open-promotion-modal"
+                                                        data-student-id="{{ $student->id }}"
+                                                        data-student-name="{{ $student->first_name }} {{ $student->last_name }}"
+                                                        data-class-name="{{ urlencode($class->name) }}"
+                                                        data-session-id="{{ $selectedSession->id }}"
+                                                        data-term="{{ $currentTerm->value }}"
+                                                        data-action="demote">
+                                                    <i class="bx bx-down-arrow-alt"></i> Demote
+                                                </button>
+                                            @elseif($action == 'delete_from_class')
+                                                <a href="{{ route('admin.delete_student_class_record', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => $action, 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                                                   class="btn btn-sm btn-danger action-btn"
+                                                   onclick="return confirm('Are you sure you want to delete this student\'s class record?');">
+                                                    <i class="bx bx-trash"></i> Delete
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="paginationLinks">
+                        {{ $students->appends(['session_id' => $selectedSession->id, 'term' => $currentTerm->value, 'enrollment_status' => $enrollmentStatus, 'fee_status' => $feeStatus, 'approval_status' => $approvalStatus])->links('vendor.pagination.bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+
+            <!-- Promotion/Demotion Modal -->
+            <div class="modal" id="promotionModal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3 id="modalTitle">Promote/Demote Student</h3>
+                    <form id="promotionForm" method="POST" action="">
+                        @csrf
+                        <div class="form-group">
+                            <label for="promotion_session_id" class="form-label">Promotion Session</label>
+                            <select name="promotion_session_id" id="promotion_session_id" class="form-select">
+                                @foreach($sessions as $session)
+                                    <option value="{{ $session->id }}" {{ $nextSession && $session->id == $nextSession->id ? 'selected' : '' }}>
+                                        {{ $session->year }} {{ $session->is_current ? '(Current)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="target_class_id" class="form-label">Target Class</label>
+                            <select name="target_class_id" id="target_class_id" class="form-select">
+                                @foreach(\App\Models\Classes::orderBy('hierarchy')->get() as $classOption)
+                                    <option value="{{ $classOption->id }}">{{ $classOption->name }} {{ $classOption->section ? ' - ' . $classOption->section : '' }} (Hierarchy: {{ $classOption->hierarchy }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <input type="hidden" name="session_id" id="modal_session_id" value="{{ $selectedSession->id ?? '' }}">
+                        <input type="hidden" name="term" id="modal_term" value="{{ $currentTerm->value ?? '' }}">
+                        <button type="submit" class="btn-modal-submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+        @endif
     </div>
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                gsap.from('.header-container', { opacity: 0, y: 20, duration: 0.6 });
-                gsap.from('.filter-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
-                gsap.from('.search-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.4 });
-                gsap.from('.student-table', { opacity: 0, y: 20, duration: 0.6, delay: 0.6 });
-                gsap.from('.pagination', { opacity: 0, y: 20, duration: 0.6, delay: 0.8 });
-            });
-        </script>
-    @endpush
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // GSAP Animations
+            gsap.from('.stats-widget', { opacity: 0, y: 20, duration: 0.6 });
+            gsap.from('.filter-section', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
+            gsap.from('.search-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.4 });
+            gsap.from('.student-section', { opacity: 0, y: 20, duration: 0.6, delay: 0.6 });
+            gsap.from('.pagination', { opacity: 0, y: 20, duration: 0.6, delay: 0.8 });
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const modal = document.getElementById('promotionModal');
+            const closeModal = document.querySelector('.close-modal');
+            const promotionForm = document.getElementById('promotionForm');
+            const modalTitle = document.getElementById('modalTitle');
+            const targetClassSelect = document.getElementById('target_class_id');
+
+            // Auto-submit filter form on change
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                const filterSelects = filterForm.querySelectorAll('select');
+                filterSelects.forEach(select => {
+                    select.addEventListener('change', () => {
+                        filterForm.submit();
+                    });
+                });
+            }
+
+            // Fetch stats dynamically
+            const selectors = {
+                totalStudentsStat: '[data-stat="total_students"]',
+                approvedStudentsStat: '[data-stat="approved_students"]',
+                feesPaidStat: '[data-stat="fees_paid"]',
+                feesNotPaidStat: '[data-stat="fees_not_paid"]'
+            };
+
+            function updateStats() {
+                const sessionId = document.getElementById('session_id')?.value || '{{ $selectedSession->id ?? '' }}';
+                const term = document.getElementById('term')?.value || '{{ $currentTerm->value ?? '' }}';
+                fetch(`{{ route('admin.class_stats', ['classId' => $class->id]) }}?session_id=${encodeURIComponent(sessionId)}&term=${encodeURIComponent(term)}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.querySelector(selectors.totalStudentsStat).textContent = data.total_students || 0;
+                        document.querySelector(selectors.approvedStudentsStat).textContent = data.approved_students || 0;
+                        document.querySelector(selectors.feesPaidStat).textContent = data.fees_paid || 0;
+                        document.querySelector(selectors.feesNotPaidStat).textContent = data.fees_not_paid || 0;
+                    })
+                    .catch(error => console.error('Error fetching stats:', error));
+            }
+
+            // Toggle fee status
+            function attachFeeStatusListeners() {
+                document.querySelectorAll('.toggle-fee-status').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const studentId = button.getAttribute('data-student-id');
+                        const sessionId = button.getAttribute('data-session-id');
+                        const term = button.getAttribute('data-term');
+                        const currentStatus = button.getAttribute('data-status');
+                        const url = '{{ route('admin.class_toggle_fee_status', ':studentId') }}'.replace(':studentId', studentId);
+
+                        loadingOverlay.style.display = 'flex';
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                session_id: sessionId,
+                                term: term
+                            })
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                loadingOverlay.style.display = 'none';
+                                if (data.success) {
+                                    const newStatus = data.new_status;
+                                    button.setAttribute('data-status', newStatus);
+                                    button.innerHTML = `<i class="bx bx-wallet"></i> ${newStatus === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}`;
+                                    const badge = button.closest('tr').querySelector('td:nth-child(7) .badge');
+                                    badge.textContent = newStatus === 'paid' ? 'Paid' : 'Unpaid';
+                                    badge.classList.toggle('badge-success', newStatus === 'paid');
+                                    badge.classList.toggle('badge-danger', newStatus === 'unpaid');
+                                    updateStats();
+                                    alert(data.message);
+                                } else {
+                                    alert(data.message || 'Error updating fee status');
+                                }
+                            })
+                            .catch(error => {
+                                loadingOverlay.style.display = 'none';
+                                alert('Error updating fee status: ' + error.message);
+                            });
+                    });
+                });
+            }
+
+            // Toggle approval status
+            function attachApprovalStatusListeners() {
+                document.querySelectorAll('.toggle-approval-status').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const studentId = button.getAttribute('data-student-id');
+                        const currentStatus = button.getAttribute('data-status');
+                        const url = '{{ route('admin.class_toggle_approval_status', ':studentId') }}'.replace(':studentId', studentId);
+
+                        loadingOverlay.style.display = 'flex';
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                loadingOverlay.style.display = 'none';
+                                if (data.success) {
+                                    const newStatus = currentStatus === 'approved' ? 'unapproved' : 'approved';
+                                    button.setAttribute('data-status', newStatus);
+                                    button.innerHTML = `<i class="bx bx-check"></i> ${newStatus === 'approved' ? 'Unapprove' : 'Approve'}`;
+                                    button.classList.toggle('btn-success', newStatus === 'approved');
+                                    button.classList.toggle('btn-warning', newStatus === 'unapproved');
+                                    const badge = button.closest('tr').querySelector('td:nth-child(8) .badge');
+                                    badge.textContent = newStatus === 'approved' ? 'Approved' : 'Not Approved';
+                                    badge.classList.toggle('badge-success', newStatus === 'approved');
+                                    badge.classList.toggle('badge-danger', newStatus === 'unapproved');
+                                    updateStats();
+                                    alert(data.message);
+                                } else {
+                                    alert(data.message || 'Error updating approval status');
+                                }
+                            })
+                            .catch(error => {
+                                loadingOverlay.style.display = 'none';
+                                alert('Error updating approval status: ' + error.message);
+                            });
+                    });
+                });
+            }
+
+            // Promotion/Demotion Modal
+            function attachPromotionModalListeners() {
+                document.querySelectorAll('.open-promotion-modal').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const studentId = button.getAttribute('data-student-id');
+                        const studentName = button.getAttribute('data-student-name');
+                        const className = button.getAttribute('data-class-name');
+                        const sessionId = button.getAttribute('data-session-id');
+                        const term = button.getAttribute('data-term');
+                        const action = button.getAttribute('data-action');
+
+                        // Set modal title
+                        modalTitle.textContent = action === 'promote' ? `Promote ${studentName}` : `Demote ${studentName}`;
+
+                        // Set form action based on action type
+                        const route = action === 'promote'
+                            ? '{{ route('admin.promote_student', ['className' => ':className', 'studentId' => ':studentId', 'action' => ':action']) }}'
+                            : '{{ route('admin.demote_student', ['className' => ':className', 'studentId' => ':studentId', 'action' => ':action']) }}';
+                        promotionForm.action = route
+                            .replace(':className', className)
+                            .replace(':studentId', studentId)
+                            .replace(':action', action);
+
+                        // Set hidden inputs
+                        document.getElementById('modal_session_id').value = sessionId;
+                        document.getElementById('modal_term').value = term;
+
+                        // Set default promotion session
+                        document.getElementById('promotion_session_id').value = action === 'promote' && '{{ $nextSession->id ?? '' }}' ? '{{ $nextSession->id }}' : sessionId;
+
+                        // Fetch suggested target class via AJAX
+                        const suggestUrl = action === 'promote'
+                            ? '{{ route('admin.suggest_next_class', ['classId' => $class->id]) }}'
+                            : '{{ route('admin.suggest_previous_class', ['classId' => $class->id]) }}';
+
+                        loadingOverlay.style.display = 'flex';
+                        fetch(suggestUrl, {
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                loadingOverlay.style.display = 'none';
+                                if (data.success && data.class_id) {
+                                    targetClassSelect.value = data.class_id;
+                                } else {
+                                    targetClassSelect.value = '';
+                                    alert(data.message || 'No suitable class found.');
+                                }
+                                modal.style.display = 'flex';
+                            })
+                            .catch(error => {
+                                loadingOverlay.style.display = 'none';
+                                alert('Error fetching suggested class: ' + error.message);
+                            });
+                    });
+                });
+            }
+
+            // Close modal
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Initialize listeners
+            attachFeeStatusListeners();
+            attachApprovalStatusListeners();
+            attachPromotionModalListeners();
+
+            // Update stats on page load
+            updateStats();
+        });
+    </script>
+@endpush

@@ -99,6 +99,10 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/set-current-session', [AdminSessionController::class,'setCurrentSessionForm'])->name('admin.set_current_session');
     Route::post('/set-current-session', [AdminSessionController::class,'setCurrentSession'])->name('admin.set_current_session.store');
 
+    // // Classes Management (CRUD)
+    // Route::resource('classes', AdminClassController::class)->names('admin.classes')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    // Route::get('/classes/{class}/delete', [AdminClassController::class, 'delete'])->name('admin.classes.delete');
+
     // Classes Management (CRUD)
     Route::resource('classes', AdminClassController::class)->names('admin.classes')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::get('/classes/{class}/delete', [AdminClassController::class, 'delete'])->name('admin.classes.delete');
@@ -107,14 +111,19 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/classes/select/{action}', [AdminClassController::class, 'selectClass'])->name('admin.select_class');
     Route::post('/classes/select/{action}', [AdminClassController::class, 'selectClass']);
     Route::get('/classes/{className}/students/{action}', [AdminClassController::class, 'studentsByClass'])->name('admin.students_by_class');
-    Route::post('/classes/{className}/students/{action}/search', [AdminClassController::class, 'searchStudentsByClass'])->name('admin.search_students_by_class');
+    Route::get('/classes/{className}/students/{action}/search', [AdminClassController::class, 'searchStudentsByClass'])->name('admin.search_students_by_class'); // Changed to GET for consistency with filtering
     Route::post('/classes/{className}/promote/{studentId}/{action}', [AdminClassController::class, 'promoteStudent'])->name('admin.promote_student');
     Route::post('/classes/{className}/demote/{studentId}/{action}', [AdminClassController::class, 'demoteStudent'])->name('admin.demote_student');
     Route::post('/classes/{className}/delete-record/{studentId}/{action}', [AdminClassController::class, 'deleteStudentClassRecord'])->name('admin.delete_student_class_record');
 
-    // Fee Status Toggle
-    Route::post('/students/{student}/toggle-fee-status', [AdminClassController::class, 'toggleFeeStatus'])->name('admin.student_toggle_class_fee_status');
+    // Class-Specific AJAX Routes
+    Route::get('/classes/{classId}/stats', [AdminClassController::class, 'getStats'])->name('admin.class_stats');
+    Route::post('/classes/students/{studentId}/toggle-fee-status', [AdminClassController::class, 'toggleFeeStatus'])->name('admin.class_toggle_fee_status');
+    Route::post('/classes/students/{studentId}/toggle-approval-status', [AdminClassController::class, 'toggleApprovalStatus'])->name('admin.class_toggle_approval_status');
 
+    Route::get('/classes/{classId}/suggest-next', [AdminClassController::class, 'suggestNextClass'])->name('admin.suggest_next_class');
+    Route::get('/classes/{classId}/suggest-previous', [AdminClassController::class, 'suggestPreviousClass'])->name('admin.suggest_previous_class');
+    
     // Subjects
     Route::resource('subjects', AdminSubjectController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
     Route::get('/subjects', [AdminSubjectController::class, 'manageSubjects'])->name('admin.manage_subjects');

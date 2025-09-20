@@ -152,7 +152,7 @@ class AdminStudentController extends AdminBaseController
             $students = $studentsQuery->orderBy('classes.hierarchy')
                 ->orderBy('students.first_name')
                 ->orderBy('students.last_name')
-                ->paginate(10);
+                ->paginate(7);
 
             $statsResponse = $this->getStats($request);
             $stats = $statsResponse instanceof JsonResponse ? $statsResponse->getData(true) : [];
@@ -696,7 +696,7 @@ class AdminStudentController extends AdminBaseController
             $students = $studentsQuery->orderBy('classes.hierarchy')
                 ->orderBy('students.first_name')
                 ->orderBy('students.last_name')
-                ->paginate(10);
+                ->paginate(7);
 
             return view('admin.students.search_results', compact('students', 'action', 'currentSession', 'currentTerm'));
         } catch (\Exception $e) {

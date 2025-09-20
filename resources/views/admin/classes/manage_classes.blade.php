@@ -199,25 +199,60 @@
             color: var(--text-primary);
         }
 
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--white);
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
-            gap: var(--space-md);
-            margin-top: var(--space-lg);
+            margin-top: var(--space-xl);
         }
 
-        .pagination a, .pagination span {
-            padding: var(--space-sm) var(--space-md);
-            border-radius: var(--radius-md);
+        .pagination .page-item {
+            margin: 0 var(--space-xs);
+        }
+
+        .pagination .page-link {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            text-decoration: none;
             transition: all 0.2s ease;
         }
 
-        .pagination a:hover, .pagination span.current {
+        .pagination .page-link:hover {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
+        }
+
+        .pagination .active .page-link {
             background: var(--primary-green);
             border-color: var(--primary-green);
             color: var(--white);
@@ -238,119 +273,109 @@
                 padding: var(--space-sm);
                 font-size: clamp(0.75rem, 2vw, 0.875rem);
             }
-
-            .pagination {
-                flex-wrap: wrap;
-                gap: var(--space-sm);
-            }
         }
     </style>
 @endpush
 
 @section('content')
-    <div class="content-container">
-        <!-- Success/Error Messages -->
-        @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-error">
-                {{ session('error') }}
-            </div>
-        @endif
-
-        <!-- Create Class Form -->
-        <div class="form-container">
-            <h2 class="form-header">Create New Class</h2>
-            <form method="POST" action="{{ route('admin.classes.store') }}" id="classForm">
-                @csrf
-                <div class="form-section">
-                    <h3 class="form-section-title">Class Details</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="name" class="form-label required">Class Name</label>
-                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
-                                   value="{{ old('name') }}" placeholder="e.g., Primary 1" required>
-                            @error('name')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="section" class="form-label">Section (Optional)</label>
-                            <input type="text" name="section" id="section" class="form-control @error('section') is-invalid @enderror" 
-                                   value="{{ old('section') }}" placeholder="e.g., A">
-                            @error('section')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            <label for="hierarchy" class="form-label required">Hierarchy</label>
-                            <input type="number" name="hierarchy" id="hierarchy" class="form-control @error('hierarchy') is-invalid @enderror" 
-                                   value="{{ old('hierarchy') }}" placeholder="e.g., 1" required>
-                            @error('hierarchy')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
+        <div class="content-container">
+            <!-- Create Class Form -->
+            <div class="form-container">
+                <h2 class="form-header">Create New Class</h2>
+                <form method="POST" action="{{ route('admin.classes.store') }}" id="classForm">
+                    @csrf
+                    <div class="form-section">
+                        <h3 class="form-section-title">Class Details</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="name" class="form-label required">Class Name</label>
+                                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
+                                       value="{{ old('name') }}" placeholder="e.g., Primary 1" required>
+                                @error('name')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="section" class="form-label">Section (Optional)</label>
+                                <input type="text" name="section" id="section" class="form-control @error('section') is-invalid @enderror" 
+                                       value="{{ old('section') }}" placeholder="e.g., A">
+                                @error('section')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="form-group">
+                                <label for="hierarchy" class="form-label required">Hierarchy</label>
+                                <input type="number" name="hierarchy" id="hierarchy" class="form-control @error('hierarchy') is-invalid @enderror" 
+                                       value="{{ old('hierarchy') }}" placeholder="e.g., 1" required>
+                                @error('hierarchy')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
-                </div>
-                <button type="submit" class="btn-submit">
-                    <i class="bx bx-save"></i> Create Class
-                </button>
-            </form>
-        </div>
-
-        <!-- Classes List -->
-        <div class="class-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Class Name</th>
-                        <th>Section</th>
-                        <th>Hierarchy</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($classes as $class)
-                        <tr>
-                            <td>{{ $class->name }}</td>
-                            <td>{{ $class->section ?? 'N/A' }}</td>
-                            <td>{{ $class->hierarchy }}</td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('admin.classes.edit', $class->id) }}" class="action-btn" title="Edit Class">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
-                                    <a href="{{ route('admin.classes.delete', $class->id) }}" class="action-btn" title="Delete Class">
-                                        <i class="bx bx-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="text-center text-[var(--text-secondary)]">No classes found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        @if (is_object($classes) && method_exists($classes, 'links'))
-            <div class="pagination">
-                {{ $classes->links('vendor.pagination.bootstrap-5') }}
+                    <button type="submit" class="btn-submit">
+                        <i class="bx bx-save"></i> Create Class
+                    </button>
+                </form>
             </div>
-        @endif
-    </div>
 
+            <!-- Classes List -->
+            <div class="class-table-container" style="position: relative;">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div class="class-table" id="classTable">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Section</th>
+                                <th>Hierarchy</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classTableBody">
+                            @forelse($classes as $class)
+                                <tr>
+                                    <td>{{ $class->name }}</td>
+                                    <td>{{ $class->section ?? 'N/A' }}</td>
+                                    <td>{{ $class->hierarchy }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('admin.classes.edit', $class->id) }}" class="action-btn" title="Edit Class">
+                                                <i class="bx bx-edit"></i>
+                                            </a>
+                                            <a href="{{ route('admin.classes.delete', $class->id) }}" class="action-btn" title="Delete Class">
+                                                <i class="bx bx-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-[var(--text-secondary)]">No classes found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                @if (is_object($classes) && method_exists($classes, 'links'))
+                    <div class="pagination" id="paginationLinks">
+                        {{ $classes->links('vendor.pagination.bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        </div>
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const form = document.getElementById('classForm');
+                const classTableBody = document.getElementById('classTableBody');
+                const paginationLinks = document.getElementById('paginationLinks');
+                const loadingOverlay = document.getElementById('loadingOverlay');
 
+                // Form validation
                 form.addEventListener('submit', (e) => {
                     const hierarchy = document.getElementById('hierarchy').value;
                     if (hierarchy < 1) {
@@ -358,6 +383,47 @@
                         alert('Hierarchy must be a positive integer.');
                     }
                 });
+
+                // AJAX Pagination
+                function loadPage(url) {
+                    if (!url) return;
+
+                    loadingOverlay.style.display = 'flex';
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        classTableBody.innerHTML = data.html;
+                        paginationLinks.innerHTML = data.pagination;
+                        gsap.from('#classTableBody tr', { opacity: 0, y: 20, stagger: 0.1, duration: 0.6 });
+                        loadingOverlay.style.display = 'none';
+                        attachPaginationListeners();
+                    })
+                    .catch(error => {
+                        console.error('Error loading page:', error);
+                        alert('Failed to load classes. Please try again.');
+                        loadingOverlay.style.display = 'none';
+                    });
+                }
+
+                // Attach click listeners to pagination links
+                function attachPaginationListeners() {
+                    const links = paginationLinks.querySelectorAll('a');
+                    links.forEach(link => {
+                        link.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const url = link.getAttribute('href');
+                            loadPage(url);
+                        });
+                    });
+                }
+
+                // Initial listener attachment
+                attachPaginationListeners();
 
                 // GSAP Animations
                 gsap.from('.form-container', { opacity: 0, y: 20, duration: 0.6 });

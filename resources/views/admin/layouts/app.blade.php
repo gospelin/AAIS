@@ -733,9 +733,10 @@
                         </a>
                         <div class="collapse" id="classManagement">
                             <ul class="nav-list nav-sublist list-unstyled">
+                                {{-- }}
                                 <li><a href="{{ route('admin.classes.index') }}"
                                         class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}"><i
-                                            class="bx bx-plus nav-icon"></i><span>Add Class</span></a></li>
+                                            class="bx bx-plus nav-icon"></i><span>Add Class</span></a></li> --}}
                                 <li><a href="{{ route('admin.classes.index') }}"
                                         class="{{ request()->routeIs('admin.classes.*') ? 'active' : '' }}"><i
                                             class="bx bx-list-check nav-icon"></i><span>Manage Classes</span></a></li>

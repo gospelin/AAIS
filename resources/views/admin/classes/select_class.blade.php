@@ -2,10 +2,16 @@
 
 @section('title', 'Select Class')
 
-@section('description', 'Select a class to view students at Aunty Anne\'s International School.')
+@section('description', 'Select a class to view or manage students at Aunty Anne\'s International School.')
 
 @push('styles')
     <style>
+        .content-container {
+            max-width: 90rem;
+            margin: 0 auto;
+            padding: var(--space-lg) var(--space-md);
+        }
+
         .form-container {
             max-width: 600px;
             margin: 0 auto;
@@ -123,6 +129,12 @@
         .is-invalid {
             border-color: var(--error);
         }
+
+        @media (max-width: 768px) {
+            .content-container {
+                padding: var(--space-md);
+            }
+        }
     </style>
 @endpush
 
@@ -135,7 +147,7 @@
             </div>
         @else
             <div class="form-container">
-                <h2 class="form-header">Select Class ({{ $currentSession->year }} - {{ $currentTerm->name }})</h2>
+                <h2 class="form-header">Select Class</h2>
                 @if (session('error'))
                     <div class="alert alert-danger">{{ session('error') }}</div>
                 @endif
@@ -161,4 +173,12 @@
             </div>
         @endif
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                gsap.from('.form-container', { opacity: 0, y: 20, duration: 0.01 });
+            });
+        </script>
+    @endpush
 @endsection
