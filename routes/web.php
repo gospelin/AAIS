@@ -123,16 +123,20 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
 
     Route::get('/classes/{classId}/suggest-next', [AdminClassController::class, 'suggestNextClass'])->name('admin.suggest_next_class');
     Route::get('/classes/{classId}/suggest-previous', [AdminClassController::class, 'suggestPreviousClass'])->name('admin.suggest_previous_class');
+
+    Route::post('/classes/{className}/bulk-promote/{action}', [AdminClassController::class, 'bulkPromoteStudents'])->name('admin.bulk_promote_students');
+    Route::post('/classes/{className}/bulk-demote/{action}', [AdminClassController::class, 'bulkDemoteStudents'])->name('admin.bulk_demote_students');
     
     // Subjects
-    Route::resource('subjects', AdminSubjectController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
-    Route::get('/subjects', [AdminSubjectController::class, 'manageSubjects'])->name('admin.manage_subjects');
-    Route::post('/subjects', [AdminSubjectController::class, 'manageSubjects']);
-    Route::post('/subjects/merge', [AdminSubjectController::class, 'mergeSubjects'])->name('admin.merge_subjects');
-    Route::post('/assign-subject-to-class', [AdminSubjectController::class,'assignSubjectToClass'])->name('admin.assign_subject_to_class');
-    Route::post('/remove-subject-from-class', [AdminSubjectController::class,'removeSubjectFromClass'])->name('admin.remove_subject_from_class');
-    Route::get('/classes/{className}/edit-subjects', [AdminSubjectController::class,'editSubjectAssignment'])->name('admin.edit_subject_assignment');
-    Route::post('/classes/{className}/edit-subjects', [AdminSubjectController::class, 'editSubjectAssignment']);
+    Route::get('/subjects', [AdminSubjectController::class, 'manageSubjects'])->name('admin.subjects.manage');
+    Route::post('/subjects', [AdminSubjectController::class, 'manageSubjects'])->name('admin.subjects.manage');
+    Route::get('/subjects/edit/{subject}', [AdminSubjectController::class, 'edit'])->name('admin.subjects.edit');
+    Route::post('/subjects/edit/{subject}', [AdminSubjectController::class, 'edit'])->name('admin.subjects.edit');
+    Route::delete('/subjects/{subject}', [AdminSubjectController::class, 'destroy'])->name('admin.subjects.destroy');
+    Route::post('/subjects/assign', [AdminSubjectController::class, 'assignSubjectToClass'])->name('admin.subjects.assign');
+    Route::post('/subjects/remove', [AdminSubjectController::class, 'removeSubjectFromClass'])->name('admin.subjects.remove');
+    Route::get('/subjects/assignment/{className}', [AdminSubjectController::class, 'editSubjectAssignment'])->name('admin.subjects.edit_assignment');
+    Route::post('/subjects/assignment/{className}', [AdminSubjectController::class, 'editSubjectAssignment'])->name('admin.subjects.edit_assignment');
 
     // Results
     Route::get('/results/{className}/{studentId}/{action}', [AdminResultController::class,'manageResults'])->name('admin.manage_results');

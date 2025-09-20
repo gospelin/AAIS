@@ -252,6 +252,8 @@ class AdminClassController extends AdminBaseController
                 return (object) ['value' => $term->value, 'label' => $term->value];
             });
 
+            $allClasses = Classes::orderBy('hierarchy')->get();
+
             if ($request->ajax()) {
                 return response()->json([
                     'html' => view('admin.classes.pagination', compact(
@@ -265,7 +267,8 @@ class AdminClassController extends AdminBaseController
                         'approvalStatus',
                         'sessions',
                         'termChoices',
-                        'nextSession'
+                        'nextSession',
+                        'allClasses'
                     ))->render(),
                     'pagination' => $students->links('vendor.pagination.bootstrap-5')->render(),
                 ]);
@@ -283,7 +286,8 @@ class AdminClassController extends AdminBaseController
                 'stats',
                 'sessions',
                 'termChoices',
-                'nextSession'
+                'nextSession',
+                'allClasses'
             ));
         } catch (\Exception $e) {
             Log::error("Error in studentsByClass for class {$className}: " . $e->getMessage());
@@ -748,6 +752,376 @@ class AdminClassController extends AdminBaseController
         }
     }
 
+    public function bulkPromoteStudents(Request $request, string $className, string $action)
+    {
+        $this->authorize('manage_classes');
+
+        try {
+            [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
+            if (!$currentSession || !$currentTerm) {
+                return redirect()->route('admin.students_by_class', ['className' => urlencode($className), 'action' => $action])
+                    ->with('error', 'No current academic session or term set.');
+            }
+
+            // Validate input, ensuring student_ids is an array
+            $validated = $request->validate([
+                'session_id' => 'required|exists:academic_sessions,id',
+                'term' => 'required|in:First,Second,Third',
+                'promotion_session_id' => 'required|exists:academic_sessions,id',
+                'target_class_id' => 'required|exists:classes,id',
+                'student_ids' => 'required|array|min:1',
+                'student_ids.*' => 'exists:students,id',
+            ]);
+
+            $selectedSession = AcademicSession::findOrFail($validated['session_id']);
+            $selectedTerm = TermEnum::tryFrom($validated['term']) ?? $currentTerm;
+            $currentClass = Classes::where('name', urldecode($className))->firstOrFail();
+            $targetClass = Classes::findOrFail($validated['target_class_id']);
+            $targetSession = AcademicSession::findOrFail($validated['promotion_session_id']);
+
+            // Validate target class hierarchy
+            if ($targetClass->hierarchy <= $currentClass->hierarchy) {
+                return redirect()->route('admin.students_by_class', [
+                    'className' => urlencode($currentClass->name),
+                    'action' => $action,
+                    'session_id' => $validated['session_id'],
+                    'term' => $validated['term'],
+                ])->with('error', 'Target class must have a higher hierarchy for promotion.');
+            }
+
+            DB::beginTransaction();
+
+            $successCount = 0;
+            $failedStudents = [];
+
+            // Process each student ID
+            foreach ($validated['student_ids'] as $studentId) {
+                try {
+                    $student = Student::findOrFail($studentId);
+
+                    Log::info("Bulk promoting student {$student->reg_no}", [
+                        'student_id' => $studentId,
+                        'current_class' => $currentClass->name,
+                        'current_session' => $currentSession->year,
+                        'filtered_session' => $selectedSession->year,
+                        'target_session' => $targetSession->year,
+                        'target_class' => $targetClass->name,
+                        'term' => $selectedTerm->value,
+                        'is_same_session' => ($currentSession->id === $targetSession->id && $selectedSession->id === $targetSession->id) ? 'yes' : 'no',
+                    ]);
+
+                    $currentHistory = StudentClassHistory::where('student_id', $studentId)
+                        ->where('session_id', $selectedSession->id)
+                        ->where('class_id', $currentClass->id)
+                        ->where('is_active', true)
+                        ->whereNull('leave_date')
+                        ->where('start_term', '<=', $selectedTerm->value)
+                        ->where(function ($q) use ($selectedTerm) {
+                            $q->whereNull('end_term')
+                                ->orWhere('end_term', '>=', $selectedTerm->value);
+                        })
+                        ->first();
+
+                    $isSameSession = $currentSession->id === $targetSession->id && $selectedSession->id === $targetSession->id;
+
+                    if ($isSameSession) {
+                        if ($currentHistory) {
+                            $currentHistory->update([
+                                'class_id' => $targetClass->id,
+                                'start_term' => $selectedTerm->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                            ]);
+                            Log::info("Updated existing record for student {$student->reg_no} to {$targetClass->name} in session {$targetSession->year}", [
+                                'student_id' => $studentId,
+                                'previous_class_id' => $currentClass->id,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        } else {
+                            StudentClassHistory::create([
+                                'student_id' => $student->id,
+                                'session_id' => $targetSession->id,
+                                'class_id' => $targetClass->id,
+                                'start_term' => $selectedTerm->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                                'is_active' => true,
+                            ]);
+                            Log::info("Created new record for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year} (no existing record)", [
+                                'student_id' => $studentId,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        }
+                    } else {
+                        if ($currentHistory) {
+                            Log::info("Preserving active record for student {$student->reg_no} in {$currentClass->name} for session {$selectedSession->year}", [
+                                'student_id' => $studentId,
+                                'class_id' => $currentClass->id,
+                                'session_id' => $selectedSession->id,
+                            ]);
+                        }
+
+                        $existingTargetRecord = StudentClassHistory::where('student_id', $studentId)
+                            ->where('session_id', $targetSession->id)
+                            ->where('class_id', $targetClass->id)
+                            ->where('is_active', true)
+                            ->whereNull('leave_date')
+                            ->first();
+
+                        if (!$existingTargetRecord) {
+                            StudentClassHistory::create([
+                                'student_id' => $student->id,
+                                'session_id' => $targetSession->id,
+                                'class_id' => $targetClass->id,
+                                'start_term' => TermEnum::FIRST->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                                'is_active' => true,
+                            ]);
+                            Log::info("Created new record for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year}", [
+                                'student_id' => $studentId,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        } else {
+                            Log::info("Record already exists for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year}, no new record created", [
+                                'student_id' => $studentId,
+                                'class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        }
+                    }
+
+                    $this->logActivity("Bulk promoted student {$student->reg_no} to {$targetClass->name} in session {$targetSession->year}", [
+                        'student_id' => $student->id,
+                        'new_class_id' => $targetClass->id,
+                        'session_id' => $targetSession->id,
+                        'term' => $selectedTerm->value,
+                    ]);
+
+                    $successCount++;
+                } catch (\Exception $e) {
+                    Log::error("Error promoting student {$student->reg_no}: " . $e->getMessage());
+                    $failedStudents[] = $student->reg_no;
+                }
+            }
+
+            DB::commit();
+
+            $message = "Successfully promoted {$successCount} student(s) to {$targetClass->name} in session {$targetSession->year}.";
+            if (!empty($failedStudents)) {
+                $message .= " Failed for: " . implode(', ', $failedStudents);
+            }
+
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($currentClass->name),
+                'action' => $action,
+                'session_id' => $validated['session_id'],
+                'term' => $validated['term'],
+            ])->with('success', $message);
+        } catch (ValidationException $e) {
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($className),
+                'action' => $action,
+                'session_id' => $request->input('session_id', $currentSession->id),
+                'term' => $request->input('term', $currentTerm->value),
+            ])->withErrors($e->errors())->with('error', 'Validation error occurred.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error bulk promoting students: " . $e->getMessage());
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($className),
+                'action' => $action,
+                'session_id' => $request->input('session_id', $currentSession->id),
+                'term' => $request->input('term', $currentTerm->value),
+            ])->with('error', 'Error bulk promoting students: ' . $e->getMessage());
+        }
+    }
+
+    public function bulkDemoteStudents(Request $request, string $className, string $action)
+    {
+        $this->authorize('manage_classes');
+
+        try {
+            [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
+            if (!$currentSession || !$currentTerm) {
+                return redirect()->route('admin.students_by_class', ['className' => urlencode($className), 'action' => $action])
+                    ->with('error', 'No current academic session or term set.');
+            }
+
+            // Validate input, ensuring student_ids is an array
+            $validated = $request->validate([
+                'session_id' => 'required|exists:academic_sessions,id',
+                'term' => 'required|in:First,Second,Third',
+                'promotion_session_id' => 'required|exists:academic_sessions,id',
+                'target_class_id' => 'required|exists:classes,id',
+                'student_ids' => 'required|array|min:1',
+                'student_ids.*' => 'exists:students,id',
+            ]);
+
+            $selectedSession = AcademicSession::findOrFail($validated['session_id']);
+            $selectedTerm = TermEnum::tryFrom($validated['term']) ?? $currentTerm;
+            $currentClass = Classes::where('name', urldecode($className))->firstOrFail();
+            $targetClass = Classes::findOrFail($validated['target_class_id']);
+            $targetSession = AcademicSession::findOrFail($validated['promotion_session_id']);
+
+            // Validate target class hierarchy
+            if ($targetClass->hierarchy >= $currentClass->hierarchy) {
+                return redirect()->route('admin.students_by_class', [
+                    'className' => urlencode($currentClass->name),
+                    'action' => $action,
+                    'session_id' => $validated['session_id'],
+                    'term' => $validated['term'],
+                ])->with('error', 'Target class must have a lower hierarchy for demotion.');
+            }
+
+            DB::beginTransaction();
+
+            $successCount = 0;
+            $failedStudents = [];
+
+            // Process each student ID
+            foreach ($validated['student_ids'] as $studentId) {
+                try {
+                    $student = Student::findOrFail($studentId);
+
+                    Log::info("Bulk demoting student {$student->reg_no}", [
+                        'student_id' => $studentId,
+                        'current_class' => $currentClass->name,
+                        'current_session' => $currentSession->year,
+                        'filtered_session' => $selectedSession->year,
+                        'target_session' => $targetSession->year,
+                        'target_class' => $targetClass->name,
+                        'term' => $selectedTerm->value,
+                        'is_same_session' => ($currentSession->id === $targetSession->id && $selectedSession->id === $targetSession->id) ? 'yes' : 'no',
+                    ]);
+
+                    $currentHistory = StudentClassHistory::where('student_id', $studentId)
+                        ->where('session_id', $selectedSession->id)
+                        ->where('class_id', $currentClass->id)
+                        ->where('is_active', true)
+                        ->whereNull('leave_date')
+                        ->where('start_term', '<=', $selectedTerm->value)
+                        ->where(function ($q) use ($selectedTerm) {
+                            $q->whereNull('end_term')
+                                ->orWhere('end_term', '>=', $selectedTerm->value);
+                        })
+                        ->first();
+
+                    $isSameSession = $currentSession->id === $targetSession->id && $selectedSession->id === $targetSession->id;
+
+                    if ($isSameSession) {
+                        if ($currentHistory) {
+                            $currentHistory->update([
+                                'class_id' => $targetClass->id,
+                                'start_term' => $selectedTerm->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                            ]);
+                            Log::info("Updated existing record for student {$student->reg_no} to {$targetClass->name} in session {$targetSession->year}", [
+                                'student_id' => $studentId,
+                                'previous_class_id' => $currentClass->id,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        } else {
+                            StudentClassHistory::create([
+                                'student_id' => $student->id,
+                                'session_id' => $targetSession->id,
+                                'class_id' => $targetClass->id,
+                                'start_term' => $selectedTerm->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                                'is_active' => true,
+                            ]);
+                            Log::info("Created new record for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year} (no existing record)", [
+                                'student_id' => $studentId,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        }
+                    } else {
+                        if ($currentHistory) {
+                            Log::info("Preserving active record for student {$student->reg_no} in {$currentClass->name} for session {$selectedSession->year}", [
+                                'student_id' => $studentId,
+                                'class_id' => $currentClass->id,
+                                'session_id' => $selectedSession->id,
+                            ]);
+                        }
+
+                        $existingTargetRecord = StudentClassHistory::where('student_id', $studentId)
+                            ->where('session_id', $targetSession->id)
+                            ->where('class_id', $targetClass->id)
+                            ->where('is_active', true)
+                            ->whereNull('leave_date')
+                            ->first();
+
+                        if (!$existingTargetRecord) {
+                            StudentClassHistory::create([
+                                'student_id' => $student->id,
+                                'session_id' => $targetSession->id,
+                                'class_id' => $targetClass->id,
+                                'start_term' => TermEnum::FIRST->value,
+                                'join_date' => Carbon::now('Africa/Lagos'),
+                                'is_active' => true,
+                            ]);
+                            Log::info("Created new record for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year}", [
+                                'student_id' => $studentId,
+                                'new_class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        } else {
+                            Log::info("Record already exists for student {$student->reg_no} in {$targetClass->name} for session {$targetSession->year}, no new record created", [
+                                'student_id' => $studentId,
+                                'class_id' => $targetClass->id,
+                                'session_id' => $targetSession->id,
+                            ]);
+                        }
+                    }
+
+                    $this->logActivity("Bulk demoted student {$student->reg_no} to {$targetClass->name} in session {$targetSession->year}", [
+                        'student_id' => $student->id,
+                        'new_class_id' => $targetClass->id,
+                        'session_id' => $targetSession->id,
+                        'term' => $selectedTerm->value,
+                    ]);
+
+                    $successCount++;
+                } catch (\Exception $e) {
+                    Log::error("Error demoting student {$student->reg_no}: " . $e->getMessage());
+                    $failedStudents[] = $student->reg_no;
+                }
+            }
+
+            DB::commit();
+
+            $message = "Successfully demoted {$successCount} student(s) to {$targetClass->name} in session {$targetSession->year}.";
+            if (!empty($failedStudents)) {
+                $message .= " Failed for: " . implode(', ', $failedStudents);
+            }
+
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($currentClass->name),
+                'action' => $action,
+                'session_id' => $validated['session_id'],
+                'term' => $validated['term'],
+            ])->with('success', $message);
+        } catch (ValidationException $e) {
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($className),
+                'action' => $action,
+                'session_id' => $request->input('session_id', $currentSession->id),
+                'term' => $request->input('term', $currentTerm->value),
+            ])->withErrors($e->errors())->with('error', 'Validation error occurred.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error bulk demoting students: " . $e->getMessage());
+            return redirect()->route('admin.students_by_class', [
+                'className' => urlencode($className),
+                'action' => $action,
+                'session_id' => $request->input('session_id', $currentSession->id),
+                'term' => $request->input('term', $currentTerm->value),
+            ])->with('error', 'Error bulk demoting students: ' . $e->getMessage());
+        }
+    }
+
     public function deleteStudentClassRecord(Request $request, string $className, $studentId, string $action)
     {
         $this->authorize('manage_classes');
@@ -834,7 +1208,7 @@ class AdminClassController extends AdminBaseController
                 return redirect()->route('admin.select_class', ['action' => $action])
                     ->with('error', 'No current academic session or term set.');
             }
-            
+
             $sessionId = $request->input('session_id', $currentSession->id);
             $selectedSession = AcademicSession::findOrFail($sessionId);
 
@@ -890,6 +1264,8 @@ class AdminClassController extends AdminBaseController
                 return (object) ['value' => $term->value, 'label' => $term->value];
             });
 
+            $allClasses = Classes::orderBy('hierarchy')->get();
+
             if ($request->ajax()) {
                 return response()->json([
                     'html' => view('admin.classes.pagination', compact(
@@ -903,7 +1279,8 @@ class AdminClassController extends AdminBaseController
                         'approvalStatus',
                         'sessions',
                         'termChoices',
-                        'nextSession'
+                        'nextSession',
+                        'allClasses'
                     ))->render(),
                     'pagination' => $students->links('vendor.pagination.bootstrap-5')->render(),
                 ]);
@@ -922,7 +1299,8 @@ class AdminClassController extends AdminBaseController
                 'stats',
                 'sessions',
                 'termChoices',
-                'nextSession'
+                'nextSession',
+                'allClasses'
             ));
         } catch (\Exception $e) {
             Log::error("Error searching students for class {$className}: " . $e->getMessage());

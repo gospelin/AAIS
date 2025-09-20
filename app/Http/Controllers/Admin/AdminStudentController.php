@@ -149,10 +149,19 @@ class AdminStudentController extends AdminBaseController
                 $currentTerm->value
             );
 
+            // Append query parameters to pagination links
             $students = $studentsQuery->orderBy('classes.hierarchy')
                 ->orderBy('students.first_name')
                 ->orderBy('students.last_name')
-                ->paginate(7);
+                ->paginate(7)
+                ->appends([
+                    'session_id' => $sessionId,
+                    'term' => $currentTerm->value,
+                    'enrollment_status' => $enrollmentStatus,
+                    'fee_status' => $feeStatus,
+                    'approval_status' => $approvalStatus,
+                    'action' => $action,
+                ]);
 
             $statsResponse = $this->getStats($request);
             $stats = $statsResponse instanceof JsonResponse ? $statsResponse->getData(true) : [];
@@ -160,7 +169,10 @@ class AdminStudentController extends AdminBaseController
             $sessions = AcademicSession::orderBy('year', 'desc')->get();
 
             if ($request->ajax()) {
-                return view('admin.students.pagination', compact('students', 'selectedSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'sessions'))->render();
+                return response()->json([
+                    'html' => view('admin.students.pagination', compact('students', 'selectedSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'sessions'))->render(),
+                    'pagination' => $students->links()->toHtml(),
+                ]);
             }
 
             return view('admin.students.view_students', compact('students', 'selectedSession', 'currentTerm', 'action', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'stats', 'sessions'));
@@ -169,7 +181,6 @@ class AdminStudentController extends AdminBaseController
             return redirect()->route('admin.manage_academic_sessions')->with('error', 'An error occurred while fetching students. Please ensure a current session is set.');
         }
     }
-
     public function edit(Request $request, Student $student)
     {
         try {
@@ -615,48 +626,39 @@ class AdminStudentController extends AdminBaseController
         try {
             $sessionId = $request->input('session_id', AcademicSession::where('is_current', true)->firstOrFail()->id);
             $currentTerm = TermEnum::tryFrom($request->input('term', TermEnum::FIRST->value)) ?? TermEnum::FIRST;
+            $query = $request->input('query', '');
+            $enrollmentStatus = $request->input('enrollment_status', 'active');
+            $feeStatus = $request->input('fee_status', '');
+            $approvalStatus = $request->input('approval_status', '');
 
-            $totalStudents = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
-                $query->where('session_id', $sessionId)
-                    ->where('start_term', '<=', $currentTerm->value)
-                    ->where(function ($q) use ($currentTerm) {
-                        $q->whereNull('end_term')
-                            ->orWhere('end_term', '>=', $currentTerm->value);
-                    })
-                    ->where('is_active', true)
-                    ->whereNull('leave_date');
-            })->count();
+            $studentsQuery = $this->getStudentsQuery(AcademicSession::findOrFail($sessionId), $currentTerm->value);
 
-            $approvedStudents = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
-                $query->where('session_id', $sessionId)
-                    ->where('start_term', '<=', $currentTerm->value)
-                    ->where(function ($q) use ($currentTerm) {
-                        $q->whereNull('end_term')
-                            ->orWhere('end_term', '>=', $currentTerm->value);
-                    })
-                    ->where('is_active', true)
-                    ->whereNull('leave_date');
-            })->where('approved', true)->count();
+            if ($query) {
+                $studentsQuery->where(function ($q) use ($query) {
+                    $q->whereRaw('LOWER(students.first_name) LIKE ?', ['%' . strtolower($query) . '%'])
+                        ->orWhereRaw('LOWER(students.last_name) LIKE ?', ['%' . strtolower($query) . '%'])
+                        ->orWhere('students.reg_no', 'LIKE', '%' . $query . '%');
+                });
+            }
 
-            $feesPaid = FeePayment::where('session_id', $sessionId)
-                ->where('term', $currentTerm->value)
-                ->where('has_paid_fee', true)
-                ->count();
+            $studentsQuery = $this->applyFiltersToStudentsQuery(
+                $studentsQuery,
+                $enrollmentStatus,
+                $feeStatus,
+                $approvalStatus,
+                AcademicSession::findOrFail($sessionId),
+                $currentTerm,
+                $currentTerm->value
+            );
 
-            $feesNotPaid = Student::whereHas('classHistory', function ($query) use ($sessionId, $currentTerm) {
-                $query->where('session_id', $sessionId)
-                    ->where('start_term', '<=', $currentTerm->value)
-                    ->where(function ($q) use ($currentTerm) {
-                        $q->whereNull('end_term')
-                            ->orWhere('end_term', '>=', $currentTerm->value);
-                    })
-                    ->where('is_active', true)
-                    ->whereNull('leave_date');
-            })->whereDoesntHave('feePayments', function ($query) use ($sessionId, $currentTerm) {
+            $totalStudents = $studentsQuery->count();
+            $approvedStudents = (clone $studentsQuery)->where('students.approved', true)->count();
+            $feesPaid = (clone $studentsQuery)->whereHas('feePayments', function ($query) use ($sessionId, $currentTerm) {
                 $query->where('session_id', $sessionId)
                     ->where('term', $currentTerm->value)
                     ->where('has_paid_fee', true);
             })->count();
+            $feesNotPaid = $totalStudents - $feesPaid;
 
             return response()->json([
                 'total_students' => $totalStudents,
@@ -678,12 +680,23 @@ class AdminStudentController extends AdminBaseController
     public function searchStudents(Request $request, string $action)
     {
         try {
-            $currentSessionData = $this->getCurrentSessionAndTerm(true);
-            $currentSession = $currentSessionData[0];
-            $currentTerm = $currentSessionData[1];
+            [$currentSession, $defaultTerm] = $this->getCurrentSessionAndTerm(true);
+            if (!$currentSession || !$defaultTerm) {
+                return redirect()->route('admin.manage_academic_sessions')->with('error', 'No current session or term set. Please set one first.');
+            }
 
             $query = $request->input('query', '');
-            $studentsQuery = $this->getStudentsQuery($currentSession, $currentTerm->value);
+            $sessionId = $request->input('session_id', $currentSession->id);
+            $term = $request->input('term', $defaultTerm->value);
+            $enrollmentStatus = $request->input('enrollment_status', 'active');
+            $feeStatus = $request->input('fee_status', '');
+            $approvalStatus = $request->input('approval_status', '');
+
+            // Define $selectedSession based on the requested session_id
+            $selectedSession = AcademicSession::findOrFail($sessionId);
+            $currentTerm = TermEnum::tryFrom($term) ?? $defaultTerm;
+
+            $studentsQuery = $this->getStudentsQuery($selectedSession, $currentTerm->value);
 
             if ($query) {
                 $studentsQuery->where(function ($q) use ($query) {
@@ -693,18 +706,60 @@ class AdminStudentController extends AdminBaseController
                 });
             }
 
+            // Apply additional filters
+            $studentsQuery = $this->applyFiltersToStudentsQuery(
+                $studentsQuery,
+                $enrollmentStatus,
+                $feeStatus,
+                $approvalStatus,
+                $selectedSession,
+                $currentTerm,
+                $currentTerm->value
+            );
+
             $students = $studentsQuery->orderBy('classes.hierarchy')
                 ->orderBy('students.first_name')
                 ->orderBy('students.last_name')
-                ->paginate(7);
+                ->paginate(7)
+                ->appends([
+                    'query' => $query,
+                    'session_id' => $sessionId,
+                    'term' => $term,
+                    'enrollment_status' => $enrollmentStatus,
+                    'fee_status' => $feeStatus,
+                    'approval_status' => $approvalStatus,
+                    'action' => $action,
+                ]);
 
-            return view('admin.students.search_results', compact('students', 'action', 'currentSession', 'currentTerm'));
+            // Fetch stats for view_students
+            $statsResponse = $this->getStats($request);
+            $stats = $statsResponse instanceof JsonResponse ? $statsResponse->getData(true) : [];
+
+            // Fetch sessions for the dropdown
+            $sessions = AcademicSession::orderBy('year', 'desc')->get();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('admin.students.search_results', compact('students', 'action', 'selectedSession', 'currentTerm', 'enrollmentStatus', 'feeStatus', 'approvalStatus', 'sessions'))->render(),
+                    'pagination' => $students->links('vendor.pagination.bootstrap-5')->toHtml(),
+                ]);
+            }
+
+            // For non-AJAX requests, redirect to view_students with query parameters
+            return redirect()->route('admin.students', [
+                'action' => $action,
+                'query' => $query,
+                'session_id' => $sessionId,
+                'term' => $term,
+                'enrollment_status' => $enrollmentStatus,
+                'fee_status' => $feeStatus,
+                'approval_status' => $approvalStatus,
+            ]);
         } catch (\Exception $e) {
             Log::error("Error searching students: " . $e->getMessage());
             return back()->with('error', 'Error searching students.');
         }
     }
-
     public function printStudentMessage(Request $request)
     {
         try {

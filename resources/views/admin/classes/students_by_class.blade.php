@@ -1,7 +1,6 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Students in {{ $class->name }}')
-
 @section('description', 'View and manage students in {{ $class->name }} at Aunty Anne\'s International School.')
 
 @push('styles')
@@ -298,6 +297,10 @@
             z-index: 1000;
         }
 
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
             background: var(--bg-primary);
             border-radius: var(--radius-xl);
@@ -368,6 +371,34 @@
             100% { transform: rotate(360deg); }
         }
 
+        .bulk-actions {
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .select-all-checkbox {
+            margin-right: var(--space-sm);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-green);
+            font-size: clamp(0.875rem, 2vw, 0.9375rem);
+            margin-bottom: var(--space-md);
+            text-decoration: none;
+        }
+
+        .back-link i {
+            margin-right: var(--space-xs);
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .filter-grid {
                 grid-template-columns: 1fr;
@@ -421,12 +452,9 @@
                 No academic session or term is set. Please <a href="{{ route('admin.select_class', ['action' => $action]) }}">select a class</a>.
             </div>
         @else
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">{!! session('error') !!}</div>
-            @endif
+            <a href="{{ route('admin.select_class', ['action' => $action]) }}" class="back-link">
+                <i class="bx bx-arrow-back"></i> Back to Select Class
+            </a>
 
             <!-- Stats Section -->
             <div class="stats-widget">
@@ -513,6 +541,21 @@
                 </form>
             </div>
 
+            <!-- Bulk Actions -->
+            <div class="bulk-actions">
+                <input type="checkbox" id="select-all" class="select-all-checkbox">
+                <label for="select-all">Select All</label>
+                @if($action == 'promote')
+                    <button type="button" class="btn btn-sm btn-primary action-btn bulk-action-btn" id="bulk-promote-btn" disabled>
+                        <i class="bx bx-up-arrow-alt"></i> Bulk Promote
+                    </button>
+                @elseif($action == 'demote')
+                    <button type="button" class="btn btn-sm btn-warning action-btn bulk-action-btn" id="bulk-demote-btn" disabled>
+                        <i class="bx bx-down-arrow-alt"></i> Bulk Demote
+                    </button>
+                @endif
+            </div>
+
             <!-- Students List -->
             <div class="student-section">
                 <div class="loading-overlay" id="loadingOverlay">
@@ -530,6 +573,7 @@
                     <table class="student-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="select-all-header"></th>
                                 <th>Registration No</th>
                                 <th>First Name</th>
                                 <th>Middle Name</th>
@@ -544,6 +588,7 @@
                         <tbody id="students-table-body">
                             @foreach($students as $student)
                                 <tr>
+                                    <td><input type="checkbox" class="student-checkbox" value="{{ $student->id }}"></td>
                                     <td>{{ $student->reg_no }}</td>
                                     <td>{{ $student->first_name }}</td>
                                     <td>{{ $student->middle_name ?? 'N/A' }}</td>
@@ -551,11 +596,11 @@
                                     <td>{{ ucfirst($student->gender) }}</td>
                                     <td>
                                         @php
-            $isActiveInTerm = $student->classHistory
-                ->where('session_id', $selectedSession->id)
-                ->contains(function ($history) use ($selectedSession, $currentTerm) {
-                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
-                });
+                                            $isActiveInTerm = $student->classHistory
+                                                ->where('session_id', $selectedSession->id)
+                                                ->contains(function ($history) use ($selectedSession, $currentTerm) {
+                                                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
+                                                });
                                         @endphp
                                         @if($isActiveInTerm)
                                             <span class="badge badge-success">Active</span>
@@ -565,11 +610,11 @@
                                     </td>
                                     <td>
                                         @php
-            $hasPaid = $student->feePayments
-                ->where('session_id', $selectedSession->id)
-                ->where('term', $currentTerm->value)
-                ->where('has_paid_fee', true)
-                ->count() > 0;
+                                            $hasPaid = $student->feePayments
+                                                ->where('session_id', $selectedSession->id)
+                                                ->where('term', $currentTerm->value)
+                                                ->where('has_paid_fee', true)
+                                                ->count() > 0;
                                         @endphp
                                         @if($hasPaid)
                                             <span class="badge badge-success">Paid</span>
@@ -671,6 +716,39 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Bulk Promotion/Demotion Modal -->
+            <div class="modal" id="bulkActionModal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3 id="bulkModalTitle">Bulk Action</h3>
+                    <form id="bulkActionForm" method="POST" action="">
+                        @csrf
+                        <div id="student-ids-container"></div>
+                        <div class="form-group">
+                            <label for="bulk_promotion_session_id" class="form-label">Target Session</label>
+                            <select name="promotion_session_id" id="bulk_promotion_session_id" class="form-select">
+                                @foreach($sessions as $session)
+                                    <option value="{{ $session->id }}" {{ $nextSession && $session->id == $nextSession->id ? 'selected' : '' }}>
+                                        {{ $session->year }} {{ $session->is_current ? '(Current)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bulk_target_class_id" class="form-label">Target Class</label>
+                            <select name="target_class_id" id="bulk_target_class_id" class="form-select">
+                                @foreach(\App\Models\Classes::orderBy('hierarchy')->get() as $classOption)
+                                    <option value="{{ $classOption->id }}">{{ $classOption->name }} {{ $classOption->section ? ' - ' . $classOption->section : '' }} (Hierarchy: {{ $classOption->hierarchy }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <input type="hidden" name="session_id" id="bulk_modal_session_id" value="{{ $selectedSession->id ?? '' }}">
+                        <input type="hidden" name="term" id="bulk_modal_term" value="{{ $currentTerm->value ?? '' }}">
+                        <button type="submit" class="btn-modal-submit">Submit</button>
+                    </form>
+                </div>
+            </div>
         @endif
     </div>
 @endsection
@@ -682,15 +760,26 @@
             gsap.from('.stats-widget', { opacity: 0, y: 20, duration: 0.6 });
             gsap.from('.filter-section', { opacity: 0, y: 20, duration: 0.6, delay: 0.2 });
             gsap.from('.search-container', { opacity: 0, y: 20, duration: 0.6, delay: 0.4 });
+            gsap.from('.bulk-actions', { opacity: 0, y: 20, duration: 0.6, delay: 0.5 });
             gsap.from('.student-section', { opacity: 0, y: 20, duration: 0.6, delay: 0.6 });
             gsap.from('.pagination', { opacity: 0, y: 20, duration: 0.6, delay: 0.8 });
 
             const loadingOverlay = document.getElementById('loadingOverlay');
-            const modal = document.getElementById('promotionModal');
-            const closeModal = document.querySelector('.close-modal');
+            const promotionModal = document.getElementById('promotionModal');
+            const bulkActionModal = document.getElementById('bulkActionModal');
+            const closeModals = document.querySelectorAll('.close-modal');
             const promotionForm = document.getElementById('promotionForm');
+            const bulkActionForm = document.getElementById('bulkActionForm');
             const modalTitle = document.getElementById('modalTitle');
+            const bulkModalTitle = document.getElementById('bulkModalTitle');
             const targetClassSelect = document.getElementById('target_class_id');
+            const bulkTargetClassSelect = document.getElementById('bulk_target_class_id');
+            const selectAllCheckbox = document.getElementById('select-all');
+            const selectAllHeader = document.getElementById('select-all-header');
+            const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+            const bulkPromoteBtn = document.getElementById('bulk-promote-btn');
+            const bulkDemoteBtn = document.getElementById('bulk-demote-btn');
+            const studentIdsContainer = document.getElementById('student-ids-container');
 
             // Auto-submit filter form on change
             const filterForm = document.getElementById('filterForm');
@@ -770,7 +859,7 @@
                                     const newStatus = data.new_status;
                                     button.setAttribute('data-status', newStatus);
                                     button.innerHTML = `<i class="bx bx-wallet"></i> ${newStatus === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}`;
-                                    const badge = button.closest('tr').querySelector('td:nth-child(7) .badge');
+                                    const badge = button.closest('tr').querySelector('td:nth-child(8) .badge');
                                     badge.textContent = newStatus === 'paid' ? 'Paid' : 'Unpaid';
                                     badge.classList.toggle('badge-success', newStatus === 'paid');
                                     badge.classList.toggle('badge-danger', newStatus === 'unpaid');
@@ -819,7 +908,7 @@
                                     button.innerHTML = `<i class="bx bx-check"></i> ${newStatus === 'approved' ? 'Unapprove' : 'Approve'}`;
                                     button.classList.toggle('btn-success', newStatus === 'approved');
                                     button.classList.toggle('btn-warning', newStatus === 'unapproved');
-                                    const badge = button.closest('tr').querySelector('td:nth-child(8) .badge');
+                                    const badge = button.closest('tr').querySelector('td:nth-child(9) .badge');
                                     badge.textContent = newStatus === 'approved' ? 'Approved' : 'Not Approved';
                                     badge.classList.toggle('badge-success', newStatus === 'approved');
                                     badge.classList.toggle('badge-danger', newStatus === 'unapproved');
@@ -893,7 +982,7 @@
                                     targetClassSelect.value = '';
                                     alert(data.message || 'No suitable class found.');
                                 }
-                                modal.style.display = 'flex';
+                                promotionModal.style.display = 'flex';
                             })
                             .catch(error => {
                                 loadingOverlay.style.display = 'none';
@@ -903,15 +992,131 @@
                 });
             }
 
-            // Close modal
-            closeModal.addEventListener('click', () => {
-                modal.style.display = 'none';
+            // Bulk Action Modal
+            function attachBulkActionListeners() {
+                const openBulkModal = (action, title) => {
+                    const selectedStudentIds = Array.from(studentCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+                    if (selectedStudentIds.length === 0) {
+                        alert('Please select at least one student.');
+                        return;
+                    }
+
+                    bulkModalTitle.textContent = title;
+                    const route = action === 'promote'
+                        ? '{{ route('admin.bulk_promote_students', ['className' => ':className', 'action' => ':action']) }}'
+                        : '{{ route('admin.bulk_demote_students', ['className' => ':className', 'action' => ':action']) }}';
+                    bulkActionForm.action = route
+                        .replace(':className', '{{ urlencode($class->name) }}')
+                        .replace(':action', '{{ $action }}');
+
+                    // Clear previous student IDs
+                    studentIdsContainer.innerHTML = '';
+
+                    // Add hidden inputs for each student ID
+                    selectedStudentIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'student_ids[]';
+                        input.value = id;
+                        studentIdsContainer.appendChild(input);
+                    });
+
+                    // Set default session
+                    document.getElementById('bulk_promotion_session_id').value = action === 'promote' && '{{ $nextSession->id ?? '' }}' ? '{{ $nextSession->id }}' : '{{ $selectedSession->id ?? '' }}';
+                    document.getElementById('bulk_modal_session_id').value = '{{ $selectedSession->id ?? '' }}';
+                    document.getElementById('bulk_modal_term').value = '{{ $currentTerm->value ?? '' }}';
+
+                    // Fetch suggested target class
+                    const suggestUrl = action === 'promote'
+                        ? '{{ route('admin.suggest_next_class', ['classId' => $class->id]) }}'
+                        : '{{ route('admin.suggest_previous_class', ['classId' => $class->id]) }}';
+
+                    loadingOverlay.style.display = 'flex';
+                    fetch(suggestUrl, {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            loadingOverlay.style.display = 'none';
+                            if (data.success && data.class_id) {
+                                bulkTargetClassSelect.value = data.class_id;
+                            } else {
+                                bulkTargetClassSelect.value = '';
+                                alert(data.message || 'No suitable class found.');
+                            }
+                            bulkActionModal.classList.add('show');
+                            gsap.from(bulkActionModal.querySelector('.modal-content'), { opacity: 0, y: 20, duration: 0.4 });
+                        })
+                        .catch(error => {
+                            loadingOverlay.style.display = 'none';
+                            alert('Error fetching suggested class: ' + error.message);
+                        });
+                };
+
+                if (bulkPromoteBtn) {
+                    bulkPromoteBtn.addEventListener('click', () => openBulkModal('promote', 'Bulk Promote Students'));
+                }
+                if (bulkDemoteBtn) {
+                    bulkDemoteBtn.addEventListener('click', () => openBulkModal('demote', 'Bulk Demote Students'));
+                }
+            }
+
+            // Checkbox handling
+            function updateBulkButtons() {
+                const checkedCount = document.querySelectorAll('.student-checkbox:checked').length;
+                if (bulkPromoteBtn) bulkPromoteBtn.disabled = checkedCount === 0;
+                if (bulkDemoteBtn) bulkDemoteBtn.disabled = checkedCount === 0;
+            }
+
+            selectAllCheckbox.addEventListener('change', function () {
+                studentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                selectAllHeader.checked = this.checked;
+                updateBulkButtons();
             });
 
-            // Close modal when clicking outside
+            selectAllHeader.addEventListener('change', function () {
+                studentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                selectAllCheckbox.checked = this.checked;
+                updateBulkButtons();
+            });
+
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    selectAllCheckbox.checked = document.querySelectorAll('.student-checkbox:checked').length === studentCheckboxes.length;
+                    selectAllHeader.checked = selectAllCheckbox.checked;
+                    updateBulkButtons();
+                });
+            });
+
+            // Close modals
+            closeModals.forEach(closeBtn => {
+                closeBtn.addEventListener('click', () => {
+                    promotionModal.style.display = 'none';
+                    bulkActionModal.classList.remove('show');
+                });
+            });
+
+            // Close modals when clicking outside
             window.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
+                if (event.target === promotionModal) {
+                    promotionModal.style.display = 'none';
+                }
+                if (event.target === bulkActionModal) {
+                    bulkActionModal.classList.remove('show');
                 }
             });
 
@@ -919,6 +1124,7 @@
             attachFeeStatusListeners();
             attachApprovalStatusListeners();
             attachPromotionModalListeners();
+            attachBulkActionListeners();
 
             // Update stats on page load
             updateStats();

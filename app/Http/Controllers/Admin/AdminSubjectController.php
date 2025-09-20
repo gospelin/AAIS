@@ -22,16 +22,30 @@ class AdminSubjectController extends AdminBaseController
                     'description' => 'nullable|string|max:255',
                 ]);
 
-                Subject::create($validated);
+                $subject = Subject::create($validated);
 
-                $this->logActivity("Subject created: {$validated['name']}", ['subject_id' => DB::getPdo()->lastInsertId()]);
+                $this->logActivity("Subject created: {$validated['name']}", ['subject_id' => $subject->id]);
+
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "Subject '{$validated['name']}' created successfully!",
+                        'html' => view('admin.subjects.subject_row', compact('subject'))->render(),
+                    ]);
+                }
 
                 return back()->with('success', "Subject '{$validated['name']}' created successfully!");
 
             } catch (ValidationException $e) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+                }
                 return back()->withErrors($e->errors())->withInput();
             } catch (\Exception $e) {
                 Log::error("Database error creating subject: " . $e->getMessage());
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
+                }
                 return back()->with('error', 'Database error occurred.');
             }
         }

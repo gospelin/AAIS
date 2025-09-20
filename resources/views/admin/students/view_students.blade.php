@@ -130,6 +130,7 @@
             border-radius: var(--radius-xl);
             overflow: hidden;
             margin-bottom: var(--space-2xl);
+            position: relative;
         }
 
         .student-table {
@@ -186,6 +187,46 @@
             color: var(--white);
         }
 
+        .search-container {
+            max-width: 400px;
+            margin: var(--space-lg) auto;
+        }
+
+        .search-form {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm) var(--space-md);
+            color: var(--text-primary);
+            font-size: clamp(0.875rem, 2vw, 0.9375rem);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.2);
+        }
+
+        .btn-search {
+            background: var(--gradient-primary);
+            border: none;
+            color: var(--white);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -216,6 +257,38 @@
             background: var(--primary-green);
             border-color: var(--primary-green);
             color: var(--white);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--white);
+            border-top: 4px solid var(--primary-green);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 768px) {
@@ -336,8 +409,26 @@
                 </form>
             </div>
 
+            <!-- Search Form -->
+            <div class="search-container">
+                <form action="{{ route('admin.search_students', ['action' => 'view_students']) }}" method="GET" id="searchForm"
+                    class="search-form">
+                    <input type="text" name="query" class="search-input" value="{{ request('query') }}"
+                        placeholder="Search by name or reg number">
+                    <input type="hidden" name="session_id" value="{{ $selectedSession->id }}">
+                    <input type="hidden" name="term" value="{{ $currentTerm->value }}">
+                    <input type="hidden" name="enrollment_status" value="{{ $enrollmentStatus }}">
+                    <input type="hidden" name="fee_status" value="{{ $feeStatus }}">
+                    <input type="hidden" name="approval_status" value="{{ $approvalStatus }}">
+                    <button type="submit" class="btn-search"><i class="bx bx-search"></i></button>
+                </form>
+            </div>
+
             <!-- Students List -->
             <div class="student-section">
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-spinner"></div>
+                </div>
                 @if($students->isEmpty())
                     <table class="student-table">
                         <tbody>
@@ -374,11 +465,11 @@
                                     <td>{{ ucfirst($student->gender) }}</td>
                                     <td>
                                         @php
-                                            $isActiveInTerm = $student->classHistory
-                                                ->where('session_id', $selectedSession->id)
-                                                ->contains(function ($history) use ($selectedSession, $currentTerm) {
-                                                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
-                                                });
+            $isActiveInTerm = $student->classHistory
+                ->where('session_id', $selectedSession->id)
+                ->contains(function ($history) use ($selectedSession, $currentTerm) {
+                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
+                });
                                         @endphp
                                         @if($isActiveInTerm)
                                             <span class="badge badge-success">Active</span>
@@ -388,11 +479,11 @@
                                     </td>
                                     <td>
                                         @php
-                                            $hasPaid = $student->feePayments
-                                                ->where('session_id', $selectedSession->id)
-                                                ->where('term', $currentTerm->value)
-                                                ->where('has_paid_fee', true)
-                                                ->count() > 0;
+            $hasPaid = $student->feePayments
+                ->where('session_id', $selectedSession->id)
+                ->where('term', $currentTerm->value)
+                ->where('has_paid_fee', true)
+                ->count() > 0;
                                         @endphp
                                         @if($hasPaid)
                                             <span class="badge badge-success">Paid</span>
@@ -452,10 +543,10 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="pagination">
-                        {{ $students->links('vendor.pagination.bootstrap-5') }}
-                    </div>
                 @endif
+            </div>
+            <div class="pagination">
+                {{ $students->links('vendor.pagination.bootstrap-5') }}
             </div>
         @endif
     </div>
@@ -464,13 +555,85 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const filterForm = document.getElementById('filterForm');
+                const searchForm = document.getElementById('searchForm');
+                const studentSection = document.querySelector('.student-section');
+                const loadingOverlay = document.getElementById('loadingOverlay');
+
+                // Show/hide loading overlay
+                function showLoading() {
+                    if (loadingOverlay) {
+                        loadingOverlay.style.display = 'flex';
+                    }
+                }
+
+                function hideLoading() {
+                    if (loadingOverlay) {
+                        loadingOverlay.style.display = 'none';
+                    }
+                }
+
+                // Handle filter form submission via AJAX
                 if (filterForm) {
                     const filterSelects = filterForm.querySelectorAll('select');
                     filterSelects.forEach(select => {
                         select.addEventListener('change', () => {
-                            filterForm.submit();
+                            fetchStudents(filterForm.action, new URLSearchParams(new FormData(filterForm)).toString());
                         });
                     });
+                }
+
+                // Handle search form submission via AJAX
+                if (searchForm) {
+                    searchForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        fetchStudents(searchForm.action, new URLSearchParams(new FormData(searchForm)).toString());
+                    });
+                }
+
+                // Handle pagination clicks via AJAX
+                studentSection.addEventListener('click', (e) => {
+                    const pageLink = e.target.closest('.page-link');
+                    if (pageLink && !pageLink.closest('.active')) {
+                        e.preventDefault();
+                        const url = pageLink.href;
+                        fetchStudents(url);
+                    }
+                });
+
+                // Fetch students via AJAX
+                function fetchStudents(url, queryString = '') {
+                    showLoading();
+                    fetch(`${url}${queryString ? '?' + queryString : ''}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.text().then(text => {
+                                    throw new Error(`HTTP error! Status: ${response.status}, Response: ${text.substring(0, 500)}...`);
+                                });
+                            }
+                            if (response.headers.get('content-type')?.includes('application/json')) {
+                                return response.json();
+                            } else {
+                                return response.text().then(text => {
+                                    throw new Error(`Expected JSON response, but received: ${text.substring(0, 500)}...`);
+                                });
+                            }
+                        })
+                        .then(data => {
+                            studentSection.innerHTML = data.html;
+                            updateStats();
+                            hideLoading();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching students:', error);
+                            alert('Error loading students: ' + error.message);
+                            hideLoading();
+                        });
                 }
 
                 // Fetch stats dynamically
@@ -484,7 +647,12 @@
                 function updateStats() {
                     const sessionId = document.getElementById('session_id')?.value || '{{ $selectedSession->id }}';
                     const term = document.getElementById('term')?.value || '{{ $currentTerm instanceof \App\Enums\TermEnum ? $currentTerm->value : ($currentTerm ?: 'First') }}';
-                    fetch(`{{ route('admin.student_stats') }}?session_id=${encodeURIComponent(sessionId)}&term=${encodeURIComponent(term)}`, {
+                    const enrollmentStatus = document.getElementById('enrollment_status')?.value || '{{ $enrollmentStatus }}';
+                    const feeStatus = document.getElementById('fee_status')?.value || '{{ $feeStatus }}';
+                    const approvalStatus = document.getElementById('approval_status')?.value || '{{ $approvalStatus }}';
+                    const query = '{{ request('query') }}';
+
+                    fetch(`{{ route('admin.student_stats') }}?session_id=${encodeURIComponent(sessionId)}&term=${encodeURIComponent(term)}&enrollment_status=${encodeURIComponent(enrollmentStatus)}&fee_status=${encodeURIComponent(feeStatus)}&approval_status=${encodeURIComponent(approvalStatus)}&query=${encodeURIComponent(query)}`, {
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
@@ -514,14 +682,16 @@
                 }
 
                 // Toggle fee status
-                document.querySelectorAll('.toggle-fee-status').forEach(button => {
-                    button.addEventListener('click', () => {
+                studentSection.addEventListener('click', (e) => {
+                    const button = e.target.closest('.toggle-fee-status');
+                    if (button) {
                         const studentId = button.getAttribute('data-student-id');
                         const sessionId = button.getAttribute('data-session-id');
                         const term = button.getAttribute('data-term');
                         const currentStatus = button.getAttribute('data-status');
                         const url = '{{ route('admin.student_toggle_fee_status', ':student') }}'.replace(':student', studentId);
 
+                        showLoading();
                         fetch(url, {
                             method: 'POST',
                             headers: {
@@ -562,20 +732,24 @@
                                 } else {
                                     alert(data.message || 'Error updating fee status');
                                 }
+                                hideLoading();
                             })
                             .catch(error => {
                                 alert('Error updating fee status: ' + error.message);
+                                hideLoading();
                             });
-                    });
+                    }
                 });
 
                 // Toggle approval status
-                document.querySelectorAll('.toggle-approval-status').forEach(button => {
-                    button.addEventListener('click', () => {
+                studentSection.addEventListener('click', (e) => {
+                    const button = e.target.closest('.toggle-approval-status');
+                    if (button) {
                         const studentId = button.getAttribute('data-student-id');
                         const currentStatus = button.getAttribute('data-status');
                         const url = '{{ route('admin.student_approve', ':student') }}'.replace(':student', studentId);
 
+                        showLoading();
                         fetch(url, {
                             method: 'POST',
                             headers: {
@@ -614,11 +788,13 @@
                                 } else {
                                     alert(data.message || 'Error updating approval status');
                                 }
+                                hideLoading();
                             })
                             .catch(error => {
                                 alert('Error updating approval status: ' + error.message);
+                                hideLoading();
                             });
-                    });
+                    }
                 });
 
                 // Update stats when session or term changes

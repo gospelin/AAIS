@@ -711,10 +711,10 @@
                                             class="bx bx-trash nav-icon"></i><span>Delete Student Records</span></a></li>
                                 <li><a href="{{ route('admin.select_class', ['action' => 'promote']) }}"
                                         class="{{ request()->routeIs('admin.select_class') && request('action') === 'promote' ? 'active' : '' }}"><i
-                                            class="bx bx-arrow-up nav-icon"></i><span>Promote Students</span></a></li>
+                                            class="bx bx-up-arrow-alt nav-icon"></i><span>Promote Students</span></a></li>
                                 <li><a href="{{ route('admin.select_class', ['action' => 'demote']) }}"
                                         class="{{ request()->routeIs('admin.select_class') && request('action') === 'demote' ? 'active' : '' }}"><i
-                                            class="bx bx-arrow-down nav-icon"></i><span>Demote Students</span></a></li>
+                                            class="bx bx-down-arrow-alt nav-icon"></i><span>Demote Students</span></a></li>
                                 <li><a href="{{ route('admin.bulk_upload_students') }}"
                                         class="{{ request()->routeIs('admin.bulk_upload_students') ? 'active' : '' }}"><i
                                             class="bx bx-upload nav-icon"></i><span>Bulk Upload Students</span></a></li>
@@ -768,16 +768,16 @@
                         </a>
                         <div class="collapse" id="subjectManagement">
                             <ul class="nav-list nav-sublist list-unstyled">
-                                <li><a href="{{ route('admin.manage_subjects') }}"
-                                        class="{{ request()->routeIs('admin.manage_subjects') ? 'active' : '' }}"><i
+                                <li><a href="{{ route('admin.subjects.manage') }}"
+                                        class="{{ request()->routeIs('admin.subjects.manage') ? 'active' : '' }}"><i
                                             class="bx bx-book-add nav-icon"></i><span>Add New Subject</span></a></li>
-                                <li><a href="{{ route('admin.manage_subjects') }}"
-                                        class="{{ request()->routeIs('admin.manage_subjects') ? 'active' : '' }}"><i
+                                <li><a href="{{ route('admin.subjects.manage') }}"
+                                        class="{{ request()->routeIs('admin.subjects.manage') ? 'active' : '' }}"><i
                                             class="bx bx-book-open nav-icon"></i><span>View Subjects</span></a></li>
                                 <li><a href="#" class=""><i class="bx bx-edit nav-icon"></i><span>Edit Subject
                                             Details</span></a></li>
-                                <li><a href="{{ route('admin.assign_subject_to_class') }}"
-                                        class="{{ request()->routeIs('admin.assign_subject_to_class') ? 'active' : '' }}"><i
+                                <li><a href="{{ route('admin.subjects.assign') }}"
+                                        class="{{ request()->routeIs('admin.subjects.assign') ? 'active' : '' }}"><i
                                             class="bx bx-link-alt nav-icon"></i><span>Assign Subjects to
                                             Classes</span></a></li>
                                 <li><a href="{{ route('admin.assign_subject_to_teacher') }}"
@@ -828,7 +828,7 @@
                                 <li><a href="{{ route('admin.manage_teachers') }}"
                                         class="{{ request()->routeIs('admin.manage_teachers') ? 'active' : '' }}"><i
                                             class="bx bx-user-plus nav-icon"></i><span>Add New Staff</span></a></li>
-                                <li><a href="#" class=""><i class="bx bx-users nav-icon"></i><span>View All
+                                <li><a href="#" class=""><i class="bx bx-list-ul nav-icon"></i><span>View All
                                             Teachers</span></a></li>
                                 <li><a href="#" class=""><i class="bx bx-edit nav-icon"></i><span>Edit Teacher
                                             Details</span></a></li>

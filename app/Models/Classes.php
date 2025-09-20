@@ -18,7 +18,8 @@ class Classes extends Model
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'class_subject');
+        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id')
+            ->withTimestamps();
     }
 
     public function teachers()

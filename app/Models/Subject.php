@@ -1,5 +1,4 @@
 <?php
-// app/Models/Subject.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +11,7 @@ class Subject extends Model
     protected $fillable = [
         'name',
         'section',
+        'description',
         'deactivated'
     ];
 
@@ -19,17 +19,18 @@ class Subject extends Model
         'deactivated' => 'boolean',
         'name' => 'string',
         'section' => 'string',
+        'description' => 'string',
     ];
 
     public function classes()
     {
-        return $this->belongsToMany(Classes::class, 'class_subject')
+        return $this->belongsToMany(Classes::class, 'class_subject', 'subject_id', 'class_id')
             ->withTimestamps();
     }
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'teacher_subject')
+        return $this->belongsToMany(Teacher::class, 'teacher_subject', 'subject_id', 'teacher_id')
             ->withTimestamps();
     }
 

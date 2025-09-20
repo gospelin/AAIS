@@ -69,7 +69,8 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{{ route('admin.students.edit', $student->id) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ route('admin.students.edit', ['student' => $student->id, 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                                class="btn btn-sm btn-primary action-btn">
                                 <i class="bx bx-edit"></i> Edit
                             </a>
                             <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST"
@@ -77,29 +78,33 @@
                                 onsubmit="return confirm('Are you sure you want to permanently delete this student?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">
+                                <button type="submit" class="btn btn-sm btn-danger action-btn">
                                     <i class="bx bx-trash"></i> Delete
                                 </button>
                             </form>
-                            @if(!$student->approved)
-                                <a href="{{ route('admin.student_approve', $student->id) }}" class="btn btn-sm btn-success">
-                                    <i class="bx bx-check"></i> Approve
-                                </a>
-                            @endif
                             @if($isActiveInTerm)
-                                <a href="{{ route('admin.student_mark_as_left', $student->id) }}" class="btn btn-sm btn-warning">
+                                <a href="{{ route('admin.student_mark_as_left', $student->id) }}"
+                                    class="btn btn-sm btn-warning action-btn">
                                     <i class="bx bx-exit"></i> Mark as Left
                                 </a>
                             @else
-                                <a href="{{ route('admin.student_reenroll', $student->id) }}" class="btn btn-sm btn-info">
+                                <a href="{{ route('admin.student_reenroll', $student->id) }}"
+                                    class="btn btn-sm btn-info action-btn">
                                     <i class="bx bx-user-plus"></i> Re-enroll
                                 </a>
                             @endif
-                            <button type="button" class="btn btn-sm btn-secondary toggle-fee-status"
+                            <button type="button" class="btn btn-sm btn-secondary toggle-fee-status action-btn"
                                 data-student-id="{{ $student->id }}" data-session-id="{{ $selectedSession->id }}"
                                 data-term="{{ $currentTerm->value }}" data-status="{{ $hasPaid ? 'paid' : 'unpaid' }}">
                                 <i class="bx bx-wallet"></i>
                                 {{ $hasPaid ? 'Mark as Unpaid' : 'Mark as Paid' }}
+                            </button>
+                            <button type="button"
+                                class="btn btn-sm {{ $student->approved ? 'btn-warning' : 'btn-success' }} toggle-approval-status action-btn"
+                                data-student-id="{{ $student->id }}"
+                                data-status="{{ $student->approved ? 'approved' : 'unapproved' }}">
+                                <i class="bx bx-check"></i>
+                                {{ $student->approved ? 'Unapprove' : 'Approve' }}
                             </button>
                         </div>
                     </td>
@@ -108,6 +113,6 @@
         </tbody>
     </table>
     <div class="pagination">
-        {{ $students->links() }}
+        {{ $students->links('vendor.pagination.bootstrap-5') }}
     </div>
 @endif
