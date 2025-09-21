@@ -504,25 +504,43 @@ class AdminStudentController extends AdminBaseController
                 $leaveOrder = $termOrder[$validated['term']] ?? 1;
 
                 if ($startOrder < $leaveOrder) {
+                    // Find the previous term
                     $previousTerm = array_search($leaveOrder - 1, $termOrder);
-                    $classHistory->update([
-                        'end_term' => $previousTerm,
-                        'is_active' => true,
-                        'leave_date' => null,
-                    ]);
 
-                    StudentClassHistory::create([
-                        'student_id' => $student->id,
-                        'session_id' => $validated['session_id'],
-                        'class_id' => $classHistory->class_id,
-                        'start_term' => $validated['term'],
-                        'join_date' => Carbon::now('Africa/Lagos'),
+                    if ($previousTerm === false) {
+                        // No previous term exists (e.g., leaving in First term)
+                        $classHistory->update([
+                            'is_active' => false,
+                            'leave_date' => Carbon::now('Africa/Lagos'),
+                            'end_term' => $validated['term'],
+                        ]);
+                    } else {
+                        // Update the current record to end in the previous term
+                        $classHistory->update([
+                            'end_term' => $previousTerm,
+                            'is_active' => true,
+                            'leave_date' => null,
+                        ]);
+
+                        // Create a new record for the term they are leaving
+                        StudentClassHistory::create([
+                            'student_id' => $student->id,
+                            'session_id' => $validated['session_id'],
+                            'class_id' => $classHistory->class_id,
+                            'start_term' => $validated['term'],
+                            'join_date' => Carbon::now('Africa/Lagos'),
+                            'is_active' => false,
+                            'leave_date' => Carbon::now('Africa/Lagos'),
+                            'end_term' => $validated['term'],
+                        ]);
+                    }
+                } else {
+                    // If start_term is the same as or after leave_term, mark as left directly
+                    $classHistory->update([
                         'is_active' => false,
                         'leave_date' => Carbon::now('Africa/Lagos'),
                         'end_term' => $validated['term'],
                     ]);
-                } else {
-                    $classHistory->markAsLeft($validated['term']);
                 }
 
                 $this->logActivity("Marked student as left: {$student->reg_no}", [
