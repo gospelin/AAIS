@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminSubjectController;
 use App\Http\Controllers\Admin\AdminResultController;
 use App\Http\Controllers\Admin\AdminTeacherController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Classes;
 
 Route::get('/', function () {
 return view('welcome');
@@ -133,11 +134,12 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/subjects/edit/{subject}', [AdminSubjectController::class, 'edit'])->name('admin.subjects.edit');
     Route::post('/subjects/edit/{subject}', [AdminSubjectController::class, 'edit'])->name('admin.subjects.edit');
     Route::delete('/subjects/{subject}', [AdminSubjectController::class, 'destroy'])->name('admin.subjects.destroy');
+    Route::get('/subjects/assign', [AdminSubjectController::class, 'assignSubjectToClass'])->name('admin.subjects.assign');
     Route::post('/subjects/assign', [AdminSubjectController::class, 'assignSubjectToClass'])->name('admin.subjects.assign');
     Route::post('/subjects/remove', [AdminSubjectController::class, 'removeSubjectFromClass'])->name('admin.subjects.remove');
     Route::get('/subjects/assignment/{className}', [AdminSubjectController::class, 'editSubjectAssignment'])->name('admin.subjects.edit_assignment');
     Route::post('/subjects/assignment/{className}', [AdminSubjectController::class, 'editSubjectAssignment'])->name('admin.subjects.edit_assignment');
-
+    
     // Results
     Route::get('/results/{className}/{studentId}/{action}', [AdminResultController::class,'manageResults'])->name('admin.manage_results');
     Route::post('/results/{className}/{studentId}/{action}', [AdminResultController::class, 'updateResult']);
@@ -154,5 +156,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::post('/assign-teacher-to-class', [AdminTeacherController::class,'assignTeacherToClass'])->name('admin.assign_teacher_to_class');
     Route::post('/remove-teacher-from-class', [AdminTeacherController::class,'removeTeacherFromClass'])->name('admin.remove_teacher_from_class');
 });
+
+Route::get('/admin/classes/{class}/subjects', [AdminSubjectController::class, 'getClassSubjects'])->name('admin.classes.subjects');
 
 require __DIR__.'/auth.php';

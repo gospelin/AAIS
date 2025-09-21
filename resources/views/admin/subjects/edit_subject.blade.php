@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Subject - {{ $subject->name }}')
-@section('description', "Edit subject {{ $subject->name }} at Aunty Anne's International School.")
+@section('title', 'Edit Subject')
+@section('description', "Edit subject details at Aunty Anne's International School.")
 
 @push('styles')
     <style>
@@ -51,7 +51,8 @@
             margin-bottom: var(--space-xs);
         }
 
-        .form-input {
+        .form-input,
+        .form-select {
             width: 100%;
             background: var(--bg-secondary);
             border: 1px solid var(--glass-border);
@@ -61,17 +62,26 @@
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
         }
 
-        .form-input:focus {
+        .form-input:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--primary-green);
             box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.2);
         }
 
-        .form-checkbox {
-            margin-right: var(--space-xs);
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right var(--space-md) center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
-        .btn-submit {
+        .btn-submit,
+        .btn-back {
             background: var(--gradient-primary);
             border: none;
             color: var(--white);
@@ -81,7 +91,13 @@
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
         }
 
-        .btn-submit:hover {
+        .btn-back {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-submit:hover,
+        .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
@@ -123,37 +139,36 @@
                 <div class="form-group">
                     <label for="name" class="form-label">Subject Name</label>
                     <input type="text" name="name" id="name" class="form-input" value="{{ old('name', $subject->name) }}"
-                        required>
+                           required>
                     @error('name')
                         <span class="text-[var(--error)]">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="section" class="form-label">Section (Optional)</label>
-                    <input type="text" name="section" id="section" class="form-input"
-                        value="{{ old('section', $subject->section) }}">
+                    <label for="section" class="form-label">Section</label>
+                    <select name="section[]" id="section" class="form-select" multiple required>
+                        @php
+                            $currentSections = \App\Models\Subject::where('name', $subject->name)->pluck('section')->toArray();
+                        @endphp
+                        @foreach(\App\Models\Subject::distinct('section')->pluck('section')->sort() as $section)
+                            <option value="{{ $section }}" {{ in_array($section, old('section', $currentSections)) ? 'selected' : '' }}>
+                                {{ $section }}</option>
+                        @endforeach
+                    </select>
+                    <small class="form-text">Select one or more sections for the subject.</small>
                     @error('section')
                         <span class="text-[var(--error)]">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="description" class="form-label">Description (Optional)</label>
-                    <textarea name="description" id="description"
-                        class="form-input">{{ old('description', $subject->description) }}</textarea>
-                    @error('description')
-                        <span class="text-[var(--error)]">{{ $message }}</span>
-                    @enderror
-                </div>
-                <div class="form-group">
-                    <label class="form-label">
-                        <input type="checkbox" name="deactivated" class="form-checkbox" {{ $subject->deactivated ? 'checked' : '' }}>
-                        Deactivate Subject
-                    </label>
-                    @error('deactivated')
-                        <span class="text-[var(--error)]">{{ $message }}</span>
-                    @enderror
+                    <label for="deactivated" class="form-label">Status</label>
+                    <select name="deactivated" id="deactivated" class="form-select">
+                        <option value="0" {{ !$subject->deactivated ? 'selected' : '' }}>Active</option>
+                        <option value="1" {{ $subject->deactivated ? 'selected' : '' }}>Deactivated</option>
+                    </select>
                 </div>
                 <button type="submit" class="btn-submit">Update Subject</button>
+                <a href="{{ route('admin.subjects.manage') }}" class="btn-back">Back to Subjects</a>
             </form>
         </div>
     </div>

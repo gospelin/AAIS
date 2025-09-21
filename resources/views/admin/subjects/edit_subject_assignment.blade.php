@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Edit Subject Assignments for {{ $class->name }}')
-@section('description', 'Assign or remove subjects for {{ $class->name }} at Aunty Anne\'s International School.')
+@section('title', 'Edit Subject Assignment')
+@section('description', "Edit subject assignments for class {{ $class->name }} at Aunty Anne's International School.")
 
 @push('styles')
     <style>
@@ -76,7 +76,12 @@
             box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.2);
         }
 
-        .btn-submit {
+        .form-text {
+            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);
+            color: var(--text-secondary);
+        }
+
+        .btn-submit, .btn-back {
             background: var(--gradient-primary);
             border: none;
             color: var(--white);
@@ -86,73 +91,14 @@
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
         }
 
-        .btn-submit:hover {
+        .btn-back {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-submit:hover, .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
-        }
-
-        .subject-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-            margin-bottom: var(--space-2xl);
-            position: relative;
-        }
-
-        .subject-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .subject-table th,
-        .subject-table td {
-            padding: var(--space-md);
-            font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            color: var(--text-primary);
-            text-align: left;
-        }
-
-        .subject-table th {
-            background: var(--glass-bg);
-            font-weight: 600;
-        }
-
-        .subject-table tr {
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .subject-table tr:last-child {
-            border-bottom: none;
-        }
-
-        .subject-table tbody tr:hover {
-            background: rgba(33, 160, 85, 0.1);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: var(--space-sm);
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            font-size: clamp(0.75rem, 2vw, 0.875rem);
-            padding: var(--space-sm);
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover,
-        .action-btn:focus-visible {
-            background: var(--primary-green);
-            border-color: var(--primary-green);
-            color: var(--white);
         }
 
         .alert {
@@ -174,7 +120,7 @@
         }
 
         .loading-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
@@ -196,24 +142,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .content-container {
-                padding: var(--space-md);
+            0% {
+                transform: rotate(0deg);
             }
 
-            .subject-table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                align-items: flex-start;
+            100% {
+                transform: rotate(360deg);
             }
         }
     </style>
@@ -225,14 +159,13 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
         @if (session('error'))
-            <div class="alert alert-danger">{!! session('error') !!}</div>
+            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
         <div class="form-section">
-            <h3 class="form-header">Assign Subjects to {{ $class->name }} {{ $class->section ? ' - ' . $class->section : '' }}</h3>
-            <form action="{{ route('admin.subjects.edit_assignment', urlencode($class->name)) }}" method="POST">
+            <h3 class="form-header">Edit Subject Assignment for {{ $class->name }}</h3>
+            <form action="{{ route('admin.subjects.edit_assignment', urlencode($class->name)) }}" method="POST" id="edit-subjects-form">
                 @csrf
-                @method('POST')
                 <div class="form-group">
                     <label for="subject_ids" class="form-label">Select Subjects</label>
                     <select name="subject_ids[]" id="subject_ids" class="form-select" multiple>
@@ -242,132 +175,64 @@
                             </option>
                         @endforeach
                     </select>
+                    <small class="form-text">Select subjects to assign to {{ $class->name }}. Leave empty to remove all assignments.</small>
                     @error('subject_ids')
                         <span class="text-[var(--error)]">{{ $message }}</span>
                     @enderror
                 </div>
                 <button type="submit" class="btn-submit">Update Assignments</button>
+                <a href="{{ route('admin.subjects.assign') }}" class="btn-back">Back to Assign Subjects</a>
             </form>
         </div>
 
-        <div class="subject-section">
-            <div class="loading-overlay" id="loadingOverlay">
-                <div class="loading-spinner"></div>
-            </div>
-            @if($class->subjects->isEmpty())
-                <table class="subject-table">
-                    <tbody>
-                        <tr>
-                            <td colspan="3" class="text-center text-[var(--text-secondary)]">No subjects assigned to this class.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            @else
-                <table class="subject-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Section</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="subjects-table-body">
-                        @foreach($class->subjects as $subject)
-                            <tr>
-                                <td>{{ $subject->name }}</td>
-                                <td>{{ $subject->section ?? 'N/A' }}</td>
-                                <td>{{ $subject->description ?? 'N/A' }}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <form action="{{ route('admin.subjects.remove') }}" method="POST"
-                                              style="display:inline;"
-                                              onsubmit="return confirm('Are you sure you want to remove this subject from the class?');">
-                                            @csrf
-                                            <input type="hidden" name="subject_id" value="{{ $subject->id }}">
-                                            <input type="hidden" name="class_id" value="{{ $class->id }}">
-                                            <button type="submit" class="btn btn-sm btn-danger action-btn">
-                                                <i class="bx bx-trash"></i> Remove
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @foreach
-                    </tbody>
-                </table>
-            @endif
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
         </div>
     </div>
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const subjectSection = document.querySelector('.subject-section');
+            const editForm = document.getElementById('edit-subjects-form');
             const loadingOverlay = document.getElementById('loadingOverlay');
 
             function showLoading() {
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'flex';
-                }
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
             }
 
             function hideLoading() {
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'none';
-                }
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
             }
 
-            if (subjectSection) {
-                subjectSection.addEventListener('click', (e) => {
-                    const removeButton = e.target.closest('form button');
-                    if (removeButton) {
-                        e.preventDefault();
-                        const form = removeButton.closest('form');
-                        const url = form.action;
-                        const formData = new FormData(form);
+            if (editForm) {
+                editForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(editForm);
 
-                        if (confirm('Are you sure you want to remove this subject from the class?')) {
-                            showLoading();
-                            fetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json'
-                                },
-                                body: formData
-                            })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        return response.text().then(text => {
-                                            throw new Error(`HTTP error! Status: ${response.status}, Response: ${text.substring(0, 500)}...`);
-                                        });
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    if (data.success) {
-                                        const row = removeButton.closest('tr');
-                                        row.remove();
-                                        if (document.querySelectorAll('#subjects-table-body tr').length === 0) {
-                                            document.getElementById('subjects-table-body').innerHTML = `
-                                                <tr>
-                                                    <td colspan="3" class="text-center text-[var(--text-secondary)]">No subjects assigned to this class.</td>
-                                                </tr>`;
-                                        }
-                                        alert(data.message || 'Subject removed successfully!');
-                                    } else {
-                                        alert(data.message || 'Error removing subject.');
-                                    }
-                                    hideLoading();
-                                })
-                                .catch(error => {
-                                    console.error('Error removing subject:', error);
-                                    alert('Error removing subject: ' + error.message);
-                                    hideLoading();
-                                });
-                        }
-                    }
+                    showLoading();
+                    fetch(editForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            hideLoading();
+                            if (data.success) {
+                                alert(data.message || 'Subjects updated successfully!');
+                                window.location.href = '{{ route('admin.subjects.assign') }}';
+                            } else {
+                                alert(data.message || 'Error updating subjects.');
+                            }
+                        })
+                        .catch(error => {
+                            hideLoading();
+                            console.error('Error:', error);
+                            alert('Error updating subjects.');
+                        });
                 });
             }
         });

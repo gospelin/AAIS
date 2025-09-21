@@ -1,24 +1,28 @@
-<!-- resources/views/admin/subjects/subject_row.blade.php -->
-<tr>
-    <td>{{ $subject->name }}</td>
-    <td>{{ $subject->code }}</td>
-    <td>{{ $subject->description ?? 'N/A' }}</td>
-    <td>{{ $subject->deactivated ? 'Deactivated' : 'Active' }}</td>
-    <td>
-        <div class="action-buttons">
-            <a href="{{ route('admin.subjects.edit', $subject->id) }}" class="action-btn">
+@foreach($subjects ?? [$subject] as $subject)
+    <li class="list-group-item" data-subject-id="{{ $subject->id }}">
+        {{ $subject->name }} {{ $subject->deactivated ? '(Deactivated)' : '' }}
+        <span class="action-buttons">
+            <a href="{{ route('admin.subjects.edit', $subject->id) }}" class="action-btn edit">
                 <i class="bx bx-edit"></i> Edit
             </a>
-            <form action="{{ route('admin.subjects.destroy', $subject->id) }}" method="POST" style="display:inline;">
+            @if(!$subject->deactivated)
+                <form action="{{ route('admin.subjects.manage') }}" method="POST" style="display:inline;"
+                    class="deactivate-subject-form">
+                    @csrf
+                    <input type="hidden" name="deactivate_subject_id" value="{{ $subject->id }}">
+                    <button type="submit" class="action-btn deactivate" data-action="deactivate">
+                        <i class="bx bx-block"></i> Deactivate
+                    </button>
+                </form>
+            @endif
+            <form action="{{ route('admin.subjects.manage') }}" method="POST" style="display:inline;"
+                class="delete-subject-form">
                 @csrf
-                @method('DELETE')
-                <button type="submit" class="action-btn" data-action="delete">
+                <input type="hidden" name="delete_subject_id" value="{{ $subject->id }}">
+                <button type="submit" class="action-btn delete" data-action="delete">
                     <i class="bx bx-trash"></i> Delete
                 </button>
             </form>
-            <a href="{{ route('admin.subjects.edit_assignment', urlencode($subject->classes->pluck('name')->first() ?? '')) }}" class="action-btn">
-                <i class="bx bx-link"></i> Assign
-            </a>
-        </div>
-    </td>
-</tr>
+        </span>
+    </li>
+@endforeach

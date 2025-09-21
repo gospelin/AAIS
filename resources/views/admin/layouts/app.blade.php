@@ -768,18 +768,20 @@
                         </a>
                         <div class="collapse" id="subjectManagement">
                             <ul class="nav-list nav-sublist list-unstyled">
-                                <li><a href="{{ route('admin.subjects.manage') }}"
-                                        class="{{ request()->routeIs('admin.subjects.manage') ? 'active' : '' }}"><i
-                                            class="bx bx-book-add nav-icon"></i><span>Add New Subject</span></a></li>
-                                <li><a href="{{ route('admin.subjects.manage') }}"
-                                        class="{{ request()->routeIs('admin.subjects.manage') ? 'active' : '' }}"><i
-                                            class="bx bx-book-open nav-icon"></i><span>View Subjects</span></a></li>
-                                <li><a href="#" class=""><i class="bx bx-edit nav-icon"></i><span>Edit Subject
-                                            Details</span></a></li>
-                                <li><a href="{{ route('admin.subjects.assign') }}"
-                                        class="{{ request()->routeIs('admin.subjects.assign') ? 'active' : '' }}"><i
-                                            class="bx bx-link-alt nav-icon"></i><span>Assign Subjects to
-                                            Classes</span></a></li>
+                            <li>
+                                <a href="{{ route('admin.subjects.manage') }}"
+                                    class="{{ request()->routeIs('admin.subjects.manage') ? 'active' : '' }}">
+                                    <i class="bx bx-book-open nav-icon"></i>
+                                    <span>Manage Subjects</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.subjects.assign') }}"
+                                    class="{{ request()->routeIs('admin.subjects.assign') ? 'active' : '' }}">
+                                    <i class="bx bx-link-alt nav-icon"></i>
+                                    <span>Assign Subjects to Classes</span>
+                                </a>
+                            </li>
                                 <li><a href="{{ route('admin.assign_subject_to_teacher') }}"
                                         class="{{ request()->routeIs('admin.assign_subject_to_teacher') ? 'active' : '' }}"><i
                                             class="bx bx-user-pin nav-icon"></i><span>Assign Subjects to

@@ -33,12 +33,21 @@
             background: var(--gradient-primary);
         }
 
+        .section-header {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 1.75rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+        }
+
         .form-header {
             font-family: var(--font-display);
             font-size: clamp(1.25rem, 3vw, 1.5rem);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: var(--space-md);
+            text-align: center;
         }
 
         .form-group {
@@ -71,6 +80,22 @@
             box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.2);
         }
 
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right var(--space-md) center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .form-text {
+            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);
+            color: var(--text-secondary);
+        }
+
         .btn-submit {
             background: var(--gradient-primary);
             border: none;
@@ -79,6 +104,7 @@
             border-radius: var(--radius-md);
             cursor: pointer;
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
+            width: 100%;
         }
 
         .btn-submit:hover {
@@ -86,34 +112,23 @@
             box-shadow: var(--shadow-md);
         }
 
-        .subject-table {
-            width: 100%;
-            border-collapse: collapse;
+        .list-group {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .subject-table th,
-        .subject-table td {
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
             padding: var(--space-md);
+            margin-bottom: var(--space-sm);
             font-size: clamp(0.875rem, 2vw, 0.9375rem);
             color: var(--text-primary);
-            text-align: left;
-        }
-
-        .subject-table th {
-            background: var(--glass-bg);
-            font-weight: 600;
-        }
-
-        .subject-table tr {
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .subject-table tr:last-child {
-            border-bottom: none;
-        }
-
-        .subject-table tbody tr:hover {
-            background: rgba(33, 160, 85, 0.1);
         }
 
         .action-buttons {
@@ -126,15 +141,27 @@
             border: 1px solid var(--glass-border);
             color: var(--text-primary);
             font-size: clamp(0.75rem, 2vw, 0.875rem);
-            padding: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
             border-radius: var(--radius-md);
             cursor: pointer;
         }
 
-        .action-btn:hover {
-            background: var(--primary-green);
-            border-color: var(--primary-green);
+        .action-btn.edit {
+            background: var(--warning);
+            border-color: var(--warning);
             color: var(--white);
+        }
+
+        .action-btn.deactivate,
+        .action-btn.delete {
+            background: var(--error);
+            border-color: var(--error);
+            color: var(--white);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
         }
 
         .alert {
@@ -146,6 +173,12 @@
         .alert-success {
             background: rgba(33, 160, 85, 0.1);
             border: 1px solid var(--primary-green);
+            color: var(--text-primary);
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid var(--warning);
             color: var(--text-primary);
         }
 
@@ -194,37 +227,43 @@
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
+        @if (session('warning'))
+            <div class="alert alert-warning">{{ session('warning') }}</div>
+        @endif
         @if (session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <!-- Create Subject Form -->
+        <!-- Add Subjects Form -->
         <div class="form-section">
-            <h3 class="form-header">Add New Subject</h3>
+            <h3 class="form-header">Add Subjects</h3>
             <form action="{{ route('admin.subjects.manage') }}" method="POST" id="create-subject-form">
                 @csrf
                 <div class="form-group">
-                    <label for="name" class="form-label">Subject Name</label>
-                    <input type="text" name="name" id="name" class="form-input" value="{{ old('name') }}" required>
-                    @error('name')
+                    <label for="names" class="form-label">Name (comma-separated)</label>
+                    <input type="text" name="names" id="names" class="form-input" value="{{ old('names') }}"
+                        placeholder="Enter multiple subjects separated by commas (e.g., Math, English, Science)" required>
+                    <small class="form-text">Enter multiple subjects separated by commas (e.g., Math, English,
+                        Science).</small>
+                    @error('names')
                         <span class="text-[var(--error)]">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="section" class="form-label">Section (Optional)</label>
-                    <input type="text" name="section" id="section" class="form-input" value="{{ old('section') }}">
+                    <label for="section" class="form-label">Section</label>
+                    <select name="section[]" id="section" class="form-select" multiple required>
+                        @foreach(\App\Models\Subject::distinct('section')->pluck('section')->sort() as $section)
+                            <option value="{{ $section }}" {{ in_array($section, old('section', [])) ? 'selected' : '' }}>
+                                {{ $section }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-text">Select one or more sections for the subjects.</small>
                     @error('section')
                         <span class="text-[var(--error)]">{{ $message }}</span>
                     @enderror
                 </div>
-                <div class="form-group">
-                    <label for="description" class="form-label">Description (Optional)</label>
-                    <textarea name="description" id="description" class="form-input">{{ old('description') }}</textarea>
-                    @error('description')
-                        <span class="text-[var(--error)]">{{ $message }}</span>
-                    @enderror
-                </div>
-                <button type="submit" class="btn-submit">Create Subject</button>
+                <button type="submit" class="btn-submit">Add Subjects</button>
             </form>
         </div>
 
@@ -233,34 +272,45 @@
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="loading-spinner"></div>
             </div>
-            @if($subjects->isEmpty())
-                <table class="subject-table">
-                    <tbody>
-                        <tr>
-                            <td colspan="5" class="text-center text-[var(--text-secondary)]">No subjects found.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            @php
+                $groupedSubjects = $subjects->groupBy('section')->sortKeys();
+            @endphp
+            @if($groupedSubjects->isEmpty())
+                <p class="text-[var(--text-secondary)]">No subjects found.</p>
             @else
-                <table class="subject-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Section</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="subjects-table-body">
-                        @foreach($subjects as $subject)
-                            @include('admin.subjects.subject_row', ['subject' => $subject])
+                @foreach($groupedSubjects as $section => $sectionSubjects)
+                    <h2 class="section-header">{{ $section ?: 'General' }} Subjects</h2>
+                    <ul class="list-group">
+                        @foreach($sectionSubjects as $subject)
+                            <li class="list-group-item" data-subject-id="{{ $subject->id }}">
+                                {{ $subject->name }} {{ $subject->deactivated ? '(Deactivated)' : '' }}
+                                <span class="action-buttons">
+                                    <a href="{{ route('admin.subjects.edit', $subject->id) }}" class="action-btn edit">
+                                        <i class="bx bx-edit"></i> Edit
+                                    </a>
+                                    @if(!$subject->deactivated)
+                                        <form action="{{ route('admin.subjects.manage') }}" method="POST" style="display:inline;"
+                                            class="deactivate-subject-form">
+                                            @csrf
+                                            <input type="hidden" name="deactivate_subject_id" value="{{ $subject->id }}">
+                                            <button type="submit" class="action-btn deactivate" data-action="deactivate">
+                                                <i class="bx bx-block"></i> Deactivate
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('admin.subjects.manage') }}" method="POST" style="display:inline;"
+                                        class="delete-subject-form">
+                                        @csrf
+                                        <input type="hidden" name="delete_subject_id" value="{{ $subject->id }}">
+                                        <button type="submit" class="action-btn delete" data-action="delete">
+                                            <i class="bx bx-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </span>
+                            </li>
                         @endforeach
-                    </tbody>
-                </table>
-                <div class="mt-4">
-                    {{ $subjects->links('vendor.pagination.custom') }}
-                </div>
+                    </ul>
+                @endforeach
             @endif
         </div>
     </div>
@@ -268,7 +318,6 @@
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const form = document.getElementById('create-subject-form');
-                const subjectsTableBody = document.getElementById('subjects-table-body');
                 const loadingOverlay = document.getElementById('loadingOverlay');
 
                 function showLoading() {
@@ -279,6 +328,7 @@
                     if (loadingOverlay) loadingOverlay.style.display = 'none';
                 }
 
+                // Form submission for creating subjects
                 if (form) {
                     form.addEventListener('submit', (e) => {
                         e.preventDefault();
@@ -298,26 +348,57 @@
                             .then(data => {
                                 hideLoading();
                                 if (data.success) {
-                                    subjectsTableBody.insertAdjacentHTML('afterbegin', data.html);
-                                    form.reset();
+                                    location.reload(); // Reload to update grouped lists
                                     alert(data.message);
-                                    if (subjectsTableBody.querySelector('tr td.text-center')) {
-                                        subjectsTableBody.innerHTML = data.html;
-                                    }
                                 } else {
-                                    alert(data.message || 'Error creating subject.');
+                                    alert(data.message || 'Error creating subjects.');
                                 }
                             })
                             .catch(error => {
                                 hideLoading();
                                 console.error('Error:', error);
-                                alert('Error creating subject.');
+                                alert('Error creating subjects.');
                             });
                     });
                 }
 
-                subjectsTableBody.addEventListener('click', (e) => {
+                // Handle deactivate and delete actions
+                document.addEventListener('click', (e) => {
+                    const deactivateButton = e.target.closest('form button[data-action="deactivate"]');
                     const deleteButton = e.target.closest('form button[data-action="delete"]');
+
+                    if (deactivateButton) {
+                        e.preventDefault();
+                        const form = deactivateButton.closest('form');
+                        if (confirm('Are you sure you want to deactivate this subject?')) {
+                            showLoading();
+                            fetch(form.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: new FormData(form)
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    hideLoading();
+                                    if (data.success) {
+                                        location.reload(); // Reload to update status
+                                        alert(data.message);
+                                    } else {
+                                        alert(data.message || 'Error deactivating subject.');
+                                    }
+                                })
+                                .catch(error => {
+                                    hideLoading();
+                                    console.error('Error:', error);
+                                    alert('Error deactivating subject.');
+                                });
+                        }
+                    }
+
                     if (deleteButton) {
                         e.preventDefault();
                         const form = deleteButton.closest('form');
@@ -336,8 +417,8 @@
                                 .then(data => {
                                     hideLoading();
                                     if (data.success) {
-                                        deleteButton.closest('tr').remove();
-                                        alert(data.message || 'Subject deleted successfully!');
+                                        location.reload(); // Reload to remove the subject
+                                        alert(data.message);
                                     } else {
                                         alert(data.message || 'Error deleting subject.');
                                     }

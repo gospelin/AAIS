@@ -16,33 +16,97 @@ class AdminSubjectController extends AdminBaseController
     {
         if ($request->isMethod('post')) {
             try {
+                // Handle deactivation
+                if ($request->has('deactivate_subject_id')) {
+                    $validated = $request->validate([
+                        'deactivate_subject_id' => 'required|exists:subjects,id',
+                    ]);
+
+                    $subject = Subject::findOrFail($validated['deactivate_subject_id']);
+                    $subject->deactivated = true;
+                    $subject->save();
+                    $this->logActivity("Deactivated subject: {$subject->name}", ['subject_id' => $subject->id]);
+
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => "Subject '{$subject->name}' deactivated.",
+                        ]);
+                    }
+
+                    return back()->with('warning', "Subject '{$subject->name}' deactivated.");
+                }
+
+                // Handle deletion
+                if ($request->has('delete_subject_id')) {
+                    $validated = $request->validate([
+                        'delete_subject_id' => 'required|exists:subjects,id',
+                    ]);
+
+                    $subject = Subject::findOrFail($validated['delete_subject_id']);
+                    Result::where('subject_id', $subject->id)->delete();
+                    $subjectName = $subject->name;
+                    $subject->delete();
+                    $this->logActivity("Deleted subject: {$subjectName}", ['subject_id' => $subject->id]);
+
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => "Subject '{$subjectName}' and associated scores deleted successfully!"
+                        ]);
+                    }
+
+                    return back()->with('success', "Subject '{$subjectName}' and associated scores deleted successfully!");
+                }
+
+                // Handle bulk creation
                 $validated = $request->validate([
-                    'name' => 'required|string|max:50|unique:subjects',
-                    'code' => 'required|string|max:10|unique:subjects',
-                    'description' => 'nullable|string|max:255',
+                    'names' => 'required|string',
+                    'section' => 'required|array',
+                    'section.*' => 'string|max:50',
                 ]);
 
-                $subject = Subject::create($validated);
+                $names = array_map('trim', explode(',', $validated['names']));
+                $sections = $validated['section'];
+                $createdSubjects = [];
 
-                $this->logActivity("Subject created: {$validated['name']}", ['subject_id' => $subject->id]);
+                DB::transaction(function () use ($names, $sections, &$createdSubjects) {
+                    foreach ($names as $name) {
+                        if (empty($name))
+                            continue;
+                        foreach ($sections as $section) {
+                            if (!Subject::where('name', $name)->where('section', $section)->where('deactivated', false)->exists()) {
+                                $subject = Subject::create([
+                                    'name' => $name,
+                                    'section' => $section,
+                                ]);
+                                $createdSubjects[] = $subject;
+                                $this->logActivity("Subject created: {$subject->name}", ['subject_id' => $subject->id]);
+                            } else {
+                                throw ValidationException::withMessages([
+                                    'names' => "Subject '{$name}' already exists in section '{$section}'."
+                                ]);
+                            }
+                        }
+                    }
+                });
 
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => true,
-                        'message' => "Subject '{$validated['name']}' created successfully!",
-                        'html' => view('admin.subjects.subject_row', compact('subject'))->render(),
+                        'message' => count($createdSubjects) . ' subject(s) added successfully!',
                     ]);
                 }
 
-                return back()->with('success', "Subject '{$validated['name']}' created successfully!");
+                return back()->with('success', count($createdSubjects) . ' subject(s) added successfully!');
 
             } catch (ValidationException $e) {
                 if ($request->ajax()) {
-                    return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+                    return response()->json(['success' => false, 'message' => $e->errors()['names'][0] ?? 'Validation error.'], 422);
                 }
-                return back()->withErrors($e->errors())->withInput();
+                return back()->with('warning', $e->errors()['names'][0] ?? 'Validation error.')->withInput();
             } catch (\Exception $e) {
-                Log::error("Database error creating subject: " . $e->getMessage());
+                Log::error("Database error: " . $e->getMessage());
                 if ($request->ajax()) {
                     return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
                 }
@@ -50,8 +114,7 @@ class AdminSubjectController extends AdminBaseController
             }
         }
 
-        $subjects = Subject::orderBy('name')->paginate(10);
-
+        $subjects = Subject::orderBy('section')->orderBy('name')->get();
         return view('admin.subjects.manage_subjects', compact('subjects'));
     }
 
@@ -60,17 +123,37 @@ class AdminSubjectController extends AdminBaseController
         if ($request->isMethod('post')) {
             try {
                 $validated = $request->validate([
-                    'name' => 'required|string|max:50|unique:subjects,name,' . $subject->id,
-                    'code' => 'required|string|max:10|unique:subjects,code,' . $subject->id,
-                    'description' => 'nullable|string|max:255',
+                    'name' => 'required|string|max:50',
+                    'section' => 'required|string|max:50',
                     'deactivated' => 'boolean',
                 ]);
 
-                $subject->update($validated);
+                $newName = $validated['name'];
+                $newSection = $validated['section'];
+                $deactivated = $validated['deactivated'] ?? false;
 
-                $this->logActivity("Updated subject: {$subject->name}", ['subject_id' => $subject->id]);
+                DB::transaction(function () use ($newName, $newSection, $deactivated, $subject) {
+                    if (
+                        Subject::where('name', $newName)
+                            ->where('section', $newSection)
+                            ->where('id', '!=', $subject->id)
+                            ->where('deactivated', false)
+                            ->exists()
+                    ) {
+                        throw ValidationException::withMessages([
+                            'name' => "Subject '{$newName}' already exists in section '{$newSection}'."
+                        ]);
+                    }
 
-                return back()->with('success', 'Subject updated successfully!');
+                    $subject->update([
+                        'name' => $newName,
+                        'section' => $newSection,
+                        'deactivated' => $deactivated,
+                    ]);
+                    $this->logActivity("Updated subject: {$newName} in section {$newSection}", ['subject_id' => $subject->id]);
+                });
+
+                return redirect()->route('admin.subjects.manage')->with('success', "Subject '{$newName}' updated successfully!");
 
             } catch (ValidationException $e) {
                 return back()->withErrors($e->errors())->withInput();
@@ -85,50 +168,91 @@ class AdminSubjectController extends AdminBaseController
 
     public function destroy(Request $request, Subject $subject)
     {
-        $results = Result::where('subject_id', $subject->id)->count();
-
-        if ($results > 0) {
-            return back()->with('error', 'Cannot delete subject with associated results.');
-        }
-
         try {
+            Result::where('subject_id', $subject->id)->delete();
             $subjectName = $subject->name;
             $subject->delete();
-
             $this->logActivity("Deleted subject: {$subjectName}", ['subject_id' => $subject->id]);
 
-            return back()->with('success', 'Subject deleted successfully!');
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Subject '{$subjectName}' and associated scores deleted successfully!"
+                ]);
+            }
+
+            return redirect()->route('admin.subjects.manage')->with('success', "Subject '{$subjectName}' and associated scores deleted successfully!");
 
         } catch (\Exception $e) {
             Log::error("Database error deleting subject {$subject->id}: " . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
+            }
             return back()->with('error', 'Database error occurred.');
         }
     }
 
     public function assignSubjectToClass(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'subject_id' => 'required|exists:subjects,id',
-                'class_id' => 'required|exists:classes,id',
-            ]);
+        $classesWithSubjects = Classes::with('subjects')->orderBy('hierarchy')->orderBy('name')->get()->mapWithKeys(function ($class) {
+            return [$class->name => $class->subjects];
+        });
 
-            $class = Classes::findOrFail($validated['class_id']);
-            $subject = Subject::findOrFail($validated['subject_id']);
+        if ($request->isMethod('post')) {
+            try {
+                $validated = $request->validate([
+                    'subject_ids' => 'required|array',
+                    'subject_ids.*' => 'exists:subjects,id',
+                    'class_ids' => 'required|array',
+                    'class_ids.*' => 'exists:classes,id',
+                ]);
 
-            $class->subjects()->syncWithoutDetaching([$validated['subject_id']]);
+                $changesMade = false;
+                DB::transaction(function () use ($validated, &$changesMade) {
+                    foreach ($validated['class_ids'] as $classId) {
+                        $class = Classes::findOrFail($classId);
+                        foreach ($validated['subject_ids'] as $subjectId) {
+                            if (!$class->subjects()->where('subject_id', $subjectId)->exists()) {
+                                $class->subjects()->attach($subjectId);
+                                $changesMade = true;
+                                $subject = Subject::find($subjectId);
+                                $this->logActivity("Assigned subject {$subject->name} to class {$class->name}", [
+                                    'subject_id' => $subjectId,
+                                    'class_id' => $class->id
+                                ]);
+                            }
+                        }
+                    }
+                });
 
-            $this->logActivity("Assigned subject {$subject->name} to class {$class->name}", [
-                'subject_id' => $subject->id,
-                'class_id' => $class->id
-            ]);
+                $message = $changesMade
+                    ? "Assigned " . count($validated['subject_ids']) . " subject(s) to " . count($validated['class_ids']) . " class(es) successfully!"
+                    : "No new assignments were made; all selected subjects were already assigned.";
 
-            return back()->with('success', "Subject {$subject->name} assigned to {$class->name} successfully!");
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => $message
+                    ]);
+                }
 
-        } catch (\Exception $e) {
-            Log::error("Error assigning subject to class: " . $e->getMessage());
-            return back()->with('error', 'Error assigning subject.');
+                return back()->with($changesMade ? 'success' : 'warning', $message);
+
+            } catch (ValidationException $e) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+                }
+                return back()->withErrors($e->errors())->withInput();
+            } catch (\Exception $e) {
+                Log::error("Error assigning subjects to classes: " . $e->getMessage());
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
+                }
+                return back()->with('error', 'Database error occurred.');
+            }
         }
+
+        return view('admin.subjects.assign_subject_to_class', compact('classesWithSubjects'));
     }
 
     public function removeSubjectFromClass(Request $request)
@@ -142,18 +266,43 @@ class AdminSubjectController extends AdminBaseController
             $class = Classes::findOrFail($validated['class_id']);
             $subject = Subject::findOrFail($validated['subject_id']);
 
-            $class->subjects()->detach($validated['subject_id']);
+            if ($class->subjects()->where('subject_id', $validated['subject_id'])->exists()) {
+                $class->subjects()->detach($validated['subject_id']);
+                $this->logActivity("Removed subject {$subject->name} from class {$class->name}", [
+                    'subject_id' => $validated['subject_id'],
+                    'class_id' => $class->id
+                ]);
 
-            $this->logActivity("Removed subject {$subject->name} from class {$class->name}", [
-                'subject_id' => $subject->id,
-                'class_id' => $class->id
-            ]);
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "Removed {$subject->name} from {$class->name} successfully."
+                    ]);
+                }
 
-            return back()->with('success', "Subject {$subject->name} removed from {$class->name} successfully!");
+                return back()->with('success', "Removed {$subject->name} from {$class->name} successfully.");
+            }
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "{$subject->name} was not assigned to {$class->name}."
+                ]);
+            }
+
+            return back()->with('warning', "{$subject->name} was not assigned to {$class->name}.");
+
+        } catch (ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+            }
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            Log::error("Error removing subject from class: " . $e->getMessage());
-            return back()->with('error', 'Error removing subject.');
+            Log::error("Error removing subject {$validated['subject_id']} from class {$validated['class_id']}: " . $e->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
+            }
+            return back()->with('error', 'Database error occurred.');
         }
     }
 
@@ -161,6 +310,7 @@ class AdminSubjectController extends AdminBaseController
     {
         $class = Classes::where('name', urldecode($className))->firstOrFail();
         $subjects = Subject::orderBy('name')->get();
+        $assignedSubjects = $class->subjects->pluck('id')->toArray();
 
         if ($request->isMethod('post')) {
             try {
@@ -170,62 +320,47 @@ class AdminSubjectController extends AdminBaseController
                 ]);
 
                 $class->subjects()->sync($validated['subject_ids'] ?? []);
-
                 $this->logActivity("Updated subject assignments for class {$class->name}", [
                     'class_id' => $class->id,
                     'subject_ids' => $validated['subject_ids'] ?? []
                 ]);
 
-                return back()->with('success', 'Subject assignments updated successfully!');
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "Updated subjects for {$class->name} successfully."
+                    ]);
+                }
 
+                return redirect()->route('admin.subjects.assign')->with('success', "Updated subjects for {$class->name} successfully.");
+
+            } catch (ValidationException $e) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+                }
+                return back()->withErrors($e->errors())->withInput();
             } catch (\Exception $e) {
                 Log::error("Error updating subject assignments for class {$class->id}: " . $e->getMessage());
-                return back()->with('error', 'Error updating subject assignments.');
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Database error occurred.'], 500);
+                }
+                return back()->with('error', 'Database error occurred.');
             }
         }
-
-        $assignedSubjects = $class->subjects->pluck('id')->toArray();
 
         return view('admin.subjects.edit_subject_assignment', compact('class', 'subjects', 'assignedSubjects'));
     }
 
-    public function mergeSubjects(Request $request)
+    public function getClassSubjects(Classes $class)
     {
-        $fullyCommonSubjects = ['Mathematics', 'English Language'];
-
-        try {
-            $validated = $request->validate([
-                'source_subject_id' => 'required|exists:subjects,id',
-                'target_subject_id' => 'required|exists:subjects,id|different:source_subject_id',
-            ]);
-
-            $sourceSubject = Subject::findOrFail($validated['source_subject_id']);
-            $targetSubject = Subject::findOrFail($validated['target_subject_id']);
-
-            if (in_array($sourceSubject->name, $fullyCommonSubjects) || in_array($targetSubject->name, $fullyCommonSubjects)) {
-                return back()->with('error', 'Cannot merge common subjects like Mathematics or English Language.');
-            }
-
-            DB::transaction(function () use ($sourceSubject, $targetSubject) {
-                Result::where('subject_id', $sourceSubject->id)
-                    ->update(['subject_id' => $targetSubject->id]);
-
-                $targetSubject->classes()->syncWithoutDetaching($sourceSubject->classes->pluck('id')->toArray());
-                $sourceSubject->classes()->detach();
-
-                $sourceSubject->delete();
-
-                $this->logActivity("Merged subject {$sourceSubject->name} into {$targetSubject->name}", [
-                    'source_subject_id' => $sourceSubject->id,
-                    'target_subject_id' => $targetSubject->id
-                ]);
-            });
-
-            return back()->with('success', "Subject {$sourceSubject->name} merged into {$targetSubject->name} successfully!");
-
-        } catch (\Exception $e) {
-            Log::error("Error merging subjects: " . $e->getMessage());
-            return back()->with('error', 'Error merging subjects.');
-        }
+        return response()->json([
+            'subjects' => $class->subjects->map(function ($subject) {
+                return [
+                    'id' => $subject->id,
+                    'name' => $subject->name,
+                    'section' => $subject->section,
+                ];
+            })
+        ]);
     }
 }

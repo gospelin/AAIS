@@ -11,7 +11,6 @@ class Subject extends Model
     protected $fillable = [
         'name',
         'section',
-        'description',
         'deactivated'
     ];
 
@@ -19,7 +18,6 @@ class Subject extends Model
         'deactivated' => 'boolean',
         'name' => 'string',
         'section' => 'string',
-        'description' => 'string',
     ];
 
     public function classes()
