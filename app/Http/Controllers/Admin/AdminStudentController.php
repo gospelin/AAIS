@@ -500,7 +500,22 @@ class AdminStudentController extends AdminBaseController
                     TermEnum::THIRD->value => 3,
                 ];
 
-                $startOrder = $termOrder[$classHistory->start_term] ?? 1;
+                // Log for debugging
+                Log::debug("markAsLeft: student_id={$studentId}", [
+                    'start_term' => $classHistory->start_term ? ($classHistory->start_term->value ?? 'null') : 'null',
+                    'leave_term' => $validated['term'],
+                    'termOrder' => $termOrder,
+                ]);
+
+                // Safely access start_term->value, with fallback for null or invalid values
+                $startTermValue = $classHistory->start_term instanceof TermEnum ? $classHistory->start_term->value : null;
+                if (!isset($termOrder[$startTermValue])) {
+                    Log::warning("Invalid or null start_term for student_id={$studentId}, defaulting to First", [
+                        'start_term' => $startTermValue,
+                    ]);
+                    $startTermValue = TermEnum::FIRST->value; // Default to First if invalid
+                }
+                $startOrder = $termOrder[$startTermValue];
                 $leaveOrder = $termOrder[$validated['term']] ?? 1;
 
                 if ($startOrder < $leaveOrder) {
@@ -535,12 +550,8 @@ class AdminStudentController extends AdminBaseController
                         ]);
                     }
                 } else {
-                    // If start_term is the same as or after leave_term, mark as left directly
-                    $classHistory->update([
-                        'is_active' => false,
-                        'leave_date' => Carbon::now('Africa/Lagos'),
-                        'end_term' => $validated['term'],
-                    ]);
+                    // Use the model's markAsLeft method for consistency
+                    $classHistory->markAsLeft($validated['term']);
                 }
 
                 $this->logActivity("Marked student as left: {$student->reg_no}", [
