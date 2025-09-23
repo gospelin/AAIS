@@ -553,6 +553,21 @@
                     <button type="button" class="btn btn-sm btn-warning action-btn bulk-action-btn" id="bulk-demote-btn" disabled>
                         <i class="bx bx-down-arrow-alt"></i> Bulk Demote
                     </button>
+                @elseif($action == 'manage_result')
+                    <a href="{{ route('admin.upload_results', ['className' => urlencode($class->name), 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                       class="btn btn-sm btn-primary action-btn">
+                        <i class="bx bx-upload"></i> Upload Results
+                    </a>
+                @elseif($action == 'generate_broadsheet')
+                    <a href="{{ route('admin.broadsheet', ['className' => urlencode($class->name), 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                       class="btn btn-sm btn-primary action-btn">
+                        <i class="bx bx-table"></i> Generate Broadsheet
+                    </a>
+                @elseif($action == 'download_broadsheet')
+                    <a href="{{ route('admin.download_broadsheet', ['className' => urlencode($class->name), 'action' => 'download_broadsheet', 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                       class="btn btn-sm btn-primary action-btn">
+                        <i class="bx bx-download"></i> Download Broadsheet
+                    </a>
                 @endif
             </div>
 
@@ -565,7 +580,7 @@
                     <table class="student-table">
                         <tbody>
                             <tr>
-                                <td colspan="10" class="text-center text-[var(--text-secondary)]">No students found for the selected filters.</td>
+                                <td colspan="10" class="text законcenter text-[var(--text-secondary)]">No students found for the selected filters.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -596,11 +611,11 @@
                                     <td>{{ ucfirst($student->gender) }}</td>
                                     <td>
                                         @php
-                                            $isActiveInTerm = $student->classHistory
-                                                ->where('session_id', $selectedSession->id)
-                                                ->contains(function ($history) use ($selectedSession, $currentTerm) {
-                                                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
-                                                });
+            $isActiveInTerm = $student->classHistory
+                ->where('session_id', $selectedSession->id)
+                ->contains(function ($history) use ($selectedSession, $currentTerm) {
+                    return $history->isActiveInTerm($selectedSession->id, $currentTerm->value);
+                });
                                         @endphp
                                         @if($isActiveInTerm)
                                             <span class="badge badge-success">Active</span>
@@ -610,11 +625,11 @@
                                     </td>
                                     <td>
                                         @php
-                                            $hasPaid = $student->feePayments
-                                                ->where('session_id', $selectedSession->id)
-                                                ->where('term', $currentTerm->value)
-                                                ->where('has_paid_fee', true)
-                                                ->count() > 0;
+            $hasPaid = $student->feePayments
+                ->where('session_id', $selectedSession->id)
+                ->where('term', $currentTerm->value)
+                ->where('has_paid_fee', true)
+                ->count() > 0;
                                         @endphp
                                         @if($hasPaid)
                                             <span class="badge badge-success">Paid</span>
@@ -640,12 +655,17 @@
                                                     <i class="bx bx-wallet"></i>
                                                     {{ $hasPaid ? 'Mark as Unpaid' : 'Mark as Paid' }}
                                                 </button>
-                                                <button type="button" class="btn btn-sm {{ $student->approved ? 'btn-warning' : 'btn-success' }} toggle-approval-status action-btn"
+                                                <button type="button"
+                                                        class="btn btn-sm {{ $student->approved ? 'btn-warning' : 'btn-success' }} toggle-approval-status action-btn"
                                                         data-student-id="{{ $student->id }}"
                                                         data-status="{{ $student->approved ? 'approved' : 'unapproved' }}">
                                                     <i class="bx bx-check"></i>
                                                     {{ $student->approved ? 'Unapprove' : 'Approve' }}
                                                 </button>
+                                                <a href="{{ route('admin.manage_result', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => 'manage_result', 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                                                   class="btn btn-sm btn-primary action-btn">
+                                                    <i class="bx bx-file"></i> Manage Results
+                                                </a>
                                             @elseif($action == 'promote')
                                                 <button type="button" class="btn btn-sm btn-primary action-btn open-promotion-modal"
                                                         data-student-id="{{ $student->id }}"
@@ -671,6 +691,11 @@
                                                    class="btn btn-sm btn-danger action-btn"
                                                    onclick="return confirm('Are you sure you want to delete this student\'s class record?');">
                                                     <i class="bx bx-trash"></i> Delete
+                                                </a>
+                                            @elseif($action == 'manage_result')
+                                                <a href="{{ route('admin.manage_result', ['className' => urlencode($class->name), 'studentId' => $student->id, 'action' => 'manage_result', 'session_id' => $selectedSession->id, 'term' => $currentTerm->value]) }}"
+                                                   class="btn btn-sm btn-primary action-btn">
+                                                    <i class="bx bx-file"></i> Manage Results
                                                 </a>
                                             @endif
                                         </div>

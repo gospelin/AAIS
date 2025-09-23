@@ -27,7 +27,7 @@ class AdminClassController extends AdminBaseController
     {
         $this->authorize('manage_classes');
 
-        $classes = Classes::orderBy('hierarchy')->paginate(5);
+        $classes = Classes::orderBy('hierarchy')->paginate(10);
 
         if ($request->ajax()) {
             return response()->json([
@@ -235,7 +235,7 @@ class AdminClassController extends AdminBaseController
 
             $students = $studentsQuery->orderBy('students.first_name')
                 ->orderBy('students.last_name')
-                ->paginate(5)
+                ->paginate(10)
                 ->appends([
                     'session_id' => $sessionId,
                     'term' => $termInput,
@@ -270,7 +270,7 @@ class AdminClassController extends AdminBaseController
                         'nextSession',
                         'allClasses'
                     ))->render(),
-                    'pagination' => $students->links('vendor.pagination.bootstrap-5')->render(),
+                    'pagination' => $students->links('vendor.pagination.bootstrap-5'),
                 ]);
             }
 

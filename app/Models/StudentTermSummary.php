@@ -11,6 +11,8 @@ class StudentTermSummary extends Model
 {
     use HasFactory;
 
+    protected $table = 'student_term_summary';
+
     protected $fillable = [
         'student_id',
         'class_id',

@@ -213,56 +213,48 @@ class AdminBaseController extends Controller
      * Calculate grade based on total score.
      *
      * @param float $total
-     * @return string
+     * @return string|null
      */
     protected function calculateGrade($total)
     {
-        if ($total >= 95)
-            return "A+";
+        if ($total === null || $total < 0)
+            return null;
         if ($total >= 80)
-            return "A";
+            return 'A';
         if ($total >= 70)
-            return "B+";
-        if ($total >= 65)
-            return "B";
+            return 'B';
         if ($total >= 60)
-            return "C+";
+            return 'C';
         if ($total >= 50)
-            return "C";
+            return 'D';
         if ($total >= 40)
-            return "D";
-        if ($total >= 30)
-            return "E";
-        return "F";
+            return 'E';
+        return 'F';
     }
 
     /**
      * Generate remark based on total score.
      *
      * @param float $total
-     * @return string
+     * @return string|null
      */
     protected function generateRemark($total)
     {
-        if ($total >= 95)
-            return "Outstanding";
+        if ($total === null || $total < 0)
+            return null;
         if ($total >= 80)
-            return "Excellent";
+            return 'Excellent';
         if ($total >= 70)
-            return "Very Good";
-        if ($total >= 65)
-            return "Good";
+            return 'Very Good';
         if ($total >= 60)
-            return "Credit";
+            return 'Good';
         if ($total >= 50)
-            return "Credit";
+            return 'Fair';
         if ($total >= 40)
-            return "Poor";
-        if ($total >= 30)
-            return "Very Poor";
-        return "Failed";
+            return 'Pass';
+        return 'Failed';
     }
-
+    
     /**
      * Get pass/excellent thresholds for a class hierarchy.
      *

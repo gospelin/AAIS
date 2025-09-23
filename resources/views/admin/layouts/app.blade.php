@@ -798,8 +798,9 @@
                         </a>
                         <div class="collapse" id="resultManagement">
                             <ul class="nav-list nav-sublist list-unstyled">
-                                <li><a href="#" class=""><i class="bx bx-upload nav-icon"></i><span>Add or Upload
-                                            Results</span></a></li>
+                                <li><a href="{{ route('admin.select_class', ['action' => 'upload_results']) }}"
+                                        class="{{ request()->routeIs('admin.select_class') && request('action') === 'upload_results' ? 'active' : '' }}"><i
+                                            class="bx bx-upload nav-icon"></i><span>Add or Upload Results</span></a></li>
                                 <li><a href="{{ route('admin.select_class', ['action' => 'manage_result']) }}"
                                         class="{{ request()->routeIs('admin.select_class') && request('action') === 'manage_result' ? 'active' : '' }}"><i
                                             class="bx bx-file nav-icon"></i><span>Manage Results by Student</span></a>
