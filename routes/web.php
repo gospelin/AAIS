@@ -138,6 +138,14 @@ Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(functio
     Route::get('/results/broadsheet/{className}', [AdminResultController::class, 'broadsheet'])->name('admin.broadsheet');
     Route::post('/results/broadsheet/{className}', [AdminResultController::class, 'updateBroadsheet'])->name('admin.update_broadsheet');
     Route::get('/results/broadsheet/{className}/{action}/download', [AdminResultController::class, 'downloadBroadsheet'])->name('admin.download_broadsheet');
+
+
+    Route::post('/results/broadsheet/update-field', [AdminResultController::class, 'updateResultField'])->name('admin.update_broadsheet_field');
+    Route::post('/results/broadsheet/update-class-fields', [AdminResultController::class, 'updateBroadsheetClassFields'])->name('admin.update_broadsheet_class_fields');
+    Route::get('/results/broadsheet/{className}/{action}', [AdminResultController::class, 'broadsheet'])->name('admin.broadsheet');
+    Route::put('/results/broadsheet/{className}/{action}', [AdminResultController::class, 'updateBroadsheet'])->name('admin.update_broadsheet');
+    Route::get('/results/broadsheet/{className}/download/{action}', [AdminResultController::class, 'downloadBroadsheet'])->name('admin.download_broadsheet');
+    
     Route::get('/results/upload/{className}', [AdminResultController::class, 'uploadResultsForm'])->name('admin.upload_results_form');
     Route::post('/results/upload/{className}', [AdminResultController::class, 'uploadResults'])->name('admin.upload_results');
     Route::post('/results/notify/{className}', [AdminResultController::class, 'notifyStudents'])->name('admin.notify_students');

@@ -486,93 +486,41 @@
                 const updateUrl = '{{ route('admin.update_result_field') }}';
                 const csrfToken = '{{ csrf_token() }}';
 
+                // Validate input based on field type
+                const validateInput = ($input) => {
+                    const value = parseFloat($input.val()) || 0;
+                    const field = $input.hasClass('class-assessment') ? 'Class Assessment' :
+                        $input.hasClass('summative-test') ? 'Summative Test' :
+                            $input.hasClass('exam') ? 'Examination' : '';
+                    const max = $input.hasClass('class-assessment') || $input.hasClass('summative-test') ? 20 : 60;
+
+                    if (field && (value < 0 || value > max)) {
+                        return `${field} must be between 0 and ${max}.`;
+                    }
+                    return '';
+                };
+
                 // Update progress bar
                 const updateProgress = () => {
                     const totalFields = $('.result-input:not(.class-wide)').length;
-                    let filledFields = 0;
-
-                    $('.result-input:not(.class-wide)').each(function () {
-                        if ($(this).val().trim() !== '') {
-                            filledFields++;
-                        }
-                    });
-
+                    const filledFields = $('.result-input:not(.class-wide)').filter(function () {
+                        return $(this).val().trim() !== '';
+                    }).length;
                     const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
                     progressBar.style.width = `${progress}%`;
                     progressBar.setAttribute('aria-valuenow', progress);
                     progressBar.textContent = `${progress}%`;
                 };
 
-                // Update row aggregates
-                const updateRowAggregates = ($row) => {
-                    const classAssessment = parseFloat($row.find('.class-assessment').val()) || 0;
-                    const summativeTest = parseFloat($row.find('.summative-test').val()) || 0;
-                    const exam = parseFloat($row.find('.exam').val()) || 0;
-                    const total = classAssessment + summativeTest + exam;
-                    $row.find('.total').text(total > 0 ? total : '');
-                    // Clear grade and remark if total is 0
-                    $row.find('.grade').text(total > 0 ? calculateGrade(total) : '');
-                    $row.find('.remark').text(total > 0 ? generateRemark(total) : '');
-                    updateProgress();
-                };
-
-                // Calculate grade (matches server-side logic)
-                const calculateGrade = (total) => {
-                    if (total >= 70) return 'A';
-                    if (total >= 60) return 'B';
-                    if (total >= 50) return 'C';
-                    if (total >= 40) return 'D';
-                    return 'F';
-                };
-
-                // Generate remark (matches server-side logic)
-                const generateRemark = (total) => {
-                    if (total >= 70) return 'Excellent';
-                    if (total >= 60) return 'Very Good';
-                    if (total >= 50) return 'Good';
-                    if (total >= 40) return 'Pass';
-                    return 'Fail';
-                };
-
-                // Update all aggregates
-                const updateAllAggregates = () => {
-                    let grandTotal = 0;
-                    let subjectCount = 0;
-
-                    $('.result-table tbody tr').each(function () {
-                        const $row = $(this);
-                        const classAssessment = parseFloat($row.find('.class-assessment').val()) || 0;
-                        const summativeTest = parseFloat($row.find('.summative-test').val()) || 0;
-                        const exam = parseFloat($row.find('.exam').val()) || 0;
-                        const total = classAssessment + summativeTest + exam;
-                        $row.find('.total').text(total > 0 ? total : '');
-                        $row.find('.grade').text(total > 0 ? calculateGrade(total) : '');
-                        $row.find('.remark').text(total > 0 ? generateRemark(total) : '');
-                        if (total > 0) {
-                            grandTotal += total;
-                            subjectCount++;
-                        }
-                    });
-
-                    $('.aggregate-field[aria-label="Grand Total"]').text(grandTotal > 0 ? grandTotal : '');
-                    $('.aggregate-field[aria-label="Average for the Term"]').text(subjectCount > 0 ? (grandTotal / subjectCount).toFixed(1) : '');
-                };
-
-                // Initialize row totals and aggregates on page load
-                $('.result-table tbody tr').each(function () {
-                    updateRowAggregates($(this));
-                });
-                updateAllAggregates();
-                updateProgress();
-
-                // Handle input changes for real-time updates
+                // Initialize UI with server data
                 $('.result-table tbody tr').each(function () {
                     const $row = $(this);
-                    $row.find('.class-assessment, .summative-test, .exam').on('input', () => {
-                        updateRowAggregates($row);
-                        updateAllAggregates();
-                    });
+                    const total = parseFloat($row.find('.total').text()) || 0;
+                    $row.find('.total').text(total > 0 ? total : '');
+                    $row.find('.grade').text(total > 0 ? $row.find('.grade').text() : '');
+                    $row.find('.remark').text(total > 0 ? $row.find('.remark').text() : '');
                 });
+                updateProgress();
 
                 // AJAX for result fields
                 let saveTimeout;
@@ -585,7 +533,7 @@
                     const $resultIdInput = $row.find('input[name*="result_id"]');
                     const resultId = $resultIdInput.val() || null;
                     const $subjectIdInput = $row.find('input[name*="subject_id"]');
-                    let subjectId = $subjectIdInput.val() ? parseInt($subjectIdInput.val()) : null;
+                    const subjectId = parseInt($subjectIdInput.val()) || null;
 
                     const field = $input.hasClass('class-assessment') ? 'class_assessment' :
                         $input.hasClass('summative-test') ? 'summative_test' :
@@ -603,32 +551,25 @@
                         return;
                     }
 
-                    // Collect all fields for the subject
-                    const classAssessment = $row.find('.class-assessment').val().trim() === '' ? null : parseFloat($row.find('.class-assessment').val()) || null;
-                    const summativeTest = $row.find('.summative-test').val().trim() === '' ? null : parseFloat($row.find('.summative-test').val()) || null;
-                    const exam = $row.find('.exam').val().trim() === '' ? null : parseFloat($row.find('.exam').val()) || null;
-                    const isClassWide = $input.hasClass('class-wide');
-                    const value = $input.val().trim() === '' ? null : (isClassWide ? $input.val() : parseFloat($input.val()) || null);
+                    const value = $input.val().trim() === '' ? null : ($input.hasClass('class-wide') ? $input.val() : parseFloat($input.val()) || null);
+                    const error = validateInput($input);
+                    if (error) {
+                        $row.find('.status-indicator').text(error).addClass('text-danger').show().fadeOut(2000);
+                        return;
+                    }
 
                     const requestData = {
                         result_id: resultId,
-                        subject_id: isClassWide ? null : subjectId,
+                        subject_id: $input.hasClass('class-wide') ? null : subjectId,
                         student_id: {{ $student->id }},
                         class_id: {{ $class->id }},
                         session_id: {{ $currentSession->id }},
                         term: '{{ $currentTerm->value }}',
                         field: field,
-                        value: value,
-                        class_assessment: isClassWide ? null : classAssessment,
-                        summative_test: isClassWide ? null : summativeTest,
-                        exam: isClassWide ? null : exam,
-                        next_term_begins: $('#next_term_begins').val() || null,
-                        date_issued: $('#date_issued').val() || null,
-                        position: $('#position').val() || null
+                        value: value
                     };
 
-                    // Use subjectId as key to prevent race conditions for the same subject
-                    const requestKey = isClassWide ? field : `subject_${subjectId}`;
+                    const requestKey = $input.hasClass('class-wide') ? field : `subject_${subjectId}_${field}`;
                     if (pendingRequests[requestKey]) {
                         clearTimeout(pendingRequests[requestKey].timeout);
                         pendingRequests[requestKey].aborted = true;
@@ -653,17 +594,12 @@
                                 }
                                 delete pendingRequests[requestKey];
                                 if (response.success) {
-                                    if (!isClassWide) {
-                                        // Update client-side only if server total matches
-                                        const classAssessmentVal = parseFloat($row.find('.class-assessment').val()) || 0;
-                                        const summativeTestVal = parseFloat($row.find('.summative-test').val()) || 0;
-                                        const examVal = parseFloat($row.find('.exam').val()) || 0;
-                                        const expectedTotal = classAssessmentVal + summativeTestVal + examVal;
-
-                                        $row.find('.status-indicator').text('Saved').addClass('text-success').show().fadeOut(2000);
-                                    } else {
-                                        $row.find('.status-indicator').text('Saved').addClass('text-success').show().fadeOut(2000);
+                                    if (!$input.hasClass('class-wide')) {
+                                        $row.find('.total').text(response.total !== null ? response.total : '');
+                                        $row.find('.grade').text(response.grade || '');
+                                        $row.find('.remark').text(response.remark || '');
                                     }
+                                    $row.find('.status-indicator').text('Saved').addClass('text-success').show().fadeOut(2000);
 
                                     // Update aggregated fields
                                     $('.aggregate-field[aria-label="Grand Total"]').text(response.grand_total !== null ? response.grand_total : '');
@@ -677,7 +613,6 @@
                                         $resultIdInput.val(response.result_id);
                                         $row.find(`input[name="results[${$row.index()}][result_id]"]`).val(response.result_id);
                                     }
-                                    updateAllAggregates();
                                     updateProgress();
                                 } else {
                                     $row.find('.status-indicator').text(response.message || 'Error saving').addClass('text-danger').show().fadeOut(2000);
@@ -699,26 +634,21 @@
                                     errorMsg = 'Server error occurred. Please contact support.';
                                 }
                                 $row.find('.status-indicator').text(errorMsg).addClass('text-danger').show().fadeOut(2000);
-                                console.error('AJAX error:', xhr.responseText, { requestData: requestData });
+                                console.error('AJAX error:', xhr.responseText, { requestData });
                             }
                         });
-                    }, 1000); // Increased debounce to 1000ms
+                    }, 1000);
                 });
 
-                // Form submission with spinner
+                // Form submission with validation
                 $('#resultsForm').on('submit', function (e) {
                     let hasErrors = false;
                     $('.result-input:not(.class-wide)').each(function () {
                         const $input = $(this);
-                        const value = parseFloat($input.val()) || 0;
-                        const field = $input.hasClass('class-assessment') ? 'Class Assessment' :
-                            $input.hasClass('summative-test') ? 'Summative Test' :
-                                $input.hasClass('exam') ? 'Examination' : '';
-                        const max = $input.hasClass('class-assessment') || $input.hasClass('summative-test') ? 20 : 60;
-
-                        if (value < 0 || value > max) {
+                        const error = validateInput($input);
+                        if (error) {
                             $input.closest('td').find('.text-danger').remove();
-                            $input.after(`<span class="text-danger">${field} must be between 0 and ${max}.</span>`);
+                            $input.after(`<span class="text-danger">${error}</span>`);
                             hasErrors = true;
                         }
                     });

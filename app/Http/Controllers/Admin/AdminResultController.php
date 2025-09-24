@@ -26,6 +26,254 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 class AdminResultController extends AdminBaseController
 {
     /**
+     * Display the broadsheet for a class.
+     */
+    public function broadsheet(Request $request, string $className)
+    {
+        try {
+            // Initialize session and term
+            $currentSession = null;
+            $currentTerm = null;
+            $sessionId = $request->query('session_id');
+            $termValue = $request->query('term');
+
+            if ($sessionId) {
+                $currentSession = AcademicSession::find($sessionId);
+            }
+            if ($termValue && in_array($termValue, array_column(TermEnum::cases(), 'value'))) {
+                $currentTerm = TermEnum::from($termValue);
+            }
+
+            if (!$currentSession || !$currentTerm) {
+                [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
+            }
+
+            if (!$currentSession || !$currentTerm) {
+                return redirect()->route('admin.select_class', ['action' => $request->query('action', 'generate_broadsheet')])
+                    ->with('error', 'No current session or term available.');
+            }
+
+            $class = Classes::where('name', urldecode($className))->firstOrFail();
+            $students = $this->getStudentsQuery($currentSession, $currentTerm->value)
+                ->where('classes.id', $class->id)
+                ->get();
+
+            $includeDeactivated = $currentSession->year === '2023/2024';
+            $subjects = $this->getSubjectsByClassId($class->id, $includeDeactivated);
+
+            $action = $request->query('action', 'generate_broadsheet');
+
+            $broadsheetData = $students->map(function ($student) use ($currentSession, $currentTerm, $subjects, $class) {
+                $results = Result::where([
+                    'student_id' => $student->id,
+                    'session_id' => $currentSession->id,
+                    'term' => $currentTerm->value,
+                    'class_id' => $class->id,
+                ])->get()->keyBy('subject_id');
+
+                $termSummary = StudentTermSummary::where([
+                    'student_id' => $student->id,
+                    'session_id' => $currentSession->id,
+                    'term' => $currentTerm->value,
+                    'class_id' => $class->id,
+                ])->first();
+
+                return [
+                    'student' => $student,
+                    'results' => $results,
+                    'termSummary' => $termSummary,
+                ];
+            });
+
+            $subjectAverages = $this->calculateSubjectAverages($class->id, $currentSession->id, $currentTerm->value, $subjects);
+
+            return view('admin.results.broadsheet', [
+                'class' => $class,
+                'subjects' => $subjects,
+                'broadsheetData' => $broadsheetData,
+                'subjectAverages' => $subjectAverages,
+                'currentSession' => $currentSession,
+                'currentTerm' => $currentTerm,
+                'action' => $action,
+                'school_name' => config('app.name', 'Aunty Anne\'s International School'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error in broadsheet: {$e->getMessage()}", [
+                'class_name' => $className,
+                'exception' => $e->getTraceAsString(),
+            ]);
+            return redirect()->route('admin.select_class', ['action' => $request->query('action', 'generate_broadsheet')])
+                ->with('error', 'Error loading broadsheet.');
+        }
+    }
+
+    /**
+     * Update broadsheet results via form submission.
+     */
+    public function updateBroadsheet(Request $request, string $className)
+    {
+        try {
+            // Initialize session and term
+            $currentSession = null;
+            $currentTerm = null;
+            $sessionId = $request->query('session_id');
+            $termValue = $request->query('term');
+
+            if ($sessionId) {
+                $currentSession = AcademicSession::find($sessionId);
+            }
+            if ($termValue && in_array($termValue, array_column(TermEnum::cases(), 'value'))) {
+                $currentTerm = TermEnum::from($termValue);
+            }
+
+            if (!$currentSession || !$currentTerm) {
+                [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
+            }
+
+            if (!$currentSession || !$currentTerm) {
+                return redirect()->route('admin.select_class', ['action' => $request->query('action', 'generate_broadsheet')])
+                    ->with('error', 'No current session or term available.');
+            }
+
+            $class = Classes::where('name', urldecode($className))->firstOrFail();
+
+            // Validate the request data
+            $validated = $request->validate([
+                'results' => 'required|array',
+                'results.*' => 'required|array',
+                'results.*.*.class_assessment' => 'nullable|numeric|min:0|max:20',
+                'results.*.*.summative_test' => 'nullable|numeric|min:0|max:20',
+                'results.*.*.exam' => 'nullable|numeric|min:0|max:60',
+                'results.*.position' => 'nullable|string|max:20',
+                'next_term_begins' => 'nullable|string',
+                'date_issued' => 'nullable|string',
+            ]);
+
+            DB::transaction(function () use ($validated, $currentSession, $currentTerm, $class) {
+                $nextTermBegins = $validated['next_term_begins'] ?? null;
+                $dateIssued = $validated['date_issued'] ?? null;
+
+                foreach ($validated['results'] as $studentId => $studentData) {
+                    // Verify student enrollment
+                    $enrollment = StudentClassHistory::where([
+                        'student_id' => $studentId,
+                        'session_id' => $currentSession->id,
+                        'class_id' => $class->id,
+                        'is_active' => true,
+                    ])->whereNull('leave_date')->first();
+
+                    if (!$enrollment) {
+                        Log::warning("Student {$studentId} not enrolled in class {$class->id} for session {$currentSession->id}");
+                        continue;
+                    }
+
+                    $grandTotal = 0;
+                    $subjectCount = 0;
+
+                    // Process subject results
+                    foreach ($studentData as $subjectId => $resultData) {
+                        // Skip non-subject fields like 'position'
+                        if (!is_numeric($subjectId)) {
+                            continue;
+                        }
+
+                        $classAssessment = isset($resultData['class_assessment']) && $resultData['class_assessment'] !== '' ? (int)$resultData['class_assessment'] : null;
+                        $summativeTest = isset($resultData['summative_test']) && $resultData['summative_test'] !== '' ? (int)$resultData['summative_test'] : null;
+                        $exam = isset($resultData['exam']) && $resultData['exam'] !== '' ? (int)$resultData['exam'] : null;
+                        $position = isset($studentData['position']) && $studentData['position'] !== '' ? $studentData['position'] : null;
+
+                        $data = [
+                            'student_id' => $studentId,
+                            'subject_id' => $subjectId,
+                            'class_id' => $class->id,
+                            'session_id' => $currentSession->id,
+                            'term' => $currentTerm->value,
+                            'class_assessment' => $classAssessment,
+                            'summative_test' => $summativeTest,
+                            'exam' => $exam,
+                            'next_term_begins' => $nextTermBegins,
+                            'date_issued' => $dateIssued,
+                            'position' => $position,
+                        ];
+
+                        $result = $this->saveResult($studentId, $subjectId, $currentTerm->value, $currentSession->id, $data, $class->id);
+
+                        if ($result && $result->total !== null) {
+                            $grandTotal += $result->total;
+                            $subjectCount++;
+                        }
+                    }
+
+                    // Update term summary
+                    $termAverage = $subjectCount > 0 ? $grandTotal / $subjectCount : null;
+                    $cumulativeAverage = $this->calculateCumulativeAverage($studentId, $currentTerm->value, $currentSession->id);
+                    $lastTerm = $this->getLastTerm($currentTerm->value);
+                    $lastTermResults = $lastTerm ? Result::where([
+                        'student_id' => $studentId,
+                        'term' => $lastTerm,
+                        'session_id' => $currentSession->id,
+                        'class_id' => $class->id,
+                    ])->get() : [];
+                    [$lastTermAverage] = $this->calculateAverage($lastTermResults);
+                    $lastTermAverage = $lastTermAverage ? round($lastTermAverage, 1) : null;
+
+                    $student = Student::findOrFail($studentId);
+                    $principalRemark = $termAverage !== null ? $this->generatePrincipalRemark($termAverage, $student) : null;
+                    $teacherRemark = $termAverage !== null ? $this->generateTeacherRemark($termAverage, $student) : null;
+
+                    StudentTermSummary::updateOrCreate(
+                        [
+                            'student_id' => $studentId,
+                            'session_id' => $currentSession->id,
+                            'term' => $currentTerm->value,
+                            'class_id' => $class->id,
+                        ],
+                        [
+                            'grand_total' => $grandTotal > 0 ? $grandTotal : null,
+                            'term_average' => $termAverage ? round($termAverage, 1) : null,
+                            'cumulative_average' => $cumulativeAverage ? round($cumulativeAverage, 1) : null,
+                            'last_term_average' => $lastTermAverage,
+                            'subjects_offered' => $subjectCount,
+                            'principal_remark' => $principalRemark,
+                            'teacher_remark' => $teacherRemark,
+                            'next_term_begins' => $nextTermBegins,
+                            'date_issued' => $dateIssued,
+                            'position' => $position,
+                        ]
+                    );
+
+                    $this->logActivity("Updated broadsheet results for student {$studentId}", [
+                        'student_id' => $studentId,
+                        'term' => $currentTerm->value,
+                        'class_id' => $class->id,
+                    ]);
+                }
+            });
+
+            return redirect()->route('admin.broadsheet', [
+                'className' => $className,
+                'action' => $request->query('action', 'generate_broadsheet'),
+                'session_id' => $currentSession->id,
+                'term' => $currentTerm->value,
+            ])->with('success', 'Broadsheet updated successfully!');
+
+        } catch (ValidationException $e) {
+            Log::error("Validation error in updateBroadsheet: " . json_encode($e->errors()), [
+                'class_name' => $className,
+                'request_data' => $request->all(),
+            ]);
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error("Error updating broadsheet for class {$className}: {$e->getMessage()}", [
+                'class_name' => $className,
+                'request_data' => $request->all(),
+                'exception' => $e->getTraceAsString(),
+            ]);
+            return back()->with('error', 'Error updating broadsheet.');
+        }
+    }
+
+    /**
      * Display the manage results page for a student in a specific class.
      */
     public function manageResults(string $className, $studentId, string $action)
@@ -76,17 +324,12 @@ class AdminResultController extends AdminBaseController
                 return redirect()->route('admin.students_by_class', [
                     'className' => $className,
                     'action' => $action,
-                    'session_id' => $currentSession->id,
-                    'term' => $currentTerm->value
                 ])->with('error', 'Student not enrolled in this class.');
             }
 
             // Get subjects (include deactivated for 2023/2024 session)
             $includeDeactivated = $currentSession->year === '2023/2024';
             $subjects = $this->getSubjectsByClassId($class->id, $includeDeactivated);
-
-            // Log subjects for debugging
-            Log::debug("Subjects for class {$class->id}:", $subjects->map(fn($s) => ['id' => $s->id, 'name' => $s->name])->toArray());
 
             // Fetch results
             $results = Result::where([
@@ -96,16 +339,6 @@ class AdminResultController extends AdminBaseController
                 'class_id' => $class->id,
             ])->get()->keyBy('subject_id');
 
-            // Log results for debugging
-            Log::debug("Results for student {$studentId}:", $results->map(fn($r) => [
-                'subject_id' => $r->subject_id,
-                'class_assessment' => $r->class_assessment,
-                'summative_test' => $r->summative_test,
-                'exam' => $r->exam,
-                'total' => $r->total,
-            ])->toArray());
-
-            // Fetch term summary
             $termSummary = StudentTermSummary::where([
                 'student_id' => $studentId,
                 'session_id' => $currentSession->id,
@@ -126,12 +359,8 @@ class AdminResultController extends AdminBaseController
             ]);
         } catch (\Exception $e) {
             Log::error("Error in manageResults: {$e->getMessage()}");
-            return redirect()->route('admin.students_by_class', [
-                'className' => $className,
-                'action' => $action,
-                'session_id' => request()->query('session_id'),
-                'term' => request()->query('term')
-            ])->with('error', 'Error loading results page.');
+            return redirect()->route('admin.students_by_class', ['className' => $className, 'action' => $action])
+                ->with('error', 'Error loading results page.');
         }
     }
 
@@ -185,8 +414,6 @@ class AdminResultController extends AdminBaseController
                 return redirect()->route('admin.students_by_class', [
                     'className' => $className,
                     'action' => $action,
-                    'session_id' => $currentSession->id,
-                    'term' => $currentTerm->value
                 ])->with('error', 'Student not enrolled in this class.');
             }
 
@@ -210,8 +437,6 @@ class AdminResultController extends AdminBaseController
                 'className' => $className,
                 'studentId' => $studentId,
                 'action' => $action,
-                'session_id' => $currentSession->id,
-                'term' => $currentTerm->value
             ])->with('success', 'Results updated successfully!');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -276,7 +501,6 @@ class AdminResultController extends AdminBaseController
             ];
             $data['field'] = $fieldMap[$data['field']] ?? $data['field'];
 
-            // Prepare data for saveResult
             $saveData = [
                 'student_id' => $data['student_id'],
                 'subject_id' => $data['subject_id'] ?? null,
@@ -327,6 +551,9 @@ class AdminResultController extends AdminBaseController
                 'success' => true,
                 'message' => 'Result saved successfully.',
                 'result_id' => $result ? $result->id : null,
+                'class_assessment' => $result ? $result->class_assessment : null,
+                'summative_test' => $result ? $result->summative_test : null,
+                'exam' => $result ? $result->exam : null,
                 'total' => $result ? $result->total : null,
                 'grade' => $result ? $result->grade : null,
                 'remark' => $result ? $result->remark : null,
@@ -336,6 +563,9 @@ class AdminResultController extends AdminBaseController
                 'term_average' => $termSummary ? $termSummary->term_average : null,
                 'cumulative_average' => $termSummary ? $termSummary->cumulative_average : null,
                 'subjects_offered' => $termSummary ? $termSummary->subjects_offered : null,
+                'position' => $termSummary ? $termSummary->position : null,
+                'next_term_begins' => $termSummary ? $termSummary->next_term_begins : null,
+                'date_issued' => $termSummary ? $termSummary->date_issued : null,
             ]);
         } catch (ValidationException $e) {
             Log::error("Validation error in updateResultField: " . json_encode($e->errors()), [
@@ -389,10 +619,10 @@ class AdminResultController extends AdminBaseController
             $result = $results->get($subject->id);
             $formData[] = [
                 'subject_id' => $subject->id,
-                'class_assessment' => $result && $result->class_assessment ? $result->class_assessment : '',
-                'summative_test' => $result && $result->summative_test ? $result->summative_test : '',
-                'exam' => $result && $result->exam ? $result->exam : '',
-                'total' => $result && $result->total ? $result->total : '',
+                'class_assessment' => $result && $result->class_assessment !== null ? $result->class_assessment : '',
+                'summative_test' => $result && $result->summative_test !== null ? $result->summative_test : '',
+                'exam' => $result && $result->exam !== null ? $result->exam : '',
+                'total' => $result && $result->total !== null ? $result->total : '',
                 'grade' => $result && $result->grade ? $result->grade : '',
                 'remark' => $result && $result->remark ? $result->remark : '',
             ];
@@ -478,10 +708,10 @@ class AdminResultController extends AdminBaseController
                 'class_id' => $classId,
             ])->first() : null;
 
-            // Use existing values if new ones are not provided (check for isset to avoid overwriting with null)
-            $classAssessment = isset($data['class_assessment']) ? ($data['class_assessment'] !== '' ? (int) $data['class_assessment'] : null) : ($existingResult ? $existingResult->class_assessment : null);
-            $summativeTest = isset($data['summative_test']) ? ($data['summative_test'] !== '' ? (int) $data['summative_test'] : null) : ($existingResult ? $existingResult->summative_test : null);
-            $exam = isset($data['exam']) ? ($data['exam'] !== '' ? (int) $data['exam'] : null) : ($existingResult ? $existingResult->exam : null);
+            // Use existing values if new ones are not provided
+            $classAssessment = isset($data['class_assessment']) ? ($data['class_assessment'] !== '' ? (int)$data['class_assessment'] : null) : ($existingResult ? $existingResult->class_assessment : null);
+            $summativeTest = isset($data['summative_test']) ? ($data['summative_test'] !== '' ? (int)$data['summative_test'] : null) : ($existingResult ? $existingResult->summative_test : null);
+            $exam = isset($data['exam']) ? ($data['exam'] !== '' ? (int)$data['exam'] : null) : ($existingResult ? $existingResult->exam : null);
             $position = isset($data['position']) && $data['position'] !== '' ? $data['position'] : null;
             $nextTermBegins = isset($data['next_term_begins']) && $data['next_term_begins'] !== '' ? $data['next_term_begins'] : null;
             $dateIssued = isset($data['date_issued']) && $data['date_issued'] !== '' ? $data['date_issued'] : null;
@@ -508,18 +738,6 @@ class AdminResultController extends AdminBaseController
                 $grade = $total > 0 ? $this->calculateGrade($total) : null;
                 $remark = $total > 0 ? $this->generateRemark($total) : null;
 
-                // Log data for debugging
-                Log::debug("Saving result for student {$studentId}, subject {$subjectId}", [
-                    'input_data' => $data,
-                    'class_assessment' => $classAssessment,
-                    'summative_test' => $summativeTest,
-                    'exam' => $exam,
-                    'total' => $total,
-                    'grade' => $grade,
-                    'remark' => $remark,
-                    'existing_result' => $existingResult ? $existingResult->toArray() : null,
-                ]);
-
                 // Only save if at least one field is non-null or total is non-zero
                 if ($classAssessment !== null || $summativeTest !== null || $exam !== null) {
                     $result = Result::updateOrCreate(
@@ -540,7 +758,7 @@ class AdminResultController extends AdminBaseController
                         ]
                     );
                 } else {
-                    // Delete result if all fields are null to avoid empty records
+                    // Delete result if all fields are null
                     Result::where([
                         'student_id' => $studentId,
                         'subject_id' => $subjectId,
@@ -562,8 +780,7 @@ class AdminResultController extends AdminBaseController
                 'class_id' => $classId,
             ])->first();
 
-            $threshold = $this->getThreshold($termSummary ? $termSummary->class->hierarchy : 9999);
-            $principalRemark = $average !== null ? $this->generatePrincipalRemark($average, $threshold) : null;
+            $principalRemark = $average !== null ? $this->generatePrincipalRemark($average, $student) : null;
             $teacherRemark = $average !== null ? $this->generateTeacherRemark($average, $student) : null;
 
             if ($termSummary) {
@@ -616,14 +833,14 @@ class AdminResultController extends AdminBaseController
             throw $e;
         }
     }
-    
+
     /**
      * Update results with form data.
      */
     protected function updateResultsHelper($student, $term, $sessionId, $form, $classId)
     {
         try {
-            $results = $form['results'] ?? []; // Changed from 'subjects' to 'results' to match view
+            $results = $form['results'] ?? [];
             $nextTermBegins = $form['next_term_begins'] ?? null;
             $dateIssued = $form['date_issued'] ?? null;
             $position = $form['position'] ?? null;
@@ -710,7 +927,7 @@ class AdminResultController extends AdminBaseController
                 'class_id' => $classId,
             ])->get();
 
-            $grandTotal = $results->sum(fn($r) => $r->total ?? 0); // Treat null as 0 for sum
+            $grandTotal = $results->sum(fn($r) => $r->total ?? 0);
             [$average, $subjectsOffered] = $this->calculateAverage($results);
             $average = $average ? round($average, 1) : null;
             $cumulativeAverage = $this->calculateCumulativeAverage($studentId, $term, $sessionId);
@@ -732,184 +949,8 @@ class AdminResultController extends AdminBaseController
     }
 
     /**
-     * Get threshold value for an average.
+     * Download broadsheet as Excel file.
      */
-    protected function getThresholdValue($average)
-    {
-        if ($average === null) {
-            return null;
-        }
-        $thresholds = [0, 30, 40, 50, 60, 65, 70, 80, 90, 95];
-        foreach ($thresholds as $i => $threshold) {
-            if (isset($thresholds[$i + 1]) && $average >= $threshold && $average < $thresholds[$i + 1]) {
-                return $threshold;
-            }
-        }
-        return $average >= 95 ? 95 : 0;
-    }
-
-    /**
-     * Generate teacher's remark.
-     */
-    protected function generateTeacherRemark($average, $student)
-    {
-        $threshold = $this->getThreshold($student->classHistory->first()->class->hierarchy ?? 9999);
-        if ($average >= $threshold['excellent']) {
-            return "Excellent work, {$student->first_name}! Keep shining.";
-        } elseif ($average >= $threshold['pass']) {
-            return "Good effort, {$student->first_name}. Aim for excellence.";
-        }
-        return "More effort needed, {$student->first_name}. Let's work together.";
-    }
-
-    // Other methods (broadsheet, uploadResults, etc.) remain unchanged as they are not directly related to manage_results
-    public function broadsheet(Request $request, string $className)
-    {
-        $currentSessionData = $this->getCurrentSessionAndTerm(true);
-        $currentSession = $currentSessionData[0];
-        $currentTerm = $currentSessionData[1];
-
-        $class = Classes::where('name', urldecode($className))->firstOrFail();
-        $students = $this->getStudentsQuery($currentSession, $currentTerm->value)
-            ->where('classes.id', $class->id)
-            ->get();
-
-        $subjects = $class->subjects()->where('deactivated', false)->orderBy('name')->get();
-        $action = $request->query('action', 'generate_broadsheet');
-
-        $broadsheetData = $students->map(function ($student) use ($currentSession, $currentTerm, $subjects) {
-            $results = Result::where('student_id', $student->id)
-                ->where('session_id', $currentSession->id)
-                ->where('term', $currentTerm->value)
-                ->whereIn('subject_id', $subjects->pluck('id'))
-                ->get()
-                ->keyBy('subject_id');
-
-            $termSummary = StudentTermSummary::where('student_id', $student->id)
-                ->where('session_id', $currentSession->id)
-                ->where('term', $currentTerm->value)
-                ->first();
-
-            return [
-                'student' => $student,
-                'results' => $results,
-                'termSummary' => $termSummary,
-            ];
-        });
-
-        return view('admin.results.broadsheet', compact(
-            'class',
-            'subjects',
-            'broadsheetData',
-            'currentSession',
-            'currentTerm',
-            'action'
-        ));
-    }
-
-    public function updateBroadsheet(Request $request, string $className)
-    {
-        $currentSessionData = $this->getCurrentSessionAndTerm(true);
-        $currentSession = $currentSessionData[0];
-        $currentTerm = $currentSessionData[1];
-
-        $class = Classes::where('name', urldecode($className))->firstOrFail();
-
-        try {
-            $validated = $request->validate([
-                'results' => 'required|array',
-                'results.*.student_id' => 'required|exists:students,id',
-                'results.*.subjects' => 'required|array',
-                'results.*.subjects.*.subject_id' => 'required|exists:subjects,id',
-                'results.*.subjects.*.class_assessment' => 'nullable|numeric|min:0|max:20',
-                'results.*.subjects.*.summative_test' => 'nullable|numeric|min:0|max:20',
-                'results.*.subjects.*.exam' => 'nullable|numeric|min:0|max:60',
-            ]);
-
-            DB::transaction(function () use ($validated, $currentSession, $currentTerm, $class) {
-                foreach ($validated['results'] as $studentResult) {
-                    $studentId = $studentResult['student_id'];
-                    $grandTotal = 0;
-                    $subjectCount = 0;
-
-                    foreach ($studentResult['subjects'] as $resultData) {
-                        $total = ($resultData['class_assessment'] ?? 0) + ($resultData['summative_test'] ?? 0) + ($resultData['exam'] ?? 0);
-                        $grade = $this->calculateGrade($total);
-                        $remark = $this->generateRemark($total);
-
-                        Result::updateOrCreate(
-                            [
-                                'student_id' => $studentId,
-                                'session_id' => $currentSession->id,
-                                'term' => $currentTerm->value,
-                                'subject_id' => $resultData['subject_id'],
-                                'class_id' => $class->id,
-                            ],
-                            [
-                                'class_assessment' => $resultData['class_assessment'] ?? null,
-                                'summative_test' => $resultData['summative_test'] ?? null,
-                                'exam' => $resultData['exam'] ?? null,
-                                'total' => $total,
-                                'grade' => $grade,
-                                'remark' => $remark,
-                            ]
-                        );
-
-                        $grandTotal += $total;
-                        $subjectCount++;
-                    }
-
-                    $termAverage = $subjectCount > 0 ? $grandTotal / $subjectCount : 0;
-                    $threshold = $this->getThreshold($class->hierarchy);
-                    $principalRemark = $this->generatePrincipalRemark($termAverage, $threshold);
-
-                    $lastTermSummary = StudentTermSummary::where('student_id', $studentId)
-                        ->where('session_id', $currentSession->id)
-                        ->where('term', '!=', $currentTerm->value)
-                        ->orderBy('term', 'desc')
-                        ->first();
-
-                    $lastTermAverage = $lastTermSummary ? $lastTermSummary->term_average : null;
-                    $cumulativeAverage = $this->calculateCumulativeAverage($studentId, $currentSession->id, $termAverage);
-
-                    StudentTermSummary::updateOrCreate(
-                        [
-                            'student_id' => $studentId,
-                            'session_id' => $currentSession->id,
-                            'term' => $currentTerm->value,
-                        ],
-                        [
-                            'class_id' => $class->id,
-                            'grand_total' => $grandTotal,
-                            'term_average' => $termAverage,
-                            'cumulative_average' => $cumulativeAverage,
-                            'last_term_average' => $lastTermAverage,
-                            'subjects_offered' => $subjectCount,
-                            'principal_remark' => $principalRemark,
-                            'teacher_remark' => null, // Set as needed
-                            'next_term_begins' => null, // Set as needed
-                            'date_issued' => now()->toDateString(),
-                        ]
-                    );
-
-                    $this->logActivity("Updated broadsheet results for student {$studentId}", [
-                        'student_id' => $studentId,
-                        'term' => $currentTerm->value,
-                        'class_id' => $class->id,
-                    ]);
-                }
-            });
-
-            return back()->with('success', 'Broadsheet updated successfully!');
-
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
-        } catch (\Exception $e) {
-            Log::error("Error updating broadsheet for class {$className}: " . $e->getMessage());
-            return back()->with('error', 'Error updating broadsheet.');
-        }
-    }
-
     public function downloadBroadsheet(string $className, string $action)
     {
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
@@ -932,6 +973,12 @@ class AdminResultController extends AdminBaseController
         $sheet->setCellValue('B1', 'Student Name');
         $column = 'C';
         foreach ($subjects as $subject) {
+            $sheet->setCellValue($column . '1', $subject->name . ' (C/A)');
+            $column++;
+            $sheet->setCellValue($column . '1', $subject->name . ' (S/T)');
+            $column++;
+            $sheet->setCellValue($column . '1', $subject->name . ' (Exam)');
+            $column++;
             $sheet->setCellValue($column . '1', $subject->name . ' (Total)');
             $column++;
             $sheet->setCellValue($column . '1', $subject->name . ' (Grade)');
@@ -941,7 +988,13 @@ class AdminResultController extends AdminBaseController
         $column++;
         $sheet->setCellValue($column . '1', 'Term Average');
         $column++;
+        $sheet->setCellValue($column . '1', 'Cumulative Average');
+        $column++;
+        $sheet->setCellValue($column . '1', 'Position');
+        $column++;
         $sheet->setCellValue($column . '1', 'Principal Remark');
+        $column++;
+        $sheet->setCellValue($column . '1', 'Teacher Remark');
 
         // Data
         $row = 2;
@@ -950,12 +1003,14 @@ class AdminResultController extends AdminBaseController
                 ->where('session_id', $currentSession->id)
                 ->where('term', $currentTerm->value)
                 ->whereIn('subject_id', $subjects->pluck('id'))
+                ->where('class_id', $class->id)
                 ->get()
                 ->keyBy('subject_id');
 
             $termSummary = StudentTermSummary::where('student_id', $student->id)
                 ->where('session_id', $currentSession->id)
                 ->where('term', $currentTerm->value)
+                ->where('class_id', $class->id)
                 ->first();
 
             $sheet->setCellValue('A' . $row, $student->reg_no);
@@ -963,16 +1018,28 @@ class AdminResultController extends AdminBaseController
             $column = 'C';
             foreach ($subjects as $subject) {
                 $result = $results->get($subject->id);
-                $sheet->setCellValue($column . $row, $result ? $result->total : '-');
+                $sheet->setCellValue($column . $row, $result && $result->class_assessment !== null ? $result->class_assessment : '-');
                 $column++;
-                $sheet->setCellValue($column . $row, $result ? $result->grade : '-');
+                $sheet->setCellValue($column . $row, $result && $result->summative_test !== null ? $result->summative_test : '-');
+                $column++;
+                $sheet->setCellValue($column . $row, $result && $result->exam !== null ? $result->exam : '-');
+                $column++;
+                $sheet->setCellValue($column . $row, $result && $result->total !== null ? $result->total : '-');
+                $column++;
+                $sheet->setCellValue($column . $row, $result && $result->grade ? $result->grade : '-');
                 $column++;
             }
-            $sheet->setCellValue($column . $row, $termSummary ? $termSummary->grand_total : '-');
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->grand_total !== null ? $termSummary->grand_total : '-');
             $column++;
-            $sheet->setCellValue($column . $row, $termSummary ? $termSummary->term_average : '-');
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->term_average !== null ? $termSummary->term_average : '-');
             $column++;
-            $sheet->setCellValue($column . $row, $termSummary ? $termSummary->principal_children() : '-');
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->cumulative_average !== null ? $termSummary->cumulative_average : '-');
+            $column++;
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->position ? $termSummary->position : '-');
+            $column++;
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->principal_remark ? $termSummary->principal_remark : '-');
+            $column++;
+            $sheet->setCellValue($column . $row, $termSummary && $termSummary->teacher_remark ? $termSummary->teacher_remark : '-');
             $row++;
         }
 
@@ -990,6 +1057,9 @@ class AdminResultController extends AdminBaseController
         exit;
     }
 
+    /**
+     * Display the upload results form.
+     */
     public function uploadResultsForm(string $className)
     {
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
@@ -1007,6 +1077,9 @@ class AdminResultController extends AdminBaseController
         ));
     }
 
+    /**
+     * Upload results from an Excel file.
+     */
     public function uploadResults(Request $request, string $className)
     {
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
@@ -1045,9 +1118,10 @@ class AdminResultController extends AdminBaseController
 
                 foreach (array_slice($rows, 1) as $row) {
                     $regNo = $row[0];
-                    $student = Student::where('reg_no', $regNo)->first();
+                    $student = Student::where('reg_no', $row[0])->first();
                     if (!$student) {
-                        continue; // Skip if student not found
+                        Log::warning("Student with reg_no {$regNo} not found, skipping row.");
+                        continue;
                     }
 
                     $grandTotal = 0;
@@ -1055,9 +1129,9 @@ class AdminResultController extends AdminBaseController
 
                     foreach ($subjects as $index => $subject) {
                         $colOffset = 2 + ($index * 3); // Class Assessment, Summative Test, Exam for each subject
-                        $classAssessment = !empty($row[$colOffset]) && is_numeric($row[$colOffset]) ? floatval($row[$colOffset]) : null;
-                        $summativeTest = !empty($row[$colOffset + 1]) && is_numeric($row[$colOffset + 1]) ? floatval($row[$colOffset + 1]) : null;
-                        $exam = !empty($row[$colOffset + 2]) && is_numeric($row[$colOffset + 2]) ? floatval($row[$colOffset + 2]) : null;
+                        $classAssessment = !empty($row[$colOffset]) && is_numeric($row[$colOffset]) ? (int)$row[$colOffset] : null;
+                        $summativeTest = !empty($row[$colOffset + 1]) && is_numeric($row[$colOffset + 1]) ? (int)$row[$colOffset + 1] : null;
+                        $exam = !empty($row[$colOffset + 2]) && is_numeric($row[$colOffset + 2]) ? (int)$row[$colOffset + 2] : null;
 
                         // Validate scores
                         if ($classAssessment !== null && ($classAssessment < 0 || $classAssessment > 20)) {
@@ -1071,8 +1145,8 @@ class AdminResultController extends AdminBaseController
                         }
 
                         $total = ($classAssessment ?? 0) + ($summativeTest ?? 0) + ($exam ?? 0);
-                        $grade = $this->calculateGrade($total);
-                        $remark = $this->generateRemark($total);
+                        $grade = $total > 0 ? $this->calculateGrade($total) : null;
+                        $remark = $total > 0 ? $this->generateRemark($total) : null;
 
                         Result::updateOrCreate(
                             [
@@ -1086,45 +1160,48 @@ class AdminResultController extends AdminBaseController
                                 'class_assessment' => $classAssessment,
                                 'summative_test' => $summativeTest,
                                 'exam' => $exam,
-                                'total' => $total,
+                                'total' => $total > 0 ? $total : null,
                                 'grade' => $grade,
                                 'remark' => $remark,
                             ]
                         );
 
-                        $grandTotal += $total;
-                        $subjectCount++;
+                        if ($total > 0) {
+                            $grandTotal += $total;
+                            $subjectCount++;
+                        }
                     }
 
-                    $termAverage = $subjectCount > 0 ? $grandTotal / $subjectCount : 0;
-                    $threshold = $this->getThreshold($class->hierarchy);
-                    $principalRemark = $this->generatePrincipalRemark($termAverage, $threshold);
-
-                    $lastTermSummary = StudentTermSummary::where('student_id', $student->id)
-                        ->where('session_id', $currentSession->id)
-                        ->where('term', '!=', $currentTerm->value)
-                        ->orderBy('term', 'desc')
-                        ->first();
-
-                    $lastTermAverage = $lastTermSummary ? $lastTermSummary->term_average : null;
-                    $cumulativeAverage = $this->calculateCumulativeAverage($student->id, $currentSession->id, $termAverage);
+                    $termAverage = $subjectCount > 0 ? $grandTotal / $subjectCount : null;
+                    $principalRemark = $termAverage !== null ? $this->generatePrincipalRemark($termAverage, $student) : null;
+                    $teacherRemark = $termAverage !== null ? $this->generateTeacherRemark($termAverage, $student) : null;
+                    $cumulativeAverage = $this->calculateCumulativeAverage($student->id, $currentTerm->value, $currentSession->id);
+                    $lastTerm = $this->getLastTerm($currentTerm->value);
+                    $lastTermResults = $lastTerm ? Result::where([
+                        'student_id' => $student->id,
+                        'term' => $lastTerm,
+                        'session_id' => $currentSession->id,
+                        'class_id' => $class->id,
+                    ])->get() : [];
+                    [$lastTermAverage] = $this->calculateAverage($lastTermResults);
+                    $lastTermAverage = $lastTermAverage ? round($lastTermAverage, 1) : null;
 
                     StudentTermSummary::updateOrCreate(
                         [
                             'student_id' => $student->id,
                             'session_id' => $currentSession->id,
                             'term' => $currentTerm->value,
+                            'class_id' => $class->id,
                         ],
                         [
-                            'class_id' => $class->id,
-                            'grand_total' => $grandTotal,
-                            'term_average' => $termAverage,
-                            'cumulative_average' => $cumulativeAverage,
+                            'grand_total' => $grandTotal > 0 ? $grandTotal : null,
+                            'term_average' => $termAverage ? round($termAverage, 1) : null,
+                            'cumulative_average' => $cumulativeAverage ? round($cumulativeAverage, 1) : null,
                             'last_term_average' => $lastTermAverage,
                             'subjects_offered' => $subjectCount,
                             'principal_remark' => $principalRemark,
-                            'teacher_remark' => null, // Set as needed
-                            'next_term_begins' => null, // Set as needed
+                            'teacher_remark' => $teacherRemark,
+                            'next_term_begins' => null,
                             'date_issued' => now()->toDateString(),
                         ]
                     );
@@ -1140,13 +1217,23 @@ class AdminResultController extends AdminBaseController
             return back()->with('success', 'Results uploaded successfully!');
 
         } catch (ValidationException $e) {
+            Log::error("Validation error in uploadResults: " . json_encode($e->errors()), [
+                'class_name' => $className,
+                'request_data' => $request->all(),
+            ]);
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            Log::error("Error uploading results for class {$className}: " . $e->getMessage());
+            Log::error("Error uploading results for class {$className}: {$e->getMessage()}", [
+                'class_name' => $className,
+                'exception' => $e->getTraceAsString(),
+            ]);
             return back()->with('error', 'Error uploading results: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Notify students of their results.
+     */
     public function notifyStudents(Request $request, string $className)
     {
         $currentSessionData = $this->getCurrentSessionAndTerm(true);
@@ -1167,6 +1254,7 @@ class AdminResultController extends AdminBaseController
                 $termSummary = StudentTermSummary::where('student_id', $student->id)
                     ->where('session_id', $currentSession->id)
                     ->where('term', $currentTerm->value)
+                    ->where('class_id', $class->id)
                     ->first();
 
                 if ($termSummary && $student->parent_phone_number) {
@@ -1182,9 +1270,16 @@ class AdminResultController extends AdminBaseController
             return back()->with('success', 'Notifications sent successfully!');
 
         } catch (ValidationException $e) {
+            Log::error("Validation error in notifyStudents: " . json_encode($e->errors()), [
+                'class_name' => $className,
+                'request_data' => $request->all(),
+            ]);
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            Log::error("Error sending notifications for class {$className}: " . $e->getMessage());
+            Log::error("Error sending notifications for class {$className}: {$e->getMessage()}", [
+                'class_name' => $className,
+                'exception' => $e->getTraceAsString(),
+            ]);
             return back()->with('error', 'Error sending notifications.');
         }
     }
