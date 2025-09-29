@@ -22,8 +22,8 @@ class UpdateResultFieldRequest extends FormRequest
             'class_assessment' => 'nullable|numeric|min:0|max:20',
             'summative_test' => 'nullable|numeric|min:0|max:20',
             'exam' => 'nullable|numeric|min:0|max:60',
-            'next_term_begins' => 'nullable|date',
-            'date_issued' => 'nullable|date',
+            'next_term_begins' => 'nullable|string',
+            'date_issued' => 'nullable|string',
             'position' => 'nullable|string|max:255',
         ];
     }

@@ -16,9 +16,20 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the student/staff login view.
+     * Display the student login view.
      */
-    public function create(): View
+    public function studentLogin(): View
+    {
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
+        return view('auth.student_login');
+    }
+
+    /**
+     * Display the staff login view.
+     */
+    public function staffLogin(): View
     {
         if (Auth::check()) {
             return $this->redirectBasedOnRole(Auth::user());
@@ -41,55 +52,103 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle student/staff login.
+     * Handle student login.
      */
-    public function store(Request $request): RedirectResponse
+    public function studentStore(Request $request): RedirectResponse
     {
         $request->validate([
-            'identifier' => ['required', 'string'],
+            'identifier' => ['required', 'string', 'regex:/^AAIS\/0559\/\d{3}$/'],
             'password' => ['required', 'string'],
         ]);
 
         $key = 'login|' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 10)) {
-            Log::warning('Rate limit exceeded for login attempt from IP: ' . $request->ip());
+            Log::warning('Rate limit exceeded for student login attempt from IP: ' . $request->ip());
             return back()->withErrors(['error' => 'Too many login attempts. Please try again later.']);
         }
 
-        $studentIdRegex = '/^AAIS\/0559\/\d{3}$/';
-        $isStudent = preg_match($studentIdRegex, $request->identifier);
-        $field = $isStudent ? 'identifier' : 'username';
-        $user = User::where($field, $request->identifier)->first();
+        // Query the username column for student identifiers
+        $user = User::where('username', $request->identifier)->first();
 
         if (!$user) {
             RateLimiter::increment($key, 60);
-            Log::warning('Login attempt with non-existent ' . $field . ': ' . $request->identifier);
-            return back()->withErrors(['error' => 'Invalid credentials.']);
+            Log::warning('Student login attempt with non-existent identifier: ' . $request->identifier);
+            return back()->withErrors(['error' => 'Invalid Student ID or password.']);
         }
 
-        if (!$user->hasAnyRole(['student', 'staff'])) {
+        if (!$user->hasRole('student')) {
             RateLimiter::increment($key, 60);
-            Log::warning('Invalid role for ' . $field . ': ' . $request->identifier);
+            Log::warning('Invalid role for identifier: ' . $request->identifier);
             return back()->withErrors(['error' => 'Invalid role.']);
         }
 
         if (!$user->active) {
             RateLimiter::increment($key, 60);
-            Log::warning('Inactive account login attempt: ' . $request->identifier);
+            Log::warning('Inactive student account login attempt: ' . $request->identifier);
             return back()->withErrors(['error' => 'Account is inactive. Contact admin.']);
         }
 
-        if (Auth::attempt([$field => $request->identifier, 'password' => $request->password], $request->filled('remember'))) {
+        // Attempt authentication using username for students
+        if (Auth::attempt(['username' => $request->identifier, 'password' => $request->password], $request->filled('remember'))) {
             RateLimiter::clear($key);
             $request->session()->regenerate();
             AuditLog::create(['user_id' => $user->id, 'action' => 'Logged in']);
-            Log::info(($isStudent ? 'Student' : 'Staff') . ' ' . $user->$field . ' logged in successfully.');
+            Log::info('Student ' . $user->username . ' logged in successfully.');
             return $this->redirectBasedOnRole($user);
         }
 
         RateLimiter::increment($key, 60);
-        Log::warning('Failed login attempt for ' . $field . ': ' . $request->identifier);
-        return back()->withErrors(['error' => 'Invalid credentials.']);
+        Log::warning('Failed student login attempt for identifier: ' . $request->identifier);
+        return back()->withErrors(['error' => 'Invalid Student ID or password.']);
+    }
+
+    /**
+     * Handle staff login.
+     */
+    public function staffStore(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'username' => ['required', 'string', 'min:3'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $key = 'login|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($key, 10)) {
+            Log::warning('Rate limit exceeded for staff login attempt from IP: ' . $request->ip());
+            return back()->withErrors(['error' => 'Too many login attempts. Please try again later.']);
+        }
+
+        $user = User::where('username', $request->username)->first();
+
+        if (!$user) {
+            RateLimiter::increment($key, 60);
+            Log::warning('Staff login attempt with non-existent username: ' . $request->username);
+            return back()->withErrors(['error' => 'Invalid username or password.']);
+        }
+
+        if (!$user->hasRole('staff')) {
+            RateLimiter::increment($key, 60);
+            Log::warning('Invalid role for username: ' . $request->username);
+            return back()->withErrors(['error' => 'Invalid role.']);
+        }
+
+        if (!$user->active) {
+            RateLimiter::increment($key, 60);
+            Log::warning('Inactive staff account login attempt: ' . $request->username);
+            return back()->withErrors(['error' => 'Account is inactive. Contact admin.']);
+        }
+
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password], $request->filled('remember'))) {
+            RateLimiter::clear($key);
+            $request->session()->regenerate();
+            AuditLog::create(['user_id' => $user->id, 'action' => 'Logged in']);
+            Log::info('Staff ' . $user->username . ' logged in successfully.');
+            return $this->redirectBasedOnRole($user);
+        }
+
+        RateLimiter::increment($key, 60);
+        Log::warning('Failed staff login attempt for username: ' . $request->username);
+        return back()->withErrors(['error' => 'Invalid username or password.']);
     }
 
     /**
@@ -113,7 +172,7 @@ class AuthenticatedSessionController extends Controller
         if (!$user) {
             RateLimiter::increment($key, 60);
             Log::warning('Admin login attempt with non-existent username: ' . $request->username);
-            return back()->withErrors(['error' => 'Invalid credentials.']);
+            return back()->withErrors(['error' => 'Invalid username or password.']);
         }
 
         if (!$user->hasRole('admin')) {
@@ -143,7 +202,7 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::increment($key, 60);
         Log::warning('Failed admin login attempt for username: ' . $request->username);
-        return back()->withErrors(['error' => 'Invalid credentials.']);
+        return back()->withErrors(['error' => 'Invalid username or password.']);
     }
 
     /**

@@ -18,8 +18,8 @@ class ManageResultsRequest extends FormRequest
             'results.*.class_assessment' => 'nullable|numeric|min:0|max:20',
             'results.*.summative_test' => 'nullable|numeric|min:0|max:20',
             'results.*.exam' => 'nullable|numeric|min:0|max:60',
-            'next_term_begins' => 'nullable|date',
-            'date_issued' => 'nullable|date',
+            'next_term_begins' => 'nullable|string',
+            'date_issued' => 'nullable|string',
             'position' => 'nullable|string|max:255',
         ];
     }

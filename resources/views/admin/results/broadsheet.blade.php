@@ -353,14 +353,14 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="next_term_begins" class="form-label">Next Term Begins:</label>
-                                <input type="date" id="next_term_begins" name="next_term_begins"
+                                <input type="text" id="next_term_begins" name="next_term_begins"
                                        class="form-input date-input class-wide next-term-begins"
                                        value="{{ old('next_term_begins', $broadsheetData[0]['termSummary']->next_term_begins ?? '') }}"
                                        data-class-id="{{ $class->id }}">
                             </div>
                             <div class="col-md-6">
                                 <label for="date_issued" class="form-label">Date Issued:</label>
-                                <input type="date" id="date_issued" name="date_issued"
+                                <input type="text" id="date_issued" name="date_issued"
                                        class="form-input date-input class-wide date-issued"
                                        value="{{ old('date_issued', $broadsheetData[0]['termSummary']->date_issued ?? '') }}"
                                        data-class-id="{{ $class->id }}">

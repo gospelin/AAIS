@@ -16,14 +16,17 @@ Route::middleware('guest')->group(function () {
         ->name('register');
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
-        ->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    // Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    //     ->name('login');
+    // Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('admin-login', [AuthenticatedSessionController::class, 'adminLogin'])
-        ->name('admin.login');
-    Route::post('admin-login', [AuthenticatedSessionController::class, 'adminStore'])
-        ->name('admin.login');
+    Route::get('/admin/login', [AuthenticatedSessionController::class, 'adminLogin'])->name('/admin.login');
+    Route::post('/admin/login', [AuthenticatedSessionController::class, 'adminStore'])->name('admin.login');
+
+    Route::get('/student/login', [AuthenticatedSessionController::class, 'studentLogin'])->name('login');
+    Route::post('/student/login', [AuthenticatedSessionController::class, 'studentStore'])->name('login');
+    Route::get('/staff/login', [AuthenticatedSessionController::class, 'staffLogin'])->name('staff.login');
+    Route::post('/staff/login', [AuthenticatedSessionController::class, 'staffStore'])->name('staff.login');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

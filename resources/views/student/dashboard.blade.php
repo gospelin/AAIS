@@ -1,22 +1,358 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('student.layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+@section('title', 'Student Dashboard')
 
-<body>
-    <div class="container mt-5">
-        <h1>Welcome to the Student Dashboard</h1>
-        <p>This is the student dashboard for Aunty Anne's International School.</p>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn btn-danger">Logout</button>
-        </form>
+@section('description', 'View your academic progress, fee status, and profile at Aunty Anne\'s International School.')
+
+@push('styles')
+    <style>
+        .content-container {
+            max-width: 90rem;
+            margin: 0 auto;
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .welcome-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-2xl);
+            min-height: 160px;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .welcome-header {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            background: var(--gradient-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-subtitle {
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            color: var(--text-secondary);
+        }
+
+        .avatar-container {
+            width: clamp(60px, 10vw, 80px);
+            height: clamp(60px, 10vw, 80px);
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-placeholder {
+            background: var(--light-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 30vw, 280px), 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-2xl);
+            border-color: var(--gold);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-icon {
+            width: clamp(40px, 8vw, 48px);
+            height: clamp(40px, 8vw, 48px);
+            background: var(--glass-bg);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: var(--primary-green);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3.5vw, 1.75rem);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            color: var(--text-secondary);
+        }
+
+        .quick-access-link {
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .quick-access-link:hover {
+            color: var(--dark-green);
+        }
+
+        .results-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            min-height: 200px;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-header {
+            border-bottom: 1px solid var(--glass-border);
+            padding: var(--space-md) var(--space-lg);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table-responsive {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th, .table td {
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            color: var(--text-primary);
+        }
+
+        .table th {
+            background: var(--glass-bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-section {
+                padding: var(--space-lg);
+                min-height: 120px;
+            }
+
+            .avatar-container {
+                width: clamp(48px, 12vw, 60px);
+                height: clamp(48px, 12vw, 60px);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-container {
+                padding: var(--space-md);
+            }
+
+            .results-section {
+                min-height: 150px;
+            }
+        }
+
+        .stat-card:focus-visible,
+        .quick-access-link:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+    </style>
+@endpush
+
+@section('content')
+    <div class="content-container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="d-flex align-items-center gap-3">
+                <div class="avatar-container">
+                    @if($student->profile_pic && Storage::disk('public')->exists('profiles/' . $student->profile_pic))
+                        <img src="{{ Storage::url('profiles/' . $student->profile_pic) . '?t=' . time() }}"
+                            alt="{{ $student->full_name }}" class="h-full w-full rounded-full object-cover" loading="lazy">
+                    @else
+                        <div class="avatar-placeholder h-full w-full">
+                            <span>{{ strtoupper(substr($student->first_name, 0, 1)) }}</span>
+                        </div>
+                    @endif
+                </div>
+                <div>
+                    <h3 class="welcome-header">Welcome, {{ $student->full_name }}!</h3>
+                    <p class="welcome-subtitle">Check your results, fee status, and profile.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card" tabindex="0">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-graduation-cap"></i></div>
+                </div>
+                <h3 class="stat-value">{{ $currentClass ?? 'Not Enrolled' }}</h3>
+                <p class="stat-label">Current Class</p>
+                <a href="{{ route('student.profile') }}" class="quick-access-link">View Profile →</a>
+            </div>
+            <div class="stat-card" tabindex="0">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-money-check-alt"></i></div>
+                </div>
+                <h3 class="stat-value">{{ $feeStatus && $feeStatus->has_paid_fee ? 'Paid' : 'Unpaid' }}</h3>
+                <p class="stat-label">Fee Status ({{ $currentTerm->label() }})</p>
+                <a href="{{ route('student.fee_status') }}" class="quick-access-link">View Fee Details →</a>
+            </div>
+            <div class="stat-card" tabindex="0">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                </div>
+                <h3 class="stat-value">{{ $recentResults->count() }} Subjects</h3>
+                <p class="stat-label">Current Term Results</p>
+                <a href="{{ route('student.results') }}" class="quick-access-link">View Results →</a>
+            </div>
+        </div>
+
+        <!-- Recent Results -->
+        <section id="recent-results">
+            <div class="results-section">
+                <div class="section-header">
+                    <h3 class="section-title">Recent Results ({{ $currentSession->year }} - {{ $currentTerm->label() }})</h3>
+                </div>
+                <div class="p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Class</th>
+                                    <th>Total</th>
+                                    <th>Grade</th>
+                                    <th>Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($recentResults as $result)
+                                    <tr>
+                                        <td>{{ $result->subject->name }}</td>
+                                        <td>{{ $result->class->name }}</td>
+                                        <td>{{ $result->total }}</td>
+                                        <td>{{ $result->grade }}</td>
+                                        <td>{{ $result->remark }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center">No results available for this term.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-</body>
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Typing Animation for Welcome Section
+                const pageTitle = document.getElementById('pageTitle');
+                const pageSubtitle = document.querySelector('.welcome-subtitle');
+                const titleText = pageTitle.textContent;
+                const subtitleText = pageSubtitle.textContent;
+                pageTitle.textContent = '';
+                pageSubtitle.textContent = '';
 
-</html>
+                let titleIndex = 0;
+                let subtitleIndex = 0;
+
+                function typeTitle() {
+                    if (titleIndex < titleText.length) {
+                        pageTitle.textContent += titleText[titleIndex];
+                        titleIndex++;
+                        setTimeout(typeTitle, 80);
+                    } else {
+                        setTimeout(typeSubtitle, 400);
+                    }
+                }
+
+                function typeSubtitle() {
+                    if (subtitleIndex < subtitleText.length) {
+                        pageSubtitle.textContent += subtitleText[subtitleIndex];
+                        subtitleIndex++;
+                        setTimeout(typeSubtitle, 80);
+                    }
+                }
+
+                setTimeout(typeTitle, 400);
+
+                // GSAP Animations
+                gsap.from('.stat-card', { opacity: 0, y: 20, stagger: 0.15, duration: 0.5 });
+                gsap.from('.results-section', { opacity: 0, y: 20, duration: 0.5, delay: 0.4 });
+            });
+        </script>
+    @endpush
+@endsection

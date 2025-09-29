@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Student\StudentController;
 use App\Http\Controllers\Admin\AdminStudentController;
 use App\Http\Controllers\Admin\AdminSessionController;
 use App\Http\Controllers\Admin\AdminClassController;
@@ -40,13 +41,21 @@ Route::get('/newsletter', function () {
 })->name('newsletter');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('student/dashboard');
-    })->name('student.dashboard');
+    // Route::get('/dashboard', function () {
+    //     return view('student/dashboard');
+    // })->name('student.dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::prefix('student')->middleware(['auth', 'role:student'])->group(function () {
+    Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
+    Route::get('/results', [StudentController::class, 'viewResults'])->name('student.results');
+    Route::get('/fee-status', [StudentController::class, 'viewFeeStatus'])->name('student.fee_status');
+    Route::get('/profile', [StudentController::class, 'viewProfile'])->name('student.profile');
+    Route::get('/results/download', [StudentController::class, 'downloadResults'])->name('student.results.download');
 });
 
 Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(function () {

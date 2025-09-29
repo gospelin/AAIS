@@ -308,7 +308,7 @@
                         <div class="input-group">
                             <label class="input-group-text" for="next_term_begins"><i class="bx bx-calendar-event"></i>
                                 Reopening Date</label>
-                            <input type="date" id="next_term_begins" name="next_term_begins"
+                            <input type="text" id="next_term_begins" name="next_term_begins"
                                 class="form-control result-input class-wide"
                                 value="{{ old('next_term_begins', $termSummary->next_term_begins ?? '') }}">
                         </div>
@@ -317,7 +317,7 @@
                         <div class="input-group">
                             <label class="input-group-text" for="date_issued"><i class="bx bx-calendar-check"></i> Date
                                 Issued</label>
-                            <input type="date" id="date_issued" name="date_issued"
+                            <input type="text" id="date_issued" name="date_issued"
                                 class="form-control result-input class-wide"
                                 value="{{ old('date_issued', $termSummary->date_issued ?? '') }}">
                         </div>
