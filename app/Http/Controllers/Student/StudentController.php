@@ -169,6 +169,97 @@ class StudentController extends StudentBaseController
     }
 
     /**
+     * Display print-friendly results view.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function printResults(Request $request)
+    {
+        $user = Auth::user();
+
+        // Ensure the user is authenticated and has the student role
+        if (!$user || !$user->hasRole('student')) {
+            Log::warning('Unauthorized attempt to print results by user ID: ' . ($user->id ?? 'unknown'));
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'Unauthorized access.']);
+        }
+
+        // Fetch the student record
+        $student = $user->student;
+        if (!$student) {
+            Log::warning('No student record found for user ID: ' . $user->id);
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'Student profile not found.']);
+        }
+
+        // Get the current academic session and term
+        [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
+        if (!$currentSession || !$currentTerm) {
+            Log::warning('No current academic session or term found for student ID: ' . $student->id);
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'No active academic session or term.']);
+        }
+
+        // Get session and term from request, default to current session and term
+        $sessionId = $request->input('session_id', $currentSession->id);
+        $term = $request->input('term', $currentTerm->value);
+
+        // Validate session and term
+        $session = AcademicSession::find($sessionId);
+        if (!$session) {
+            Log::warning('Invalid session ID provided: ' . $sessionId);
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'Invalid academic session.']);
+        }
+
+        try {
+            $term = TermEnum::from($term);
+        } catch (\ValueError $e) {
+            Log::warning('Invalid term provided: ' . $term);
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'Invalid term selected.']);
+        }
+
+        // Fetch results for the selected session and term
+        $results = $student->results()
+            ->where('session_id', $session->id)
+            ->where('term', $term->value)
+            ->with(['subject', 'class'])
+            ->get();
+
+        if ($results->isEmpty()) {
+            Log::info('No results found for student ID: ' . $student->id . ' in session: ' . $session->year . ', term: ' . $term->value);
+            return redirect()->route('student.dashboard')->withErrors(['error' => 'No results available for the selected session and term.']);
+        }
+
+        // Fetch term summary
+        $termSummary = StudentTermSummary::where('student_id', $student->id)
+            ->where('session_id', $session->id)
+            ->where('term', $term->value)
+            ->first();
+
+        // Get the current class for the selected session and term
+        $currentClass = $student->getCurrentClass($session->id, $term->value);
+
+        // Prepare data for the print view
+        $data = [
+            'student' => $student,
+            'results' => $results,
+            'termSummary' => $termSummary,
+            'session' => $session,
+            'term' => $term,
+            'currentClass' => $currentClass,
+            'date' => now()->format('F j, Y'),
+        ];
+
+        // Log for debugging
+        Log::info('Rendering print view for student ID: ' . $student->id, [
+            'session_id' => $session->id,
+            'term' => $term->value,
+        ]);
+
+        // Render print view
+        return view('student.pdf.student_results_print', $data);
+    }
+
+
+    /**
      * Download student results as PDF.
      *
      * @param Request $request

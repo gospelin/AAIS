@@ -84,6 +84,20 @@
         .download-form {
             margin-top: var(--space-md);
             padding: 0 var(--space-lg);
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .btn-primary {
+            background-color: #21a055;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #006400;
         }
 
         @media (max-width: 576px) {
@@ -93,6 +107,11 @@
 
             .results-section {
                 min-height: 150px;
+            }
+
+            .download-form {
+                flex-direction: column;
+                gap: var(--space-sm);
             }
         }
     </style>
@@ -183,6 +202,8 @@
                     </div>
                 @endif
                 <div class="download-form">
+                    <a href="{{ route('student.results.print', ['session_id' => request('session_id', $currentSession->id), 'term' => request('term', $currentTerm->value)]) }}"
+                        class="btn btn-primary">Print Results</a>
                     <form method="GET" action="{{ route('student.results.download') }}">
                         <input type="hidden" name="session_id" value="{{ request('session_id', $currentSession->id) }}">
                         <input type="hidden" name="term" value="{{ request('term', $currentTerm->value) }}">

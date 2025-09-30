@@ -1,16 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Aunty Anne's International School - {{ $student->full_name }} - {{ $term->label() }} Term -
-        {{ $session->year }}</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&family=Georgia&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Aunty Anne's International School - {{ $student->full_name }} - {{ $term->label() }} Term - {{ $session->year }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&family=Georgia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
         @page {
@@ -40,6 +34,30 @@
             position: relative;
             z-index: 0;
             overflow: hidden;
+        }
+
+        .print-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background-color: #21a055;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12pt;
+            z-index: 1000;
+        }
+
+        .print-button:hover {
+            background-color: #006400;
+        }
+
+        @media print {
+            .print-button {
+                display: none;
+            }
         }
 
         .school-header {
@@ -298,7 +316,7 @@
         }
 
         body::before {
-            content: url('images/school_logo.png');
+            content: url('/images/school_logo.png');
             position: absolute;
             top: 50%;
             left: 50%;
@@ -309,12 +327,17 @@
             filter: grayscale(100%) sepia(20%);
         }
     </style>
+    <script>
+        function printResults() {
+            window.print();
+        }
+    </script>
 </head>
-
 <body>
+    <button class="print-button" onclick="printResults()">Print Results</button>
     <div class="print-view">
         <div class="school-header">
-            <img src="{{ public_path('images/school_logo.png') }}" alt="School Logo" class="school-logo">
+            <img src="{{ asset('images/school_logo.png') }}" alt="School Logo" class="school-logo">
             <div class="school-info">
                 <h1>Aunty Anne's International School</h1>
                 <p>6 Oomne Drive, Abayi, Aba, Abia State</p>
@@ -384,12 +407,10 @@
                     @if ($result->total)
                         <tr>
                             <td class="subject-column">{{ strtoupper($result->subject->name ?? 'N/A') }}</td>
-                            <td
-                                style="color: {{ ($result->class_assessment < 10 && $result->class_assessment !== null) ? 'red' : '#21a055' }}">
+                            <td style="color: {{ ($result->class_assessment < 10 && $result->class_assessment !== null) ? 'red' : '#21a055' }}">
                                 {{ $result->class_assessment ?? '-' }}
                             </td>
-                            <td
-                                style="color: {{ ($result->summative_test < 10 && $result->summative_test !== null) ? 'red' : '#21a055' }}">
+                            <td style="color: {{ ($result->summative_test < 10 && $result->summative_test !== null) ? 'red' : '#21a055' }}">
                                 {{ $result->summative_test ?? '-' }}
                             </td>
                             <td style="color: {{ ($result->exam < 30 && $result->exam !== null) ? 'red' : '#21a055' }}">
@@ -410,10 +431,8 @@
                 @endforeach
                 <tr>
                     <td class="subject-column"><strong>GRAND TOTAL</strong></td>
-                    <td><strong>{{ $grandTotal['class_assessment'] ? round($grandTotal['class_assessment'], 2) : '-' }}</strong>
-                    </td>
-                    <td><strong>{{ $grandTotal['summative_test'] ? round($grandTotal['summative_test'], 2) : '-' }}</strong>
-                    </td>
+                    <td><strong>{{ $grandTotal['class_assessment'] ? round($grandTotal['class_assessment'], 2) : '-' }}</strong></td>
+                    <td><strong>{{ $grandTotal['summative_test'] ? round($grandTotal['summative_test'], 2) : '-' }}</strong></td>
                     <td><strong>{{ $grandTotal['exam'] ? round($grandTotal['exam'], 2) : '-' }}</strong></td>
                     <td><strong>{{ $grandTotal['total'] ? round($grandTotal['total'], 2) : '-' }}</strong></td>
                     <td colspan="2"></td>
@@ -475,7 +494,7 @@
 
         <div class="footer">
             <div class="signature">
-                <img src="{{ public_path('images/signature.png') }}" alt="Signature">
+                <img src="{{ asset('images/signature.png') }}" alt="Signature">
                 <p>_______________________</p>
                 <p class="principal-text"><strong>Principal's Signature</strong></p>
             </div>
@@ -487,5 +506,4 @@
         </div>
     </div>
 </body>
-
 </html>
