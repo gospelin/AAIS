@@ -9,11 +9,9 @@ class AuditLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'action',
-        'timestamp'
-    ];
+    protected $fillable = ['user_id', 'action', 'details'];
+    protected $dates = ['created_at', 'updated_at'];
+    public $timestamps = true;
 
     protected $casts = [
         'timestamp' => 'datetime'

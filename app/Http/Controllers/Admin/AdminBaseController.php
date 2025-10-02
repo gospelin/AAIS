@@ -56,7 +56,7 @@ class AdminBaseController extends Controller
         AuditLog::create([
             'user_id' => Auth::id(),
             'action' => $message,
-            'timestamp' => Carbon::now(),
+            'details' => json_encode($context), // Store context in details column
         ]);
     }
 

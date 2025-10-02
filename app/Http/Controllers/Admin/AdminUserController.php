@@ -63,7 +63,7 @@ class AdminUserController extends AdminBaseController
 
         $recentActivities = AuditLog::with('user')
             ->where('user_id', '!=', Auth::id())
-            ->latest('timestamp')
+            ->latest('created_at') // Changed from 'timestamp'
             ->limit(5)
             ->get()
             ->map(function ($log) {
@@ -72,7 +72,7 @@ class AdminUserController extends AdminBaseController
                     'icon' => $this->getActivityIcon($log->action),
                     'title' => $this->getActivityTitle($log->action),
                     'description' => $log->action,
-                    'time' => $log->timestamp->diffForHumans(),
+                    'time' => $log->created_at ? $log->created_at->diffForHumans() : 'N/A',
                 ];
             });
 

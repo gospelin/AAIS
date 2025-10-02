@@ -369,7 +369,7 @@ class AdminStudentController extends AdminBaseController
                 'student_id' => $studentId,
                 'reg_no' => $regNo,
                 'user_id' => $userId,
-                'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
+                // 'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
             ]);
 
             DB::commit();
@@ -445,7 +445,7 @@ class AdminStudentController extends AdminBaseController
                     'class_id' => $validated['class_id'],
                     'start_term' => $validated['start_term'],
                     'session_id' => $currentSession->id,
-                    'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
+                    // 'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
                 ]);
 
                 return redirect()->route('admin.students', ['action' => 'view_students'])->with('success', 'Student re-enrolled successfully!');
@@ -558,7 +558,7 @@ class AdminStudentController extends AdminBaseController
                     'student_id' => $student->id,
                     'session_id' => $validated['session_id'],
                     'term' => $validated['term'],
-                    'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
+                    // 'timestamp' => Carbon::now('Africa/Lagos')->toDateTimeString(),
                 ]);
 
                 return redirect()->route('admin.students', ['action' => 'view_students'])->with('success', 'Student marked as left successfully!');
