@@ -11,9 +11,9 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-// use Spatie\LaravelPdf\Facades\Pdf;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Enums\TermEnum;
+use Illuminate\Support\Str;
 
 class StudentController extends StudentBaseController
 {
