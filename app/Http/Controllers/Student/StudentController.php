@@ -11,7 +11,8 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Spatie\LaravelPdf\Facades\Pdf;
+// use Spatie\LaravelPdf\Facades\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Enums\TermEnum;
 
 class StudentController extends StudentBaseController
@@ -337,18 +338,27 @@ class StudentController extends StudentBaseController
             'term' => $term,
             'currentClass' => $currentClass,
             'date' => now()->format('F j, Y'),
+            'school_logo' => public_path('images/school_logo.png'),
+            'signature' => public_path('images/signature.png'),
         ];
 
-        // Generate and download the PDF
-        // return Pdf::view('student.pdf.student_results', $data)
-        //     ->format('A4')
-        //     ->name('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf')
-        //     ->download();
+        // Log for debugging
+        Log::info('Generating PDF with driver: dompdf', [
+            'student_id' => $student->id,
+            'session_id' => $session->id,
+            'term' => $term->value,
+        ]);
 
-        return Pdf::view('student.pdf.student_results', $data)
-            ->format('a4')
-            ->margins(9, 9, 9, 9)
-            ->download('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf');
+        // Generate and download the PDF
+        $pdf = Pdf::loadView('student.pdf.student_results', $data)
+            ->setPaper('a4')
+            ->setOption('margin-top', 9)
+            ->setOption('margin-right', 9)
+            ->setOption('margin-bottom', 9)
+            ->setOption('margin-left', 9)
+            ->setOption('encoding', 'UTF-8')
+            ->setOption('enable-local-file-access', true);
+
+        return $pdf->download('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf');
     }
 }
-
