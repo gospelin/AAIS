@@ -349,6 +349,9 @@ class StudentController extends StudentBaseController
             'term' => $term->value,
         ]);
 
+        // Sanitize filename
+        $filename = 'results_' . Str::slug($student->reg_no, '_') . '_' . Str::slug($session->year, '_') . '_' . Str::slug($term->value, '_') . '.pdf';
+
         // Generate and download the PDF
         $pdf = Pdf::loadView('student.pdf.student_results', $data)
             ->setPaper('a4')
@@ -359,6 +362,6 @@ class StudentController extends StudentBaseController
             ->setOption('encoding', 'UTF-8')
             ->setOption('enable-local-file-access', true);
 
-        return $pdf->download('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf');
+        return $pdf->download($filename);
     }
 }
