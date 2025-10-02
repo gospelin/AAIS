@@ -340,9 +340,15 @@ class StudentController extends StudentBaseController
         ];
 
         // Generate and download the PDF
+        // return Pdf::view('student.pdf.student_results', $data)
+        //     ->format('A4')
+        //     ->name('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf')
+        //     ->download();
+
         return Pdf::view('student.pdf.student_results', $data)
-            ->format('A4')
-            ->name('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf')
-            ->download();
+            ->format('a4')
+            ->margins(9, 9, 9, 9)
+            ->download('results_' . $student->reg_no . '_' . str_replace('/', '-', $session->year) . '_' . $term->value . '.pdf');
     }
 }
+
