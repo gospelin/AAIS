@@ -256,13 +256,13 @@
             margin: 2px 0;
         }
 
-        .barcode {
+        .qrcode {
             margin: 2px 0;
             text-align: right;
         }
 
-        .barcode img {
-            width: 120px;
+        .qrcode img {
+            width: 80px;
             height: auto;
         }
 
@@ -459,13 +459,8 @@ $count = 0;
                         <div class="download-info">
                             <p>Download: {{ $downloadUrl }}</p>
                         </div>
-                        <div class="barcode">
-                            @php
-                                use TCPDFBarcode;
-                                $barcode = new TCPDFBarcode($downloadUrl, 'C128');
-                                $barcodeImage = 'data:image/png;base64,' . base64_encode($barcode->getBarcodePngData(3, 30));
-                            @endphp
-                            <img src="{{ $barcodeImage }}" alt="Download Barcode">
+                        <div class="qrcode">
+                            <img src="{{ $qrCodeImage }}" alt="Download QR Code">
                         </div>
                         <p>Generated on {{ $date }}</p>
                     </td>

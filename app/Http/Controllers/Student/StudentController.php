@@ -14,15 +14,19 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Enums\TermEnum;
 use Illuminate\Support\Str;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class StudentController extends StudentBaseController
 {
     /**
-     * Display the student dashboard.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function dashboard()
+         * Display the student dashboard.
+         *
+         * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+         */
+        public function dashboard()
     {
         $student = $this->getAuthenticatedStudent();
         [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
@@ -64,12 +68,12 @@ class StudentController extends StudentBaseController
     }
 
     /**
-     * Display all results for the student.
-     *
-     * @param Request $request
-     * @return \Illuminate\View\View
-     */
-    public function viewResults(Request $request)
+         * Display all results for the student.
+         *
+         * @param Request $request
+         * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+         */
+        public function viewResults(Request $request)
     {
         $student = $this->getAuthenticatedStudent();
         [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
@@ -110,7 +114,7 @@ class StudentController extends StudentBaseController
      * Display fee payment status.
      *
      * @param Request $request
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function viewFeeStatus(Request $request)
     {
@@ -145,7 +149,7 @@ class StudentController extends StudentBaseController
     /**
      * Display student profile.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function viewProfile()
     {
@@ -334,6 +338,14 @@ class StudentController extends StudentBaseController
             'term' => $term->value
         ]);
 
+        // Generate QR code
+        $renderer = new ImageRenderer(
+            new RendererStyle(120, 5),
+            new ImagickImageBackEnd()
+        );
+        $writer = new Writer($renderer);
+        $qrCodeImage = 'data:image/png;base64,' . base64_encode($writer->writeString($downloadUrl));
+
         // Prepare data for the PDF view
         $data = [
             'student' => $student,
@@ -346,6 +358,7 @@ class StudentController extends StudentBaseController
             'school_logo' => public_path('images/school_logo.png'),
             'signature' => public_path('images/signature.png'),
             'downloadUrl' => $downloadUrl,
+            'qrCodeImage' => $qrCodeImage,
         ];
 
         // Log for debugging
