@@ -259,7 +259,6 @@ class StudentController extends StudentBaseController
         return view('student.pdf.student_results_print', $data);
     }
 
-
     /**
      * Download student results as PDF.
      *
@@ -329,6 +328,12 @@ class StudentController extends StudentBaseController
         // Get the current class for the selected session and term
         $currentClass = $student->getCurrentClass($session->id, $term->value);
 
+        // Generate the download URL
+        $downloadUrl = route('student.results.download', [
+            'session_id' => $session->id,
+            'term' => $term->value
+        ]);
+
         // Prepare data for the PDF view
         $data = [
             'student' => $student,
@@ -340,6 +345,7 @@ class StudentController extends StudentBaseController
             'date' => now()->format('F j, Y'),
             'school_logo' => public_path('images/school_logo.png'),
             'signature' => public_path('images/signature.png'),
+            'downloadUrl' => $downloadUrl,
         ];
 
         // Log for debugging
@@ -349,8 +355,11 @@ class StudentController extends StudentBaseController
             'term' => $term->value,
         ]);
 
-        // Sanitize filename
-        $filename = 'results_' . Str::slug($student->reg_no, '_') . '_' . Str::slug($session->year, '_') . '_' . Str::slug($term->value, '_') . '.pdf';
+        // Sanitize filename to match pattern: {First_Name}_{Last_Name}_{Term_Label}_{Year}_Result.pdf
+        $filename = Str::title(Str::slug($student->first_name, '_')) . '_' .
+            Str::title(Str::slug($student->last_name, '_')) . '_' .
+            Str::title(Str::slug($term->label(), '_')) . '_' .
+            Str::slug(str_replace('/', '_', $session->year), '_') . '_Result.pdf';
 
         // Generate and download the PDF
         $pdf = Pdf::loadView('student.pdf.student_results', $data)
