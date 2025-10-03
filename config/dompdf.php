@@ -105,12 +105,12 @@ return [
         /**
          * @var string
          */
-        'log_output_file' => null,
+        'log_output_file' => storage_path('logs/dompdf.log'),
 
         /**
          * Whether to enable font subsetting or not.
          */
-        'enable_font_subsetting' => false,
+        'enable_font_subsetting' => true,
 
         /**
          * The PDF rendering backend to use
@@ -152,7 +152,7 @@ return [
          * the desired content might be different (e.g. screen or projection view of html file).
          * Therefore allow specification of content here.
          */
-        'default_media_type' => 'screen',
+        'default_media_type' => 'print',
 
         /**
          * The default paper size.
@@ -179,7 +179,7 @@ return [
          *
          * @var string
          */
-        'default_font' => 'serif',
+        'default_font' => 'Helvetica',
 
         /**
          * Image DPI setting
@@ -267,7 +267,7 @@ return [
          *
          * @var bool
          */
-        'enable_remote' => false,
+        'enable_remote' => true,
 
         /**
          * List of allowed remote hosts
@@ -281,12 +281,12 @@ return [
          *
          * @var array|null
          */
-        'allowed_remote_hosts' => null,
+        'allowed_remote_hosts' => ['fonts.googleapis.com', 'fonts.gstatic.com'],
 
         /**
          * A ratio applied to the fonts height to be more like browsers' line height
          */
-        'font_height_ratio' => 1.1,
+        'font_height_ratio' => 0.9,
 
         /**
          * Use the HTML5 Lib parser
