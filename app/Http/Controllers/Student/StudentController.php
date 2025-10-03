@@ -377,9 +377,9 @@ class StudentController extends StudentBaseController
         // Generate and download the PDF
         $pdf = Pdf::loadView('student.pdf.student_results', $data)
             ->setPaper('a4')
-            ->setOption('margin-top', 9)
+            ->setOption('margin-top', 0)
             ->setOption('margin-right', 9)
-            ->setOption('margin-bottom', 9)
+            ->setOption('margin-bottom', 0)
             ->setOption('margin-left', 9)
             ->setOption('encoding', 'UTF-8')
             ->setOption('enable-local-file-access', true);
