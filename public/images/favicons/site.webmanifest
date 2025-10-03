@@ -2,34 +2,34 @@
   "name": "Aunty Anne's International School",
   "short_name": "AAIS",
   "description": "Aunty Anne's International School in Aba, Nigeria, empowers young minds through practical learning, knowledge, and confidence-building for a brighter future.",
-  "lang": "en",
-  "dir": "ltr",
-  "id": "/auntyannesschools/",
-  "start_url": "/?utm_source=pwa",
-  "scope": "/",
   "icons": [
     {
-        "src": "/favicon.ico",
+        "src": "web-app-manifest-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+    },
+    {
+        "src": "favicon.ico",
         "sizes": "192x192",
         "type": "image/ico",
         "purpose": "any"
     },
     {
-        "src": "/favicon.ico",
-        "sizes": "192x192",
-        "type": "image/ico",
-        "purpose": "any"
-    },
-    {
-        "src": "/favicon.ico",
-        "sizes": "192x192",
-        "type": "image/ico",
+        "src": "web-app-manifest-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
         "purpose": "any"
     }
   ],
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "display": "standalone",
+  "lang": "en",
+  "dir": "ltr",
+  "id": "/auntyannesschools/",
+  "start_url": "/?utm_source=web_app_manifest",
+  "scope": "/",
   "orientation": "portrait",
   "categories": ["education", "school", "learning"],
   "screenshots": [
@@ -46,17 +46,7 @@
       "description": "Admissions page with step-by-step enrollment guidance."
     }
   ],
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.auntyannesschools",
-      "id": "com.auntyannesschools"
-    },
-    {
-      "platform": "itunes",
-      "url": "https://apps.apple.com/app/aunty-annes-international-school/id123456789"
-    }
-  ],
+  "related_applications": [],
   "prefer_related_applications": false,
   "iarc_rating_id": "e84b5e3b-1b4e-4e2f-9f3a-5b6c7d8e9f0a"
 }
