@@ -6,9 +6,14 @@
     <title>Aunty Anne's International School - {{ strtoupper($student->full_name) }} - {{ $term->label() }} Term - {{ $session->year }}</title>
     <style>
         @font-face {
+            font-family: 'Montserrat';
+            src: url('{{ public_path('fonts/Montserrat-Bold.ttf') }}') format('truetype');
+            font-weight: bold;
+        }
+        @font-face {
             font-family: 'Playfair Display';
-            src: url('{{ public_path('fonts/PlayfairDisplay-Regular.ttf') }}') format('truetype');
-            font-weight: normal;
+            src: url('{{ public_path('fonts/PlayfairDisplay-Bold.ttf') }}') format('truetype');
+            font-weight: bold;
         }
         @font-face {
             font-family: 'Georgia';
