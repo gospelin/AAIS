@@ -7,13 +7,18 @@
     <style>
         @font-face {
             font-family: 'Montserrat';
+            src: url('{{ public_path('fonts/Montserrat-Regular.ttf') }}') format('truetype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'Montserrat';
             src: url('{{ public_path('fonts/Montserrat-Bold.ttf') }}') format('truetype');
             font-weight: bold;
         }
         @font-face {
             font-family: 'Playfair Display';
-            src: url('{{ public_path('fonts/PlayfairDisplay-Bold.ttf') }}') format('truetype');
-            font-weight: bold;
+            src: url('{{ public_path('fonts/PlayfairDisplay-Regular.ttf') }}') format('truetype');
+            font-weight: normal;
         }
         @font-face {
             font-family: 'Georgia';
