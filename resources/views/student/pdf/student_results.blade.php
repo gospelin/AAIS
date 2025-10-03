@@ -5,12 +5,24 @@
     <meta charset="UTF-8">
     <title>Aunty Anne's International School - {{ strtoupper($student->full_name) }} - {{ $term->label() }} Term - {{ $session->year }}</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&family=Georgia&family=Great+Vibes&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;700&family=Great+Vibes&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
         integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('{{ public_path('fonts/PlayfairDisplay-Regular.ttf') }}') format('truetype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'Georgia';
+            src: url('{{ public_path('fonts/Georgia.ttf') }}') format('truetype');
+            font-weight: normal;
+        }
+        
         @page {
             size: A4;
             margin: 9mm;
