@@ -281,7 +281,7 @@ return [
          *
          * @var array|null
          */
-        'allowed_remote_hosts' => ['fonts.googleapis.com', 'fonts.gstatic.com'],
+        'allowed_remote_hosts' => false,
 
         /**
          * A ratio applied to the fonts height to be more like browsers' line height
