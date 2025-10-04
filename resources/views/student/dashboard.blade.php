@@ -507,10 +507,6 @@
                     }
                 }
             });
-
-            // GSAP Animations
-            gsap.from('.stat-card', { opacity: 0, y: 20, stagger: 0.15, duration: 0.5 });
-            gsap.from('.results-section, .performance-section', { opacity: 0, y: 20, duration: 0.5, delay: 0.4 });
         });
     </script>
 @endpush
