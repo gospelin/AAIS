@@ -22,7 +22,7 @@ use BaconQrCode\Writer;
 class StudentController extends StudentBaseController
 {
     /**
-     * Display the student dashboard.
+     * Display the student dashboard with enhanced performance data.
      *
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
@@ -54,8 +54,66 @@ class StudentController extends StudentBaseController
             ->where('term', $currentTerm->value)
             ->first();
 
+        // Fetch performance data for charts
         $sessions = AcademicSession::orderBy('year', 'desc')->get();
         $terms = TermEnum::cases();
+
+        // Performance trends (term averages across sessions)
+        $performanceData = [];
+        $labels = [];
+        $averages = [];
+        foreach ($sessions as $session) {
+            foreach ($terms as $term) {
+                $summary = StudentTermSummary::where('student_id', $student->id)
+                    ->where('session_id', $session->id)
+                    ->where('term', $term->value)
+                    ->first();
+                if ($summary && $summary->term_average) {
+                    $labels[] = $session->year . ' ' . $term->label();
+                    $averages[] = $summary->term_average;
+                }
+            }
+        }
+        $performanceData = ['labels' => $labels, 'averages' => $averages];
+
+        // Calculate performance slope
+        $performanceSlope = $this->calculatePerformanceSlope($averages);
+
+        // Best-performing subject in current session
+        $bestSubject = Result::where('student_id', $student->id)
+            ->where('session_id', $currentSession->id)
+            ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+            ->groupBy('subject_id', 'subjects.name')
+            ->selectRaw('subjects.name, AVG(total) as average')
+            ->orderBy('average', 'desc')
+            ->first();
+
+        // Subject performance for current term
+        $subjectData = [];
+        $subjectLabels = [];
+        $subjectAverages = [];
+        $results = Result::where('student_id', $student->id)
+            ->where('session_id', $currentSession->id)
+            ->where('term', $currentTerm->value)
+            ->with('subject')
+            ->get()
+            ->groupBy('subject_id');
+        foreach ($results as $subjectId => $subjectResults) {
+            $subject = $subjectResults->first()->subject;
+            $avg = $subjectResults->avg('total');
+            $subjectLabels[] = $subject->name;
+            $subjectAverages[] = $avg;
+        }
+        $subjectData = ['labels' => $subjectLabels, 'averages' => $subjectAverages];
+
+        // Areas needing improvement (subjects with average < 60%)
+        $weakSubjects = Result::where('student_id', $student->id)
+            ->where('session_id', $currentSession->id)
+            ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+            ->groupBy('subject_id', 'subjects.name')
+            ->selectRaw('subjects.name, AVG(total) as average')
+            ->having('average', '<', 60)
+            ->get();
 
         return view('student.dashboard', compact(
             'student',
@@ -65,8 +123,38 @@ class StudentController extends StudentBaseController
             'recentResults',
             'feeStatus',
             'sessions',
-            'terms'
+            'terms',
+            'performanceData',
+            'performanceSlope',
+            'bestSubject',
+            'subjectData',
+            'weakSubjects'
         ));
+    }
+
+    /**
+     * Calculate the performance slope based on term averages.
+     *
+     * @param array $averages
+     * @return float
+     */
+    private function calculatePerformanceSlope($averages)
+    {
+        if (count($averages) < 2) {
+            return 0;
+        }
+        $n = count($averages);
+        $sumX = 0;
+        $sumY = 0;
+        $sumXY = 0;
+        $sumXX = 0;
+        for ($i = 0; $i < $n; $i++) {
+            $sumX += $i;
+            $sumY += $averages[$i];
+            $sumXY += $i * $averages[$i];
+            $sumXX += $i * $i;
+        }
+        return ($n * $sumXY - $sumX * $sumY) / ($n * $sumXX - $sumX * $sumX);
     }
 
     /**
@@ -279,9 +367,7 @@ class StudentController extends StudentBaseController
 
         // Log for debugging
         Log::info('Generating PDF with driver: dompdf', [
-            'student_id' =>
-
-                $student->id,
+            'student_id' => $student->id,
             'session_id' => $session->id,
             'term' => $term->value,
         ]);
