@@ -56,7 +56,6 @@ Route::prefix('student')->middleware(['auth', 'role:student'])->group(function (
     Route::get('/fee-status', [StudentController::class, 'viewFeeStatus'])->name('student.fee_status');
     Route::get('/profile', [StudentController::class, 'viewProfile'])->name('student.profile');
     Route::get('/results/download', [StudentController::class, 'downloadResults'])->name('student.results.download');
-    Route::get('/results/print', [StudentController::class, 'printResults'])->name('student.results.print');
 });
 
 Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(function () {

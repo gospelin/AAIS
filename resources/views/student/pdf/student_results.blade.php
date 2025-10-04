@@ -75,6 +75,24 @@
             text-transform: uppercase;
         }
 
+        .school-info h1::before,
+        .school-info h1::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 50px;
+            height: 1px;
+            background-color: #28a745;
+        }
+
+        .school-info h1::before {
+            left: 10px;
+        }
+
+        .school-info h1::after {
+            right: 10px;
+        }
+
         .school-info p {
             margin: 0;
             font-size: 8.5pt;
@@ -98,7 +116,7 @@
         .custom-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 3px 0;
+            margin: 4px 0;
         }
 
         .custom-table th,
@@ -133,6 +151,7 @@
             background-color: #28a745;
             color: #fff;
             text-transform: uppercase;
+            border: 0.5px solid #fff;
         }
 
         .table .subject-column {
@@ -312,7 +331,7 @@
                     <td><strong>NAME:</strong></td>
                     <td>{{ strtoupper($student->full_name) }}</td>
                     <td><strong>CLASS:</strong></td>
-                    <td>{{ strtoupper($currentClass->name ?? 'N/A') }}</td>
+                    <td>{{ strtoupper($currentClass ?? 'N/A') }}</td>
                 </tr>
                 <tr>
                     <td><strong>STUDENT ID:</strong></td>
@@ -322,7 +341,7 @@
                 </tr>
                 <tr>
                     <td><strong>CLOSING DATE:</strong></td>
-                    <td>{{ $termSummary->closing_date ?? 'N/A' }}</td>
+                    <td>{{ $termSummary->date_issued ?? 'N/A' }}</td>
                     <td><strong>REOPENING DATE:</strong></td>
                     <td>{{ $termSummary->next_term_begins ?? 'N/A' }}</td>
                 </tr>
@@ -332,7 +351,7 @@
                     <td><strong>CUMULATIVE AVERAGE:</strong></td>
                     <td>{{ number_format($termSummary->cumulative_average ?? 0, 2) }}</td>
                 </tr>
-                @if (!str_contains(strtoupper($currentClass->name ?? ''), 'JSS') && !str_contains(strtoupper($currentClass->name ?? ''), 'SSS') && ($currentClass->class_hierarchy ?? 0) <= 10)
+                @if (!str_contains(strtoupper($currentClass ?? ''), 'JSS') && !str_contains(strtoupper($currentClass ?? ''), 'SSS'))
                     <tr>
                         <td><strong>TERM AVERAGE:</strong></td>
                         <td>{{ number_format($termSummary->term_average ?? 0, 2) }}</td>
