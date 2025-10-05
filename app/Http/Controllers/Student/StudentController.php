@@ -23,7 +23,7 @@ use BaconQrCode\Writer;
 class StudentController extends StudentBaseController
 {
     /**
-     * Display the student dashboard with enhanced performance data.
+     * Display the student dashboard with fee payment check.
      *
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
@@ -41,102 +41,112 @@ class StudentController extends StudentBaseController
             return redirect()->route('student.login')->with('error', 'Unable to load dashboard.');
         }
 
-        // Fetch current class
-        $currentClass = $student->getCurrentClass($currentSession->id, $currentTerm);
-
-        // Fetch recent results, ordered by subject name
-        $recentResults = Result::where('student_id', $student->id)
-            ->where('session_id', $currentSession->id)
-            ->where('term', $currentTerm->value)
-            ->with(['subject', 'class'])
-            ->join('subjects', 'results.subject_id', '=', 'subjects.id')
-            ->orderBy('subjects.name')
-            ->limit(5)
-            ->get();
-
-        // Fetch fee status
+        // Check fee payment status
         $feeStatus = FeePayment::where('student_id', $student->id)
             ->where('session_id', $currentSession->id)
             ->where('term', $currentTerm->value)
             ->first();
 
-        // Fetch performance data for charts
-        $sessions = AcademicSession::orderBy('year', 'desc')->get();
-        $terms = TermEnum::cases();
+        $hasPaidFees = $feeStatus && $feeStatus->has_paid_fee;
 
-        // Performance trends (term averages across sessions)
+        // Fetch current class
+        $currentClass = $student->getCurrentClass($currentSession->id, $currentTerm);
+
+        // Initialize default values for results-related data
+        $recentResults = collect();
         $performanceData = ['labels' => [], 'averages' => []];
-        foreach ($sessions as $session) {
-            foreach ($terms as $term) {
-                $summary = StudentTermSummary::where('student_id', $student->id)
-                    ->where('session_id', $session->id)
-                    ->where('term', $term->value)
-                    ->first();
-                if ($summary && $summary->term_average) {
-                    $performanceData['labels'][] = $session->year . ' ' . $term->label();
-                    $performanceData['averages'][] = $summary->term_average;
-                }
-            }
-        }
-
-        // Calculate performance slope
-        $performanceSlope = $this->calculatePerformanceSlope($performanceData['averages']);
-
-        // Best-performing subject in current session
-        $bestSubject = Result::where('student_id', $student->id)
-            ->where('session_id', $currentSession->id)
-            ->join('subjects', 'results.subject_id', '=', 'subjects.id')
-            ->where('subjects.deactivated', false)
-            ->groupBy('subject_id', 'subjects.name')
-            ->selectRaw('subjects.name, AVG(total) as average')
-            ->orderBy('average', 'desc')
-            ->first();
-
-        // Subject performance for current term, filtered by current class
+        $performanceSlope = 0;
+        $bestSubject = null;
         $subjectData = ['labels' => [], 'averages' => []];
-        $currentEnrollment = $student->getCurrentEnrollment();
-        if ($currentEnrollment) {
-            $classId = $currentEnrollment->class_id;
-            $results = Result::where('student_id', $student->id)
+        $weakSubjects = collect();
+
+        if ($hasPaidFees) {
+            // Fetch recent results, ordered by subject name
+            $recentResults = Result::where('student_id', $student->id)
                 ->where('session_id', $currentSession->id)
                 ->where('term', $currentTerm->value)
-                ->where('results.class_id', $classId) // Explicitly qualify class_id
-                ->with('subject')
-                ->join('class_subject', 'results.subject_id', '=', 'class_subject.subject_id')
-                ->where('class_subject.class_id', $classId)
+                ->with(['subject', 'class'])
                 ->join('subjects', 'results.subject_id', '=', 'subjects.id')
-                ->where('subjects.deactivated', false)
-                ->select('results.*')
-                ->get()
-                ->groupBy('subject_id');
+                ->orderBy('subjects.name')
+                ->limit(5)
+                ->get();
 
-            Log::info('Subject performance query results', [
-                'student_id' => $student->id,
-                'session_id' => $currentSession->id,
-                'term' => $currentTerm->value,
-                'class_id' => $classId,
-                'result_count' => $results->count()
-            ]);
+            // Fetch performance data for charts
+            $sessions = AcademicSession::orderBy('year', 'desc')->get();
+            $terms = TermEnum::cases();
 
-            foreach ($results as $subjectId => $subjectResults) {
-                $subject = $subjectResults->first()->subject;
-                if ($subject && !$subject->deactivated) {
-                    $avg = $subjectResults->avg('total');
-                    $subjectData['labels'][] = $subject->name;
-                    $subjectData['averages'][] = $avg;
+            // Performance trends (term averages across sessions)
+            foreach ($sessions as $session) {
+                foreach ($terms as $term) {
+                    $summary = StudentTermSummary::where('student_id', $student->id)
+                        ->where('session_id', $session->id)
+                        ->where('term', $term->value)
+                        ->first();
+                    if ($summary && $summary->term_average) {
+                        $performanceData['labels'][] = $session->year . ' ' . $term->label();
+                        $performanceData['averages'][] = $summary->term_average;
+                    }
                 }
             }
-        }
 
-        // Areas needing improvement (subjects with average < 60%)
-        $weakSubjects = Result::where('student_id', $student->id)
-            ->where('session_id', $currentSession->id)
-            ->join('subjects', 'results.subject_id', '=', 'subjects.id')
-            ->where('subjects.deactivated', false)
-            ->groupBy('subject_id', 'subjects.name')
-            ->selectRaw('subjects.name, AVG(total) as average')
-            ->having('average', '<', 60)
-            ->get();
+            // Calculate performance slope
+            $performanceSlope = $this->calculatePerformanceSlope($performanceData['averages']);
+
+            // Best-performing subject in current session
+            $bestSubject = Result::where('student_id', $student->id)
+                ->where('session_id', $currentSession->id)
+                ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+                ->where('subjects.deactivated', false)
+                ->groupBy('subject_id', 'subjects.name')
+                ->selectRaw('subjects.name, AVG(total) as average')
+                ->orderBy('average', 'desc')
+                ->first();
+
+            // Subject performance for current term, filtered by current class
+            $currentEnrollment = $student->getCurrentEnrollment();
+            if ($currentEnrollment) {
+                $classId = $currentEnrollment->class_id;
+                $results = Result::where('student_id', $student->id)
+                    ->where('session_id', $currentSession->id)
+                    ->where('term', $currentTerm->value)
+                    ->where('results.class_id', $classId)
+                    ->with('subject')
+                    ->join('class_subject', 'results.subject_id', '=', 'class_subject.subject_id')
+                    ->where('class_subject.class_id', $classId)
+                    ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+                    ->where('subjects.deactivated', false)
+                    ->select('results.*')
+                    ->get()
+                    ->groupBy('subject_id');
+
+                Log::info('Subject performance query results', [
+                    'student_id' => $student->id,
+                    'session_id' => $currentSession->id,
+                    'term' => $currentTerm->value,
+                    'class_id' => $classId,
+                    'result_count' => $results->count()
+                ]);
+
+                foreach ($results as $subjectId => $subjectResults) {
+                    $subject = $subjectResults->first()->subject;
+                    if ($subject && !$subject->deactivated) {
+                        $avg = $subjectResults->avg('total');
+                        $subjectData['labels'][] = $subject->name;
+                        $subjectData['averages'][] = $avg;
+                    }
+                }
+            }
+
+            // Areas needing improvement (subjects with average < 60%)
+            $weakSubjects = Result::where('student_id', $student->id)
+                ->where('session_id', $currentSession->id)
+                ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+                ->where('subjects.deactivated', false)
+                ->groupBy('subject_id', 'subjects.name')
+                ->selectRaw('subjects.name, AVG(total) as average')
+                ->having('average', '<', 60)
+                ->get();
+        }
 
         return view('student.dashboard', compact(
             'student',
@@ -145,6 +155,7 @@ class StudentController extends StudentBaseController
             'currentClass',
             'recentResults',
             'feeStatus',
+            'hasPaidFees',
             'sessions',
             'terms',
             'performanceData',
@@ -181,7 +192,7 @@ class StudentController extends StudentBaseController
     }
 
     /**
-     * Display all results for the student.
+     * Display all results for the student, with fee payment check.
      *
      * @param Request $request
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
@@ -193,6 +204,21 @@ class StudentController extends StudentBaseController
 
         if (!$student || !$currentSession || !$currentTerm) {
             return redirect()->route('student.dashboard')->with('error', 'Unable to load results.');
+        }
+
+        // Check fee payment status
+        $feeStatus = FeePayment::where('student_id', $student->id)
+            ->where('session_id', $currentSession->id)
+            ->where('term', $currentTerm->value)
+            ->first();
+
+        if (!$feeStatus || !$feeStatus->has_paid_fee) {
+            Log::warning('Unauthorized attempt to view results due to unpaid fees', [
+                'student_id' => $student->id,
+                'session_id' => $currentSession->id,
+                'term' => $currentTerm->value
+            ]);
+            return redirect()->route('student.dashboard')->with('error', 'Please pay your fees to view results.');
         }
 
         $sessionId = $request->input('session_id', $currentSession->id);
@@ -289,7 +315,7 @@ class StudentController extends StudentBaseController
     }
 
     /**
-     * Download student results as PDF.
+     * Download student results as PDF, with fee payment check.
      *
      * @param Request $request
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
@@ -318,6 +344,21 @@ class StudentController extends StudentBaseController
             return redirect()->route('student.dashboard')->withErrors(['error' => 'No active academic session or term.']);
         }
 
+        // Check fee payment status
+        $feeStatus = FeePayment::where('student_id', $student->id)
+            ->where('session_id', $currentSession->id)
+            ->where('term', $currentTerm->value)
+            ->first();
+
+        if (!$feeStatus || !$feeStatus->has_paid_fee) {
+            Log::warning('Unauthorized attempt to download results due to unpaid fees', [
+                'student_id' => $student->id,
+                'session_id' => $currentSession->id,
+                'term' => $currentTerm->value
+            ]);
+            return redirect()->route('student.dashboard')->with('error', 'Please pay your fees to download results.');
+        }
+
         // Get session and term from request, default to current session and term
         $sessionId = $request->input('session_id', $currentSession->id);
         $term = $request->input('term', $currentTerm->value);
@@ -336,7 +377,7 @@ class StudentController extends StudentBaseController
             return redirect()->route('student.dashboard')->withErrors(['error' => 'Invalid term selected.']);
         }
 
-        // Fetch results for the selected session and term, ordered by subject name
+        // Fetch results for the selected session and term
         $results = $student->results()
             ->where('session_id', $session->id)
             ->where('term', $term->value)
@@ -395,7 +436,7 @@ class StudentController extends StudentBaseController
             'term' => $term->value,
         ]);
 
-        // Sanitize filename to match pattern: {First_Name}_{Last_Name}_{Term_Label}_{Year}_Result.pdf
+        // Sanitize filename
         $filename = Str::title(Str::slug($student->first_name, '_')) . '_' .
             Str::title(Str::slug($student->last_name, '_')) . '_' .
             Str::title(Str::slug($term->label(), '_')) . '_' .

@@ -49,7 +49,6 @@
         .section-title .class-info {
             flex: 1;
             text-align: right;
-            color: var(--text-secondary);
             font-size: clamp(0.875rem, 2vw, 1rem);
             font-family: var(--font-primary);
         }

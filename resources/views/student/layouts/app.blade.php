@@ -58,8 +58,8 @@
             --space-xl: 2rem;
             --space-2xl: 3rem;
             --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
-            --radius-xl: 1rem;
+            --radius-lg: 0.95rem;
+            --radius-xl: 1.3rem;
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             --text-primary: #1f2937;
