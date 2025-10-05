@@ -9,7 +9,7 @@
         .content-container {
             max-width: 90rem;
             margin: 0 auto;
-            padding: var(--space-lg) var(--space-md);
+            padding: var(--space-md) var(--space-sm);
         }
 
         .welcome-section {
@@ -17,11 +17,11 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: var(--space-xl);
+            padding: var(--space-md);
             position: relative;
             overflow: hidden;
-            margin-bottom: var(--space-2xl);
-            min-height: 160px;
+            margin-bottom: var(--space-lg);
+            min-height: 100px;
         }
 
         .welcome-section::before {
@@ -36,7 +36,7 @@
 
         .welcome-header {
             font-family: var(--font-display);
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
             font-weight: 700;
             background: var(--gradient-primary);
             background-clip: text;
@@ -46,16 +46,16 @@
 
         .welcome-subtitle {
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            font-size: clamp(0.625rem, 1.8vw, 0.75rem);
             color: var(--text-secondary);
         }
 
         .avatar-container {
-            width: clamp(60px, 10vw, 80px);
-            height: clamp(60px, 10vw, 80px);
+            width: clamp(40px, 7vw, 48px);
+            height: clamp(40px, 7vw, 48px);
             border-radius: 50%;
             background: var(--gradient-primary);
-            padding: 3px;
+            padding: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -67,16 +67,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-size: clamp(0.875rem, 2vw, 1rem);
             font-weight: 700;
             color: var(--white);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 30vw, 280px), 1fr));
-            gap: var(--space-lg);
-            margin-bottom: var(--space-2xl);
+            grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 22vw, 220px), 1fr));
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
         }
 
         .stat-card {
@@ -84,16 +84,14 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-lg);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: var(--space-sm);
             position: relative;
             overflow: hidden;
-            min-height: 160px;
+            min-height: 120px;
+            transition: border-color 0.2s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-2xl);
             border-color: var(--gold);
         }
 
@@ -108,14 +106,14 @@
         }
 
         .stat-icon {
-            width: clamp(40px, 8vw, 48px);
-            height: clamp(40px, 8vw, 48px);
+            width: clamp(28px, 5vw, 36px);
+            height: clamp(28px, 5vw, 36px);
             background: var(--glass-bg);
             border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
             color: var(--primary-green);
         }
 
@@ -123,25 +121,25 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: var(--space-md);
+            margin-bottom: var(--space-xs);
         }
 
         .stat-value {
             font-family: var(--font-display);
-            font-size: clamp(1.5rem, 3.5vw, 1.75rem);
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .stat-label {
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             color: var(--text-secondary);
         }
 
         .quick-access-link {
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             color: var(--primary-green);
             text-decoration: none;
             font-weight: 500;
@@ -152,36 +150,39 @@
             color: var(--dark-green);
         }
 
-        .results-section, .performance-section {
+        .results-section,
+        .performance-section {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
             overflow: hidden;
-            margin-bottom: var(--space-2xl);
+            margin-bottom: var(--space-lg);
         }
 
         .section-header {
             border-bottom: 1px solid var(--glass-border);
-            padding: var(--space-md) var(--space-lg);
+            padding: var(--space-xs) var(--space-sm);
         }
 
         .section-title {
             font-family: var(--font-display);
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
+            font-size: clamp(0.875rem, 2vw, 1rem);
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .table-responsive {
-            max-height: 300px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
-        .table th, .table td {
+        .table th,
+        .table td {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            font-size: clamp(0.5rem, 1.5vw, 0.625rem);
             color: var(--text-primary);
+            padding: var(--space-xs);
         }
 
         .table th {
@@ -192,7 +193,8 @@
         }
 
         .chart-container {
-            padding: var(--space-lg);
+            padding: var(--space-sm);
+            min-height: 150px;
         }
 
         .text-error {
@@ -203,29 +205,100 @@
             color: var(--success);
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 768px) {
+            .content-container {
+                padding: var(--space-xs);
+            }
+
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: var(--space-xs);
             }
 
             .welcome-section {
-                padding: var(--space-lg);
-                min-height: 120px;
+                padding: var(--space-xs);
+                min-height: 80px;
             }
 
             .avatar-container {
-                width: clamp(48px, 12vw, 60px);
-                height: clamp(48px, 12vw, 60px);
+                width: clamp(36px, 8vw, 40px);
+                height: clamp(36px, 8vw, 40px);
+            }
+
+            .welcome-header {
+                font-size: clamp(1rem, 2.5vw, 1.25rem);
+            }
+
+            .welcome-subtitle {
+                font-size: clamp(0.5rem, 1.5vw, 0.625rem);
+            }
+
+            .stat-card {
+                min-height: 100px;
+                padding: var(--space-xs);
+            }
+
+            .stat-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: clamp(0.875rem, 2vw, 1rem);
+            }
+
+            .stat-label,
+            .quick-access-link {
+                font-size: clamp(0.5rem, 1.5vw, 0.625rem);
+            }
+
+            .section-title {
+                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            }
+
+            .chart-container {
+                padding: var(--space-xs);
+                min-height: 120px;
+            }
+
+            .table-responsive {
+                max-height: 180px;
             }
         }
 
         @media (max-width: 576px) {
             .content-container {
-                padding: var(--space-md);
+                padding: calc(var(--space-xs) / 2);
             }
 
-            .results-section, .performance-section {
-                min-height: 150px;
+            .welcome-section,
+            .results-section,
+            .performance-section {
+                min-height: 70px;
+            }
+
+            .table-responsive {
+                max-height: 150px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .stats-grid {
+                gap: calc(var(--space-xs) / 2);
+            }
+
+            .stat-card {
+                min-height: 90px;
+            }
+
+            .avatar-container {
+                width: 32px;
+                height: 32px;
+            }
+
+            .welcome-header {
+                font-size: clamp(0.875rem, 2vw, 1rem);
             }
         }
 
@@ -241,7 +314,7 @@
     <div class="content-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
                 <div class="avatar-container">
                     @if($student->profile_pic && Storage::disk('public')->exists('profiles/' . $student->profile_pic))
                         <img src="{{ Storage::url('profiles/' . $student->profile_pic) . '?t=' . time() }}"
@@ -253,8 +326,9 @@
                     @endif
                 </div>
                 <div>
-                    <h3 class="welcome-header">Welcome, {{ $student->full_name }}!</h3>
-                    <p class="welcome-subtitle">Explore your academic progress, performance trends, and more.</p>
+                    <h3 class="welcome-header" id="welcomeHeader">Welcome, {{ $student->full_name }}!</h3>
+                    <p class="welcome-subtitle" id="welcomeSubtitle">Explore your academic progress, performance trends, and
+                        more.</p>
                 </div>
             </div>
         </div>
@@ -301,10 +375,10 @@
                 <h3 class="section-title">Performance Trends ({{ $currentSession->year }})</h3>
             </div>
             <div class="chart-container">
-                <canvas id="performanceChart" height="100"></canvas>
+                <canvas id="performanceChart" height="80"></canvas>
             </div>
-            <div class="p-4">
-                <p class="stat-label">Performance Slope: 
+            <div class="p-2">
+                <p class="stat-label">Performance Slope:
                     <span class="{{ $performanceSlope >= 0 ? 'text-success' : 'text-error' }}">
                         {{ number_format($performanceSlope, 2) }}% per term
                     </span>
@@ -316,10 +390,11 @@
         <!-- Subject Performance -->
         <section id="subject-performance" class="performance-section">
             <div class="section-header">
-                <h3 class="section-title">Subject Performance ({{ $currentSession->year }} - {{ $currentTerm->label() }})</h3>
+                <h3 class="section-title">Subject Performance ({{ $currentSession->year }} - {{ $currentTerm->label() }})
+                </h3>
             </div>
             <div class="chart-container">
-                <canvas id="subjectChart" height="100"></canvas>
+                <canvas id="subjectChart" height="80"></canvas>
             </div>
         </section>
 
@@ -328,16 +403,16 @@
             <div class="section-header">
                 <h3 class="section-title">Areas Needing Improvement</h3>
             </div>
-            <div class="p-4">
+            <div class="p-2">
                 @if($weakSubjects->isEmpty())
                     <p class="stat-label">Great job! No subjects currently require significant improvement.</p>
                 @else
-                    <ul class="list-disc pl-5 stat-label">
+                    <ul class="list-disc pl-4 stat-label">
                         @foreach($weakSubjects as $subject)
                             <li>{{ $subject->name }} (Avg: {{ $subject->average }}%)</li>
                         @endforeach
                     </ul>
-                    <p class="stat-label mt-2">Focus on these subjects to boost your overall performance.</p>
+                    <p class="stat-label mt-1">Focus on these subjects to boost your overall performance.</p>
                 @endif
             </div>
         </section>
@@ -347,7 +422,7 @@
             <div class="section-header">
                 <h3 class="section-title">Recent Results ({{ $currentSession->year }} - {{ $currentTerm->label() }})</h3>
             </div>
-            <div class="p-4">
+            <div class="p-2">
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -379,135 +454,175 @@
             </div>
         </section>
     </div>
-@push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Performance Chart (Line Chart)
-            const performanceData = @json($performanceData);
-            const ctxPerformance = document.getElementById('performanceChart').getContext('2d');
-            new Chart(ctxPerformance, {
-                type: 'line',
-                data: {
-                    labels: performanceData.labels,
-                    datasets: [{
-                        label: 'Term Average (%)',
-                        data: performanceData.averages,
-                        borderColor: 'var(--primary-green)',
-                        backgroundColor: 'rgba(33, 160, 85, 0.2)',
-                        fill: true,
-                        tension: 0.4,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Average Score (%)',
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)',
-                                    size: 14
-                                }
-                            },
-                            ticks: {
-                                color: 'var(--text-secondary)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Term',
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)',
-                                    size: 14
-                                }
-                            },
-                            ticks: {
-                                color: 'var(--text-secondary)'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)'
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Typing Animation for Welcome Section
+                const welcomeHeader = document.getElementById('welcomeHeader');
+                const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+                const headerText = welcomeHeader.textContent;
+                const subtitleText = welcomeSubtitle.textContent;
+                welcomeHeader.textContent = '';
+                welcomeSubtitle.textContent = '';
 
-            // Subject Performance Chart (Bar Chart)
-            const subjectData = @json($subjectData);
-            const ctxSubject = document.getElementById('subjectChart').getContext('2d');
-            new Chart(ctxSubject, {
-                type: 'bar',
-                data: {
-                    labels: subjectData.labels,
-                    datasets: [{
-                        label: 'Subject Average (%)',
-                        data: subjectData.averages,
-                        backgroundColor: 'var(--primary-green)',
-                        borderColor: 'var(--dark-green)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Average Score (%)',
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)',
-                                    size: 14
+                let headerIndex = 0;
+                let subtitleIndex = 0;
+
+                function typeHeader() {
+                    if (headerIndex < headerText.length) {
+                        welcomeHeader.textContent += headerText[headerIndex];
+                        headerIndex++;
+                        setTimeout(typeHeader, 80);
+                    } else {
+                        setTimeout(typeSubtitle, 400);
+                    }
+                }
+
+                function typeSubtitle() {
+                    if (subtitleIndex < subtitleText.length) {
+                        welcomeSubtitle.textContent += subtitleText[subtitleIndex];
+                        subtitleIndex++;
+                        setTimeout(typeSubtitle, 80);
+                    }
+                }
+
+                setTimeout(typeHeader, 400);
+
+                // Performance Chart (Line Chart)
+                const performanceData = @json($performanceData);
+                const ctxPerformance = document.getElementById('performanceChart').getContext('2d');
+                new Chart(ctxPerformance, {
+                    type: 'line',
+                    data: {
+                        labels: performanceData.labels,
+                        datasets: [{
+                            label: 'Term Average (%)',
+                            data: performanceData.averages,
+                            borderColor: 'var(--primary-green)',
+                            backgroundColor: 'rgba(33, 160, 85, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Average Score (%)',
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
+                                },
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    precision: 0
                                 }
                             },
-                            ticks: {
-                                color: 'var(--text-secondary)'
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Term',
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
+                                },
+                                ticks: {
+                                    color: 'var(--text-secondary)'
+                                }
                             }
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Subject',
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)',
-                                    size: 14
-                                }
-                            },
-                            ticks: {
-                                color: 'var(--text-secondary)'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'var(--text-primary)',
-                                font: {
-                                    family: 'var(--font-primary)'
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                });
+
+                // Subject Performance Chart (Bar Chart)
+                const subjectData = @json($subjectData);
+                const ctxSubject = document.getElementById('subjectChart').getContext('2d');
+                new Chart(ctxSubject, {
+                    type: 'bar',
+                    data: {
+                        labels: subjectData.labels,
+                        datasets: [{
+                            label: 'Subject Average (%)',
+                            data: subjectData.averages,
+                            backgroundColor: 'var(--primary-green)',
+                            borderColor: 'var(--dark-green)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Average Score (%)',
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
+                                },
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Subject',
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
+                                },
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    autoSkip: false,
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'var(--text-primary)',
+                                    font: {
+                                        family: 'var(--font-primary)',
+                                        size: 10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             });
-        });
-    </script>
-@endpush
+        </script>
+    @endpush
 @endsection

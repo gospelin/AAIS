@@ -6,6 +6,7 @@ use App\Models\Result;
 use App\Models\StudentTermSummary;
 use App\Models\FeePayment;
 use App\Models\AcademicSession;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\User;
@@ -32,6 +33,11 @@ class StudentController extends StudentBaseController
         [$currentSession, $currentTerm] = $this->getCurrentSessionAndTerm(true);
 
         if (!$student || !$currentSession || !$currentTerm) {
+            Log::error('Dashboard failed to load', [
+                'student_id' => $student->id ?? null,
+                'session_id' => $currentSession->id ?? null,
+                'term' => $currentTerm->value ?? null
+            ]);
             return redirect()->route('student.login')->with('error', 'Unable to load dashboard.');
         }
 
@@ -59,9 +65,7 @@ class StudentController extends StudentBaseController
         $terms = TermEnum::cases();
 
         // Performance trends (term averages across sessions)
-        $performanceData = [];
-        $labels = [];
-        $averages = [];
+        $performanceData = ['labels' => [], 'averages' => []];
         foreach ($sessions as $session) {
             foreach ($terms as $term) {
                 $summary = StudentTermSummary::where('student_id', $student->id)
@@ -69,47 +73,66 @@ class StudentController extends StudentBaseController
                     ->where('term', $term->value)
                     ->first();
                 if ($summary && $summary->term_average) {
-                    $labels[] = $session->year . ' ' . $term->label();
-                    $averages[] = $summary->term_average;
+                    $performanceData['labels'][] = $session->year . ' ' . $term->label();
+                    $performanceData['averages'][] = $summary->term_average;
                 }
             }
         }
-        $performanceData = ['labels' => $labels, 'averages' => $averages];
 
         // Calculate performance slope
-        $performanceSlope = $this->calculatePerformanceSlope($averages);
+        $performanceSlope = $this->calculatePerformanceSlope($performanceData['averages']);
 
         // Best-performing subject in current session
         $bestSubject = Result::where('student_id', $student->id)
             ->where('session_id', $currentSession->id)
             ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+            ->where('subjects.deactivated', false)
             ->groupBy('subject_id', 'subjects.name')
             ->selectRaw('subjects.name, AVG(total) as average')
             ->orderBy('average', 'desc')
             ->first();
 
-        // Subject performance for current term
-        $subjectData = [];
-        $subjectLabels = [];
-        $subjectAverages = [];
-        $results = Result::where('student_id', $student->id)
-            ->where('session_id', $currentSession->id)
-            ->where('term', $currentTerm->value)
-            ->with('subject')
-            ->get()
-            ->groupBy('subject_id');
-        foreach ($results as $subjectId => $subjectResults) {
-            $subject = $subjectResults->first()->subject;
-            $avg = $subjectResults->avg('total');
-            $subjectLabels[] = $subject->name;
-            $subjectAverages[] = $avg;
+        // Subject performance for current term, filtered by current class
+        $subjectData = ['labels' => [], 'averages' => []];
+        $currentEnrollment = $student->getCurrentEnrollment();
+        if ($currentEnrollment) {
+            $classId = $currentEnrollment->class_id;
+            $results = Result::where('student_id', $student->id)
+                ->where('session_id', $currentSession->id)
+                ->where('term', $currentTerm->value)
+                ->where('results.class_id', $classId) // Explicitly qualify class_id
+                ->with('subject')
+                ->join('class_subject', 'results.subject_id', '=', 'class_subject.subject_id')
+                ->where('class_subject.class_id', $classId)
+                ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+                ->where('subjects.deactivated', false)
+                ->select('results.*')
+                ->get()
+                ->groupBy('subject_id');
+
+            Log::info('Subject performance query results', [
+                'student_id' => $student->id,
+                'session_id' => $currentSession->id,
+                'term' => $currentTerm->value,
+                'class_id' => $classId,
+                'result_count' => $results->count()
+            ]);
+
+            foreach ($results as $subjectId => $subjectResults) {
+                $subject = $subjectResults->first()->subject;
+                if ($subject && !$subject->deactivated) {
+                    $avg = $subjectResults->avg('total');
+                    $subjectData['labels'][] = $subject->name;
+                    $subjectData['averages'][] = $avg;
+                }
+            }
         }
-        $subjectData = ['labels' => $subjectLabels, 'averages' => $subjectAverages];
 
         // Areas needing improvement (subjects with average < 60%)
         $weakSubjects = Result::where('student_id', $student->id)
             ->where('session_id', $currentSession->id)
             ->join('subjects', 'results.subject_id', '=', 'subjects.id')
+            ->where('subjects.deactivated', false)
             ->groupBy('subject_id', 'subjects.name')
             ->selectRaw('subjects.name, AVG(total) as average')
             ->having('average', '<', 60)
@@ -385,7 +408,6 @@ class StudentController extends StudentBaseController
             ->setOption('margin-right', 9)
             ->setOption('margin-bottom', 0)
             ->setOption('margin-left', 9)
-            ->setOption('encoding', 'UTF-8')
             ->setOption('enable-local-file-access', true);
 
         return $pdf->download($filename);
