@@ -149,7 +149,6 @@
         display: flex;
         min-height: 100vh;
         max-width: 100vw;
-        overflow-x: hidden;
     }
 
     .overlay {
@@ -531,7 +530,6 @@
         padding: var(--space-lg);
         flex: 1;
         max-width: 100%;
-        overflow-x: hidden;
     }
 
     .alert {
