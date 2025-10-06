@@ -643,7 +643,7 @@
                 <i class="bx bx-x"></i>
             </button>
         </aside>
-        <main class="main-content">
+        <main class="container-fluid main-content">
             <header class="top-nav">
                 <div class="nav-left">
                     <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">
@@ -683,7 +683,7 @@
                     </div>
                 </div>
             </header>
-            <section class="container content">
+            <section class="content">
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
