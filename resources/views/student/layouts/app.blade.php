@@ -683,7 +683,7 @@
                     </div>
                 </div>
             </header>
-            <section class="content">
+            <section class="container content">
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}

@@ -47,7 +47,7 @@
 
         .section-title {
             font-family: var(--font-display);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: var(--space-md);
@@ -60,7 +60,7 @@
         .section-title .session-term {
             flex: 1;
             text-align: left;
-            background: var(--gradient-primary);
+            background: var(--white);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -69,14 +69,14 @@
         .section-title .class-info {
             flex: 1;
             text-align: right;
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            font-size: clamp(1rem, 2vw, 1.2rem);
             font-family: var(--font-primary);
-            color: var(--text-primary);
+            color: var(--white);
         }
 
         .form-label {
             font-family: var(--font-primary);
-            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+            font-size: clamp(1rem, 2vw, 0.8rem);
             color: var(--text-primary);
             margin-bottom: var(--space-xs);
             font-weight: 500;
@@ -84,12 +84,12 @@
 
         .form-select {
             background: var(--glass-bg);
-            color: var(--text-primary);
+            color: var(--primary-dark);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             padding: var(--space-sm) var(--space-md);
             font-family: var(--font-primary);
-            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+            font-size: clamp(1rem, 1.8vw, 0.85rem);
             transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
             -webkit-appearance: none;
@@ -118,6 +118,11 @@
             /* Matches typical --glass-bg in dark mode */
         }
 
+        html.dark .form-select option:hover {
+            background-color: var(--primary-dark) !important;
+            /* --primary with opacity */
+        }
+
         .results-section {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -136,7 +141,7 @@
         .section-header {
             border-bottom: 1px solid var(--glass-border);
             padding: var(--space-xs) var(--space-sm);
-            background: var(--glass-bg);
+            background: var(--primary-dark);
         }
 
         .table-controls {
@@ -315,14 +320,13 @@
 
         .summary-card h4 {
             font-family: var(--font-display);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: var(--space-md);
-            border-bottom: 1px solid var(--secondary);
-            /* --secondary for accent */
+            border-bottom: 1px solid var(--primary);
             padding-bottom: var(--space-xs);
-            background: var(--gradient-primary);
+            background: var(--primary);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -330,7 +334,7 @@
 
         .summary-card p {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            font-size: clamp(1em, 2vw, 1.25rem);
             color: var(--text-primary);
             margin-bottom: var(--space-sm);
             display: flex;
