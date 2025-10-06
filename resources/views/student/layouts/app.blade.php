@@ -126,7 +126,6 @@
         background: var(--dark-bg);
         color: var(--text-primary, #334155);
         line-height: 1.6;
-        overflow-x: hidden;
         transition: var(--transition);
     }
 
