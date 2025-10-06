@@ -101,7 +101,7 @@
         --dark-card: #16213e;
         --dark-border: #0f3460;
         --text-primary: #e2e8f0;
-        --text-secondary: #94a3b8;
+        --text-secondary: #64748b;
         --chart-grid: rgba(100, 116, 139, 0.2);
     }
 
@@ -116,7 +116,7 @@
 
     html {
         scroll-behavior: smooth;
-        font-size: clamp(14px, 2.5vw, 16px);
+        font-size: clamp(14px, 3.5vw, 16px);
         -webkit-tap-highlight-color: transparent;
     }
 
@@ -125,6 +125,7 @@
         background: var(--dark-bg);
         color: var(--text-primary, #334155);
         line-height: 1.6;
+        overflow-x: hidden;
         transition: var(--transition);
     }
 
@@ -148,7 +149,6 @@
     .dashboard-container {
         display: flex;
         min-height: 100vh;
-        max-width: 100vw;
     }
 
     .overlay {
@@ -170,7 +170,7 @@
     }
 
     .sidebar {
-        width: clamp(200px, 20vw, 250px);
+        width: clamp(200px, 70vw, 280px);
         background: var(--glass-bg);
         backdrop-filter: blur(20px);
         border-right: 1px solid var(--glass-border);
@@ -229,9 +229,9 @@
 
     .nav-section-title {
         font-family: var(--font-display);
-        font-size: clamp(0.75rem, 2vw, 0.875rem);
+        font-size: clamp(0.625rem, 2.5vw, 0.75rem);
         font-weight: 600;
-        color: var(--text-secondary);
+        color: var(--gray-500);
         text-transform: uppercase;
         letter-spacing: 0.1em;
         margin-bottom: var(--space-md);
@@ -249,12 +249,12 @@
         padding: var(--space-sm) var(--space-md);
         border-radius: var(--radius-lg);
         transition: var(--transition-fast);
-        font-size: clamp(0.875rem, 2.5vw, 1rem);
+        font-size: clamp(0.875rem, 3vw, 1rem);
     }
 
     .nav-list li a:hover,
     .nav-list li button:hover {
-        background: var(--gradient-primary);
+        background: var(--glass-bg);
         color: var(--white);
         transform: translateX(4px) scale(1.02);
         box-shadow: var(--shadow-sm);
@@ -268,7 +268,7 @@
 
     .main-content {
         flex: 1;
-        margin-left: clamp(200px, 20vw, 250px);
+        margin-left: clamp(200px, 70vw, 280px);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -291,7 +291,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: var(--space-md);
+        gap: var(--space-sm);
     }
 
     .nav-left {
@@ -351,13 +351,14 @@
         display: flex;
         align-items: center;
         gap: var(--space-sm);
+        flex-wrap: wrap;
     }
 
     .action-btn {
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        font-size: clamp(1rem, 3vw, 1.25rem);
         padding: var(--space-sm);
         border-radius: var(--radius-md);
         cursor: pointer;
@@ -442,7 +443,7 @@
         gap: var(--space-sm);
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-xl);
         padding: var(--space-sm);
         cursor: pointer;
         transition: var(--transition-fast);
@@ -490,7 +491,7 @@
         position: absolute;
         top: calc(100% + 8px);
         right: 0;
-        background: var(--dark-card);
+        background: var(--dark-surface);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-lg);
         padding: var(--space-sm);

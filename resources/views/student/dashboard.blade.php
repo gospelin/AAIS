@@ -7,7 +7,6 @@
 @push('styles')
     <style>
         .content-container {
-            max-width: 90rem;
             margin: 0 auto;
             padding: var(--space-md) var(--space-sm);
         }
