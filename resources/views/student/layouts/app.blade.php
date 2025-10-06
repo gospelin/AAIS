@@ -529,7 +529,6 @@
     }
 
     .content {
-        padding: var(--space-lg);
         flex: 1;
         max-width: 100%;
     }
