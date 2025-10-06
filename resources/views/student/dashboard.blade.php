@@ -48,7 +48,7 @@
 
         .welcome-header {
             font-family: var(--font-display);
-            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-size: clamp(2rem, 3.5vw, 2.5rem);
             font-weight: 700;
             background: var(--gradient-primary);
             background-clip: text;
@@ -58,13 +58,13 @@
 
         .welcome-subtitle {
             font-family: var(--font-primary);
-            font-size: clamp(0.625rem, 1.8vw, 0.75rem);
+            font-size: clamp(0.825rem, 1.8vw, 0.95rem);
             color: var(--text-secondary);
         }
 
         .avatar-container {
-            width: clamp(40px, 7vw, 48px);
-            height: clamp(40px, 7vw, 48px);
+            width: clamp(60px, 9vw, 65px);
+            height: clamp(60px, 9vw, 65px);
             border-radius: 50%;
             background: var(--gradient-primary);
             padding: 2px;
@@ -91,8 +91,8 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 22vw, 220px), 1fr));
-            gap: var(--space-md);
+            grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 22vw, 200px), 1fr));
+            gap: 4rem;
             margin-bottom: var(--space-xl);
         }
 
@@ -329,32 +329,32 @@
             }
 
             .stat-card {
-                min-height: 100px;
-                padding: var(--space-xs);
+                min-height: 150px;
+                padding: 2rem;
             }
 
             .stat-icon {
                 width: 28px;
                 height: 28px;
-                font-size: 0.75rem;
+                font-size: 1rem;
             }
 
             .stat-value {
-                font-size: clamp(0.875rem, 2vw, 1rem);
+                font-size: clamp(1rem, 2.5vw, 1.5rem);
             }
 
             .stat-label,
             .quick-access-link {
-                font-size: clamp(0.5rem, 1.5vw, 0.625rem);
+                font-size: clamp(1rem, 2vw, 1.5rem);
             }
 
             .section-title {
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+                font-size: clamp(1rem, 2vw, 1.5rem);
             }
 
             .chart-container {
                 padding: var(--space-xs);
-                min-height: 150px;
+                min-height: 250px;
             }
 
             .chart-responsive canvas#performanceChart {
@@ -381,13 +381,6 @@
                 padding: calc(var(--space-xs) / 2);
             }
 
-            .welcome-section,
-            .results-section,
-            .performance-section {
-                min-height: 70px;
-                margin-bottom: var(--space-md);
-            }
-
             .table-responsive {
                 max-height: 150px;
             }
@@ -409,10 +402,6 @@
             .avatar-container {
                 width: 32px;
                 height: 32px;
-            }
-
-            .welcome-header {
-                font-size: clamp(0.875rem, 2vw, 1rem);
             }
         }
 

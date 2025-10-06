@@ -43,6 +43,7 @@
     :root {
         /* Existing colors retained */
         --primary-light: #8b5cf6;
+        --primary-dark: #4f46e5;
         --white: #ffffff;
         --dark-gray: #6c757d;
         --light-gray: #f8f9fa;
@@ -50,9 +51,9 @@
         --font-primary: "Inter", sans-serif;
         --font-mono: "JetBrains Mono", monospace;
         --success: #8b5cf6;
-        --primary: #4b4bff;
-        --secondary: #8b46ff;
-        --accent: #d3cdd3;
+        --primary: #6366f1;
+        --secondary: #0ea5e9;
+        --accent: #f59e0b;
         --electric: #4b4bff;
         --dark: #0a0a0a;
         --glass-bg: rgba(255, 255, 255, 0.05);
@@ -105,10 +106,12 @@
     }
 
     /* Global reset */
-    * {
+     *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
     }
 
     html {
@@ -128,20 +131,20 @@
     }
 
     ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
 
     ::-webkit-scrollbar-track {
-        background: var(--gray-100);
+        background: var(--dark-surface);
     }
 
     ::-webkit-scrollbar-thumb {
         background: var(--primary);
-        border-radius: 4px;
+        border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary);
+        background: var(--primary-dark);
     }
 
     .dashboard-container {
