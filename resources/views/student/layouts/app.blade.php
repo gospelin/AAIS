@@ -90,6 +90,8 @@
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         --chart-grid: rgba(200, 213, 225, 0.2);
+        --text-primary: #6366f1;
+        --text-secondary: #8b5cf6;
     }
 
     html.dark {
@@ -254,7 +256,7 @@
     .nav-list li a:hover,
     .nav-list li button:hover {
         background: var(--glass-bg);
-        color: var(--white);
+        color: var(--text-primary);
         transform: translateX(4px) scale(1.02);
         box-shadow: var(--shadow-sm);
     }

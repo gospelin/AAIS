@@ -9,7 +9,8 @@
         .content-container {
             max-width: 90rem;
             margin: 0 auto;
-            padding: var(--space-lg) var(--space-md);
+            padding: var(--space-md) var(--space-sm);
+            overflow-x: hidden;
         }
 
         .filter-section {
@@ -17,105 +18,133 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: var(--space-lg);
-            margin-bottom: var(--space-2xl);
-            box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: var(--space-md);
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .filter-section:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-2xl), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .filter-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transition: transform 0.5s ease;
+        }
+
+        .filter-section:hover::before {
+            transform: scaleX(1.05);
         }
 
         .section-title {
             font-family: var(--font-display);
-            font-size: clamp(1.5rem, 3.5vw, 1.75rem);
-            font-weight: 700;
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-weight: 600;
             color: var(--text-primary);
             margin-bottom: var(--space-md);
-            letter-spacing: 0.02em;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
+            letter-spacing: 0.02em;
         }
 
         .section-title .session-term {
             flex: 1;
             text-align: left;
+            background: var(--gradient-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .section-title .class-info {
             flex: 1;
             text-align: right;
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
             font-family: var(--font-primary);
+            color: var(--text-primary);
         }
 
         .form-label {
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: var(--text-secondary);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+            color: var(--text-primary);
             margin-bottom: var(--space-xs);
             font-weight: 500;
         }
 
         .form-select {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--glass-bg);
             color: var(--text-primary);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
             padding: var(--space-sm) var(--space-md);
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
-        }
-
-        html.dark .form-select {
-            background: rgba(31, 41, 55, 0.9);
-            color: var(--text-primary);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .form-select:focus {
-            border-color: var(--primary-green);
+            border-color: var(--primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.3);
+            box-shadow: 0 0 0 3px rgba(75, 75, 255, 0.3);
+            /* --primary */
+        }
+
+        /* Enhanced dark mode styling for form-select and dropdown */
+        html.dark .form-select,
+        html.dark .form-select option {
+            background: var(--glass-bg) !important;
+            color: var(--text-primary) !important;
+            backdrop-filter: blur(20px);
+        }
+
+        /* Fallback for browsers ignoring backdrop-filter */
+        html.dark .form-select {
+            background-color: rgba(31, 41, 55, 0.9) !important;
+            /* Matches typical --glass-bg in dark mode */
         }
 
         .results-section {
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
             overflow: hidden;
             min-height: 200px;
-            box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .results-section:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-2xl), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
         .section-header {
-            background: var(--gradient-primary);
-            padding: var(--space-md) var(--space-lg);
             border-bottom: 1px solid var(--glass-border);
-        }
-
-        .section-header .section-title {
-            color: var(--white);
-            margin: 0;
+            padding: var(--space-xs) var(--space-sm);
+            background: var(--glass-bg);
         }
 
         .table-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--space-sm) var(--space-lg);
-            background: var(--bg-secondary);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--glass-bg);
             border-bottom: 1px solid var(--glass-border);
         }
 
@@ -130,21 +159,22 @@
             padding-left: calc(var(--space-md) + 1.5rem);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--glass-bg);
             color: var(--text-primary);
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             transition: border-color 0.2s ease;
         }
 
         html.dark .table-search input {
-            background: rgba(31, 41, 55, 0.9);
+            background: var(--glass-bg);
         }
 
         .table-search input:focus {
-            border-color: var(--primary-green);
+            border-color: var(--primary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(33, 160, 85, 0.3);
+            box-shadow: 0 0 0 3px rgba(75, 75, 255, 0.3);
+            /* --primary */
         }
 
         .table-search i {
@@ -153,14 +183,15 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
-            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
         }
 
         .table-responsive {
             max-height: 400px;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: rgba(33, 160, 85, 0.7) var(--bg-secondary);
+            scrollbar-color: rgba(75, 75, 255, 0.7) var(--glass-bg);
+            /* --primary */
         }
 
         .table {
@@ -168,12 +199,12 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: var(--bg-primary);
+            background: var(--dark-card);
         }
 
         html.dark .table {
-            background: #1c1c2e;
-            --bs-table-bg: #1c1c2e !important;
+            background: var(--dark-card);
+            --bs-table-bg: var(--dark-card) !important;
         }
 
         .table th,
@@ -181,14 +212,16 @@
             font-family: var(--font-primary);
             font-size: clamp(0.75rem, 2vw, 0.875rem);
             color: var(--text-primary);
-            padding: var(--space-sm) var(--space-md);
+            padding: var(--space-md) var(--space-md);
+            /* Increased padding for readability */
             border-bottom: 1px solid var(--glass-border);
             text-align: left;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .table th {
-            background: var(--bg-secondary);
+            background: var(--glass-bg);
             position: sticky;
             top: 0;
             z-index: 10;
@@ -201,7 +234,7 @@
         }
 
         .table th:hover {
-            background: rgba(33, 160, 85, 0.1);
+            color: var(--white);
         }
 
         .table th.sortable::after {
@@ -209,8 +242,8 @@
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             margin-left: var(--space-xs);
-            color: var(--text-secondary);
-            font-size: 0.75rem;
+            color: var(--text-primary);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
         }
 
         .table th.sort-asc::after {
@@ -222,11 +255,12 @@
         }
 
         .table tbody tr {
-            transition: background 0.2s ease;
+            transition: background 0.2s ease, transform 0.3s ease;
         }
 
         .table tbody tr:nth-child(even) {
-            background: rgba(0, 0, 0, 0.03);
+            background: rgba(255, 255, 255, 0.05);
+            /* Subtle glassmorphism shade */
         }
 
         html.dark .table tbody tr:nth-child(even) {
@@ -234,11 +268,9 @@
         }
 
         .table tbody tr:hover {
-            background: rgba(33, 160, 85, 0.08);
-        }
-
-        html.dark .table tbody tr:hover {
-            background: rgba(33, 160, 85, 0.15);
+            background: rgba(75, 75, 255, 0.1);
+            /* --primary with opacity */
+            transform: translateY(-2px);
         }
 
         .table tbody td {
@@ -250,35 +282,56 @@
         }
 
         .summary-card {
-            background: var(--gradient-primary);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-lg);
-            margin-top: var(--space-lg);
-            color: var(--white);
-            box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: var(--space-md);
+            margin-top: var(--space-md);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .summary-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-2xl), inset 0 2px 4px rgba(255, 255, 255, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transition: transform 0.5s ease;
+        }
+
+        .summary-card:hover::before {
+            transform: scaleX(1.05);
         }
 
         .summary-card h4 {
             font-family: var(--font-display);
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
-            font-weight: 700;
-            color: var(--white);
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-weight: 600;
+            color: var(--text-primary);
             margin-bottom: var(--space-md);
-            border-bottom: 1px solid var(--gold);
+            border-bottom: 1px solid var(--secondary);
+            /* --secondary for accent */
             padding-bottom: var(--space-xs);
+            background: var(--gradient-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .summary-card p {
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            color: var(--text-primary);
             margin-bottom: var(--space-sm);
             display: flex;
             align-items: center;
@@ -286,13 +339,14 @@
         }
 
         .summary-card p i {
-            color: var(--gold);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            color: var(--secondary);
+            /* --secondary for icons */
+            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
         }
 
         .summary-card p strong {
             font-weight: 600;
-            color: var(--gold);
+            color: var(--text-primary);
         }
 
         .summary-card p:last-child {
@@ -301,37 +355,38 @@
 
         .download-form {
             margin-top: var(--space-md);
-            padding: 0 var(--space-lg);
+            padding: 0 var(--space-md);
             display: flex;
             gap: var(--space-md);
             justify-content: flex-end;
         }
 
         .btn-primary {
-            background: var(--primary-green);
+            background: var(--primary);
+            /* #4b4bff */
             color: var(--white);
             padding: var(--space-sm) var(--space-lg);
             border-radius: var(--radius-lg);
             text-decoration: none;
             font-family: var(--font-primary);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             font-weight: 500;
             border: 1px solid transparent;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
         .btn-primary:hover {
-            background: var(--dark-green);
-            border-color: var(--gold);
+            background: var(--secondary);
+            /* #8b46ff */
+            border-color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-primary:focus-visible {
-            outline: 2px solid rgba(212, 175, 55, 0.8);
+            outline: 2px solid var(--secondary);
             outline-offset: 2px;
         }
 
@@ -361,11 +416,11 @@
 
         @media (max-width: 768px) {
             .content-container {
-                padding: var(--space-md);
+                padding: var(--space-xs);
             }
 
             .filter-section {
-                padding: var(--space-md);
+                padding: var(--space-sm);
             }
 
             .filter-section .row {
@@ -378,8 +433,8 @@
 
             .table th,
             .table td {
-                font-size: clamp(0.7rem, 1.8vw, 0.8rem);
-                padding: var(--space-xs) var(--space-sm);
+                font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+                padding: var(--space-sm) var(--space-md);
             }
 
             .table-controls {
@@ -405,7 +460,7 @@
 
             .section-title .class-info {
                 text-align: left;
-                font-size: clamp(0.875rem, 2vw, 1rem);
+                font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             }
         }
 
@@ -415,16 +470,36 @@
             }
 
             .section-title {
-                font-size: clamp(1.25rem, 3vw, 1.5rem);
+                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
             }
 
             .summary-card h4 {
-                font-size: clamp(0.875rem, 2vw, 1rem);
+                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
             }
 
             .summary-card p {
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+                font-size: clamp(0.625rem, 1.6vw, 0.75rem);
             }
+        }
+
+        @media (max-width: 360px) {
+            .content-container {
+                padding: calc(var(--space-xs) / 2);
+            }
+
+            .filter-section,
+            .results-section,
+            .summary-card {
+                min-height: 120px;
+            }
+        }
+
+        .filter-section:focus-visible,
+        .results-section:focus-visible,
+        .summary-card:focus-visible,
+        .btn-primary:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
     </style>
 @endpush
@@ -432,7 +507,7 @@
 @section('content')
     <div class="content-container">
         <!-- Filter Section -->
-        <div class="filter-section">
+        <div class="filter-section" tabindex="0">
             <h3 class="section-title">Filter Results</h3>
             <form method="GET" action="{{ route('student.results') }}">
                 <div class="row g-3">
@@ -469,7 +544,7 @@
         </div>
 
         <!-- Results Section -->
-        <div class="results-section">
+        <div class="results-section" tabindex="0">
             <div class="section-header">
                 <h3 class="section-title">
                     <span class="session-term">
@@ -517,24 +592,28 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No results available for this term.</td>
+                                    <td colspan="7" class="text-center stat-label">No results available for this term.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if ($termSummary)
-                    <div class="summary-card">
+                    <div class="summary-card" tabindex="0">
                         <h4>Term Summary</h4>
                         <p><i class="fas fa-trophy"></i> <strong>Grand Total:</strong>
-                            <span>{{ $termSummary->grand_total }}</span></p>
+                            <span>{{ $termSummary->grand_total }}</span>
+                        </p>
                         <p><i class="fas fa-calculator"></i> <strong>Term Average:</strong>
-                            <span>{{ number_format($termSummary->term_average, 2) }}</span></p>
+                            <span>{{ number_format($termSummary->term_average, 2) }}</span>
+                        </p>
                         <p><i class="fas fa-award"></i> <strong>Position:</strong> <span>{{ $termSummary->position }}</span></p>
                         <p><i class="fas fa-comment"></i> <strong>Principal's Remark:</strong>
-                            <span>{{ $termSummary->principal_remark }}</span></p>
+                            <span>{{ $termSummary->principal_remark }}</span>
+                        </p>
                         <p><i class="fas fa-comment-alt"></i> <strong>Teacher's Remark:</strong>
-                            <span>{{ $termSummary->teacher_remark }}</span></p>
+                            <span>{{ $termSummary->teacher_remark }}</span>
+                        </p>
                     </div>
                 @endif
                 <div class="download-form">
@@ -613,6 +692,17 @@
                     setTimeout(() => {
                         downloadButton.classList.remove('loading');
                     }, 2000); // Simulate loading
+                });
+
+                // Table Row Animation (similar to dashboard stat cards)
+                rows.forEach((row, index) => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        row.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, 500 + index * 100);
                 });
             });
         </script>
