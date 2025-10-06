@@ -118,7 +118,6 @@
         scroll-behavior: smooth;
         font-size: clamp(14px, 2.5vw, 16px);
         -webkit-tap-highlight-color: transparent;
-        overflow-x: hidden;
     }
 
     body {
