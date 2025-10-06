@@ -10,7 +10,6 @@
             max-width: 90rem;
             margin: 0 auto;
             padding: var(--space-md) var(--space-sm);
-            overflow-x: hidden;
         }
 
         .welcome-section {
@@ -18,11 +17,10 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            padding: var(--space-md);
+            padding: 2rem;
             position: relative;
-            overflow: hidden;
             margin-bottom: var(--space-md);
-            min-height: 150px;
+            min-height: 130px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
@@ -48,7 +46,7 @@
 
         .welcome-header {
             font-family: var(--font-display);
-            font-size: clamp(2rem, 3.5vw, 2.5rem);
+            font-size: clamp(1.5rem, 2.5vw, 1.5rem);
             font-weight: 700;
             background: var(--gradient-primary);
             background-clip: text;
@@ -92,7 +90,7 @@
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 22vw, 200px), 1fr));
-            gap: 4rem;
+            gap: 3rem;
             margin-bottom: var(--space-xl);
         }
 
@@ -101,9 +99,8 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-lg);
-            padding: var(--space-sm);
+            padding: 2rem;
             position: relative;
-            overflow: hidden;
             min-height: 120px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -137,7 +134,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            font-size: clamp(1rem, 2vw, 1.5rem);
             color: var(--white);
             transition: transform 0.3s ease;
         }
@@ -155,7 +152,7 @@
 
         .stat-value {
             font-family: var(--font-display);
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-size: clamp(1.2rem, 2.8vw, 1.5rem);
             font-weight: 600;
             color: var(--text-primary);
         }
@@ -168,7 +165,7 @@
 
         .quick-access-link {
             font-family: var(--font-primary);
-            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+            font-size: clamp(1rem, 1.8vw, 1.5rem);
             color: var(--success);
             text-decoration: none;
             font-weight: 500;
@@ -186,7 +183,6 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-xl);
-            overflow: hidden;
             margin-bottom: var(--space-xl);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -205,7 +201,7 @@
 
         .section-title {
             font-family: var(--font-display);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
             font-weight: 600;
             color: var(--text-primary);
         }
@@ -261,8 +257,8 @@
         }
 
         .chart-container {
-            padding: var(--space-sm);
-            min-height: 200px;
+            padding: 3rem;
+            min-height: 400px;
             max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -277,14 +273,14 @@
         .chart-responsive canvas#performanceChart {
             min-width: clamp(300px, 100%, 600px);
             width: 100% !important;
-            height: 200px !important;
+            height: 400px !important;
             display: block !important;
         }
 
         .chart-responsive canvas#subjectChart {
             min-width: clamp(600px, 100%, 1200px);
             width: 100% !important;
-            height: 200px !important;
+            height: 400px !important;
             display: block !important;
         }
 
@@ -306,7 +302,7 @@
 
         @media (max-width: 768px) {
             .content-container {
-                padding: var(--space-xs);
+                padding: 0;
             }
 
             .stats-grid {
@@ -315,22 +311,10 @@
                 margin-bottom: var(--space-lg);
             }
 
-            .avatar-container {
-                width: clamp(36px, 8vw, 40px);
-                height: clamp(36px, 8vw, 40px);
-            }
-
-            .welcome-header {
-                font-size: clamp(1rem, 2.5vw, 1.25rem);
-            }
-
-            .welcome-subtitle {
-                font-size: clamp(0.5rem, 1.5vw, 0.625rem);
-            }
-
             .stat-card {
-                min-height: 150px;
-                padding: 2rem;
+                min-height: 130px;
+                padding: 1.5rem;
+                margin-bottom: var(--space-md);
             }
 
             .stat-icon {
@@ -353,18 +337,18 @@
             }
 
             .chart-container {
-                padding: var(--space-xs);
-                min-height: 250px;
+                padding: 2rem;
+                min-height: 300px;
             }
 
             .chart-responsive canvas#performanceChart {
                 min-width: clamp(250px, 100%, 400px);
-                height: 150px !important;
+                height: 250px !important;
             }
 
             .chart-responsive canvas#subjectChart {
                 min-width: clamp(400px, 100%, 800px);
-                height: 150px !important;
+                height: 250px !important;
             }
 
             .table-responsive {
@@ -386,7 +370,7 @@
             }
 
             .chart-container {
-                min-height: 120px;
+                min-height: 200px;
             }
         }
 
@@ -396,7 +380,7 @@
             }
 
             .stat-card {
-                min-height: 90px;
+                min-height: 120px;
             }
 
             .avatar-container {
