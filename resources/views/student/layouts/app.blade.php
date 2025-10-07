@@ -1,15 +1,12 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth-id" content="{{ auth()->id() ?? '' }}">
-    <title id="pageTitle">{{ config('app.name', 'Aunty Anne\'s International School') }} |
-        @yield('title', 'Student Portal')</title>
-    <meta name="description"
-        content="@yield('description', 'Student portal for viewing results, fee status, and profile.')">
+    <title id="pageTitle">{{ config('app.name', 'Aunty Anne\'s International School') }} | @yield('title', 'Student Portal')</title>
+    <meta name="description" content="@yield('description', 'Student portal for viewing results, fee status, and profile.')">
     <meta name="keywords" content="student, school portal, results, fees, profile">
     <meta name="author" content="Aunty Anne's International School">
 
@@ -21,17 +18,13 @@
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=playfair-display:400,500,600,700|inter:400,500,600,700"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=playfair-display:400,500,600,700|inter:400,500,600,700" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
@@ -41,7 +34,6 @@
 
 <style>
     :root {
-        /* Existing colors retained */
         --primary-light: #8b5cf6;
         --primary-dark: #4f46e5;
         --white: #ffffff;
@@ -108,9 +100,7 @@
     }
 
     /* Global reset */
-     *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
@@ -125,7 +115,7 @@
     body {
         font-family: var(--font-primary);
         background: var(--dark-bg);
-        color: var(--text-primary, #334155);
+        color: var(--text-primary);
         line-height: 1.6;
         transition: var(--transition);
     }
@@ -171,11 +161,11 @@
     }
 
     .sidebar {
-        width: clamp(200px, 70vw, 280px);
+        width: clamp(200px, 25vw, 250px);
         background: var(--glass-bg);
         backdrop-filter: blur(20px);
         border-right: 1px solid var(--glass-border);
-        padding: var(--space-lg);
+        padding: var(--space-md);
         position: fixed;
         top: 0;
         bottom: 0;
@@ -185,17 +175,14 @@
         overflow-y: auto;
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 768px) {
         .sidebar {
+            width: clamp(200px, 70vw, 240px);
             transform: translateX(-100%);
         }
 
         .sidebar.active {
             transform: translateX(0);
-        }
-
-        .main-content {
-            margin-left: 0;
         }
     }
 
@@ -206,14 +193,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: var(--space-xl);
-        padding-bottom: var(--space-md);
+        margin-bottom: var(--space-lg);
+        padding-bottom: var(--space-sm);
         border-bottom: 1px solid var(--glass-border);
     }
 
     .logo {
-        width: 80px;
-        height: 80px;
+        width: clamp(60px, 15vw, 70px);
+        height: clamp(60px, 15vw, 70px);
         transition: transform 0.3s ease;
     }
 
@@ -230,13 +217,13 @@
 
     .nav-section-title {
         font-family: var(--font-display);
-        font-size: clamp(0.625rem, 2.5vw, 0.75rem);
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
         font-weight: 600;
         color: var(--gray-500);
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        margin-bottom: var(--space-md);
-        padding-left: var(--space-sm);
+        margin-bottom: var(--space-sm);
+        padding-left: var(--space-xs);
     }
 
     .nav-list li a,
@@ -246,11 +233,11 @@
         font-weight: 500;
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
-        border-radius: var(--radius-lg);
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: var(--radius-md);
         transition: var(--transition-fast);
-        font-size: clamp(0.875rem, 3vw, 1rem);
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
     }
 
     .nav-list li a:hover,
@@ -269,13 +256,13 @@
 
     .main-content {
         flex: 1;
-        margin-left: clamp(200px, 70vw, 280px);
+        margin-left: clamp(200px, 25vw, 250px);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 768px) {
         .main-content {
             margin-left: 0;
         }
@@ -285,36 +272,36 @@
         background: var(--glass-bg);
         backdrop-filter: blur(20px);
         border-bottom: 1px solid var(--glass-border);
-        padding: var(--space-md) var(--space-lg);
+        padding: var(--space-sm) var(--space-md);
         position: sticky;
         top: 0;
         z-index: 999;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
     }
 
     .nav-left {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
         flex: 1;
     }
 
     .search-bar {
-        max-width: 300px;
+        max-width: 250px;
         flex: 1;
     }
 
     .search-bar input {
         width: 100%;
-        padding: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-md);
         background: var(--glass-bg);
         color: var(--text-primary);
-        font-size: clamp(0.75rem, 2vw, 0.875rem);
+        font-size: clamp(0.75rem, 1.8vw, 0.875rem);
         transition: var(--transition-fast);
     }
 
@@ -328,8 +315,8 @@
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
-        font-size: clamp(1rem, 3vw, 1.25rem);
-        padding: var(--space-sm);
+        font-size: clamp(0.875rem, 2.5vw, 1rem);
+        padding: var(--space-xs);
         border-radius: var(--radius-md);
         cursor: pointer;
         transition: var(--transition-fast);
@@ -342,7 +329,7 @@
         color: var(--white);
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: 769px) {
         .menu-toggle {
             display: none;
         }
@@ -351,7 +338,7 @@
     .nav-right {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
         flex-wrap: wrap;
     }
 
@@ -359,8 +346,8 @@
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
-        font-size: clamp(1rem, 3vw, 1.25rem);
-        padding: var(--space-sm);
+        font-size: clamp(0.875rem, 2.5vw, 1rem);
+        padding: var(--space-xs);
         border-radius: var(--radius-md);
         cursor: pointer;
         display: flex;
@@ -379,8 +366,8 @@
     }
 
     .theme-btn {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         border-radius: var(--radius-md);
@@ -390,7 +377,6 @@
         cursor: pointer;
         color: var(--text-primary);
         transition: var(--transition-fast);
-        position: relative;
     }
 
     .theme-btn:hover,
@@ -441,31 +427,31 @@
     .user-trigger {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: var(--space-xs);
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius-xl);
-        padding: var(--space-sm);
+        border-radius: var(--radius-lg);
+        padding: var(--space-xs) var(--space-sm);
         cursor: pointer;
         transition: var(--transition-fast);
     }
 
     .user-trigger:hover,
     .user-trigger:focus-visible {
-        background: var(--gradient-primary);
+        background: var(--primary-dark);
         border-color: var(--primary);
         color: var(--white);
     }
 
     .user-avatar {
-        width: 32px;
-        height: 32px;
+        width: clamp(28px, 8vw, 30px);
+        height: clamp(28px, 8vw, 30px);
         background: var(--gradient-primary);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        font-size: clamp(0.75rem, 2vw, 0.875rem);
         font-weight: 600;
         color: var(--white);
     }
@@ -477,27 +463,31 @@
         border-radius: 50%;
     }
 
+    html.dark .user-avatar {
+        background: var(--dark-card);
+    }
+
     .user-info h4 {
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        font-size: clamp(0.75rem, 1.8vw, 0.875rem);
         font-weight: 500;
         color: var(--text-primary);
     }
 
     .dropdown-icon {
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
-        color: var(--text-secondary);
+        font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+        color: var(--text-primary);
     }
 
     .user-dropdown {
         position: absolute;
-        top: calc(100% + 8px);
+        top: calc(100% + 6px);
         right: 0;
         background: var(--dark-surface);
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius-lg);
-        padding: var(--space-sm);
-        min-width: 200px;
-        box-shadow: var(--shadow-2xl);
+        border-radius: var(--radius-md);
+        padding: var(--space-xs);
+        min-width: 180px;
+        box-shadow: var(--shadow-xl);
         opacity: 0;
         visibility: hidden;
         transform: translateY(-10px);
@@ -514,10 +504,10 @@
     .dropdown-item {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-sm);
         color: var(--text-secondary);
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        font-size: clamp(0.75rem, 1.8vw, 0.875rem);
         text-decoration: none;
         transition: var(--transition-fast);
     }
@@ -531,14 +521,15 @@
     .content {
         flex: 1;
         max-width: 100%;
+        padding: var(--space-md) 0;
     }
 
     .alert {
-        padding: var(--space-sm) var(--space-md);
+        padding: var(--space-xs) var(--space-sm);
         border-radius: var(--radius-md);
-        margin-bottom: var(--space-md);
+        margin-bottom: var(--space-sm);
         color: var(--text-primary);
-        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        font-size: clamp(0.75rem, 1.8vw, 0.875rem);
     }
 
     .alert-success {
@@ -554,8 +545,8 @@
     .btn-close-sidebar {
         display: none;
         position: absolute;
-        top: var(--space-md);
-        right: var(--space-md);
+        top: var(--space-sm);
+        right: var(--space-sm);
         z-index: 2002;
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
@@ -572,9 +563,42 @@
         color: var(--white);
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 768px) {
         .btn-close-sidebar {
             display: block;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .top-nav {
+            padding: var(--space-xs) var(--space-sm);
+        }
+
+        .search-bar {
+            max-width: 200px;
+        }
+
+        .nav-right {
+            gap: var(--space-xs);
+        }
+    }
+
+    @media (max-width: 360px) {
+        .sidebar {
+            width: clamp(180px, 80vw, 220px);
+        }
+
+        .logo {
+            width: clamp(50px, 12vw, 60px);
+            height: clamp(50px, 12vw, 60px);
+        }
+
+        .user-info h4 {
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+        }
+
+        .dropdown-icon {
+            font-size: clamp(0.625rem, 1.6vw, 0.75rem);
         }
     }
 
@@ -587,53 +611,45 @@
         outline-offset: 2px;
     }
 </style>
-
     @stack('styles')
 </head>
 
-<body
-    class="h-full font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
+<body class="h-full font-sans antialiased bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-300">
     <div class="dashboard-container">
         <div class="overlay" id="overlay"></div>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="{{ asset('images/school_logo.png') }}" alt="Aunty Anne's International School Logo"
-                        loading="lazy">
+                    <img src="{{ asset('images/school_logo.png') }}" alt="Aunty Anne's International School Logo" loading="lazy">
                 </div>
             </div>
             <nav class="nav-section">
                 <div class="nav-section-title">Student Portal</div>
                 <ul class="nav-list list-unstyled">
                     <li class="nav-item">
-                        <a href="{{ route('student.dashboard') }}"
-                            class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+                        <a href="{{ route('student.dashboard') }}" class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
                             <i class='bx bxs-dashboard nav-icon'></i><span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('student.results') }}"
-                            class="nav-link {{ request()->routeIs('student.results') ? 'active' : '' }}">
+                        <a href="{{ route('student.results') }}" class="nav-link {{ request()->routeIs('student.results') ? 'active' : '' }}">
                             <i class='bx bxs-report nav-icon'></i><span>View Results</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('student.fee_status') }}"
-                            class="nav-link {{ request()->routeIs('student.fee_status') ? 'active' : '' }}">
+                        <a href="{{ route('student.fee_status') }}" class="nav-link {{ request()->routeIs('student.fee_status') ? 'active' : '' }}">
                             <i class='bx bx-money nav-icon'></i><span>Fee Status</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ route('student.profile') }}"
-                            class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
+                        <a href="{{ route('student.profile') }}" class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
                             <i class='bx bx-user nav-icon'></i><span>Profile</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="nav-link"><i class="bx bx-log-out nav-icon"></i><span>Log
-                                    Out</span></button>
+                            <button type="submit" class="nav-link"><i class="bx bx-log-out nav-icon"></i><span>Log Out</span></button>
                         </form>
                     </li>
                 </ul>
@@ -648,6 +664,9 @@
                     <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
+                    <div class="search-bar">
+                        <input type="text" placeholder="Search..." aria-label="Search">
+                    </div>
                 </div>
                 <div class="nav-right">
                     <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
@@ -657,26 +676,23 @@
                     <div class="user-menu" id="userMenu">
                         <div class="user-trigger" aria-label="User menu" aria-expanded="false" aria-haspopup="true">
                             <div class="user-avatar">
-                                @if(auth()->user() && auth()->user()->avatar && Storage::disk('public')->exists('avatars/' . auth()->user()->avatar))
-                                    <img src="{{ Storage::url('avatars/' . auth()->user()->avatar) . '?t=' . time() }}"
-                                        alt="{{ auth()->user()->name }}" class="h-full w-full rounded-full object-cover"
-                                        loading="lazy">
+                                @if(auth()->user() && auth()->user()->student && auth()->user()->student->profile_pic && Storage::disk('public')->exists('profiles/' . auth()->user()->student->profile_pic))
+                                    <img src="{{ Storage::url('profiles/' . auth()->user()->student->profile_pic) . '?t=' . time() }}"
+                                        alt="{{ auth()->user()->student->full_name }}" class="h-full w-full rounded-full object-cover" loading="lazy">
                                 @else
-                                    <span>{{ auth()->check() ? strtoupper(substr(auth()->user()->name, 0, 1)) : 'S' }}</span>
+                                    <span>{{ auth()->check() && auth()->user()->student ? strtoupper(substr(auth()->user()->student->first_name, 0, 1)) : 'S' }}</span>
                                 @endif
                             </div>
                             <div class="user-info">
-                                <h4>{{ auth()->check() ? auth()->user()->name : 'Student' }}</h4>
+                                <h4>{{ auth()->check() && auth()->user()->student ? auth()->user()->student->full_name : 'Student' }}</h4>
                             </div>
                             <i class="fas fa-chevron-down dropdown-icon"></i>
                         </div>
                         <div class="user-dropdown">
-                            <a href="{{ route('student.profile') }}" class="dropdown-item"><i class="fas fa-user"></i>
-                                Profile</a>
+                            <a href="{{ route('student.profile') }}" class="dropdown-item"><i class="fas fa-user"></i> Profile</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Sign
-                                    Out</button>
+                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
                             </form>
                         </div>
                     </div>
@@ -763,7 +779,7 @@
 
             document.querySelectorAll('.nav-list li a, .nav-list li button').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (window.innerWidth <= 992 && sidebar.classList.contains('active')) {
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
                         toggleSidebar();
                     }
                 });
@@ -792,16 +808,13 @@
 
             // Close sidebar on resize
             window.addEventListener('resize', () => {
-                if (window.innerWidth > 992 && sidebar.classList.contains('active')) {
+                if (window.innerWidth > 768 && sidebar.classList.contains('active')) {
                     toggleSidebar();
                 }
             });
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     @stack('scripts')
 </body>
-
 </html>

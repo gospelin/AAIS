@@ -50,12 +50,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::prefix('student')->middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
-    Route::get('/results', [StudentController::class, 'viewResults'])->name('student.results');
-    Route::get('/fee-status', [StudentController::class, 'viewFeeStatus'])->name('student.fee_status');
-    Route::get('/profile', [StudentController::class, 'viewProfile'])->name('student.profile');
-    Route::get('/results/download', [StudentController::class, 'downloadResults'])->name('student.results.download');
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+    Route::get('/results', [StudentController::class, 'viewResults'])->name('results');
+    Route::get('/fee-status', [StudentController::class, 'viewFeeStatus'])->name('fee_status');
+    Route::get('/profile', [StudentController::class, 'viewProfile'])->name('profile');
+    Route::post('/profile/picture', [StudentController::class, 'updateProfilePicture'])->name('profile.picture.update');
+    Route::delete('/profile/picture', [StudentController::class, 'deleteProfilePicture'])->name('profile.picture.delete');
+    Route::get('/results/download', [StudentController::class, 'downloadResults'])->name('results.download');
 });
 
 Route::prefix('admin')->middleware(['auth', 'role:admin', 'mfa'])->group(function () {
