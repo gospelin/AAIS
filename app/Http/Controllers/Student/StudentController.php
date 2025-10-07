@@ -71,8 +71,8 @@ class StudentController extends StudentBaseController
                 ->limit(5)
                 ->get();
 
-            // Fetch performance data for charts
-            $sessions = AcademicSession::orderBy('year', 'desc')->get();
+            // Fetch sessions for performance data
+            $sessions = AcademicSession::orderBy('year', 'asc')->get();
             $terms = TermEnum::cases();
 
             // Performance trends (term averages across sessions)
@@ -156,8 +156,6 @@ class StudentController extends StudentBaseController
             'recentResults',
             'feeStatus',
             'hasPaidFees',
-            'sessions',
-            'terms',
             'performanceData',
             'performanceSlope',
             'bestSubject',
