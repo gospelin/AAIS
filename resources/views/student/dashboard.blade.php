@@ -7,225 +7,140 @@
 @push('styles')
     <style>
         .content-container {
-            padding: var(--space-md);
+            padding: var(--space-xl);
         }
 
-        .welcome-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: var(--space-lg);
+        .content-header {
             position: relative;
-            margin-bottom: var(--space-md);
-            min-height: 120px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 24px;
         }
 
-        .welcome-section:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
+        .page-title,
+        .page-subtitle {
+            white-space: normal;
+            width: 100%;
+            display: block;
+            overflow: hidden;
         }
 
-        .welcome-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
-            transition: transform 0.5s ease;
-        }
-
-        .welcome-section:hover::before {
-            transform: scaleX(1.05);
-        }
-
-        .welcome-header {
+        .page-title {
             font-family: var(--font-display);
-            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-            font-weight: 700;
-            background: var(--gradient-primary);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .welcome-subtitle {
-            font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--text-secondary);
-        }
-
-        .avatar-container {
-            width: clamp(50px, 10vw, 60px);
-            height: clamp(50px, 10vw, 60px);
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            padding: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid var(--glass-border);
-        }
-
-        .avatar-container:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
-        }
-
-        .avatar-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--white);
-        }
-
-        .avatar-placeholder {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: var(--dark-card);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(1.5rem, 5vw, 2rem);
             font-weight: 700;
             color: var(--white);
-            border: 2px solid var(--white);
+            min-height: 45px;
         }
 
-        html.dark .avatar-placeholder {
-            background: var(--dark-card);
+        .page-subtitle {
+            font-family: var(--font-primary);
+            font-size: clamp(0.875rem, 3vw, 1rem);
+            color: #9ca3af;
+            min-height: 24px;
+        }
+
+        body.light .page-title,
+        body.light .page-subtitle {
+            color: #6b7280;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 45vw, 250px), 1fr));
-            gap: var(--space-md);
-            margin-bottom: var(--space-lg);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
-            background: var(--glass-bg);
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-lg);
-            padding: var(--space-md);
-            position: relative;
-            min-height: 110px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
         }
 
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
-            transition: transform 0.5s ease;
-        }
-
-        .stat-card:hover::before {
-            transform: scaleX(1.05);
-        }
-
-        .stat-icon {
-            width: clamp(24px, 6vw, 28px);
-            height: clamp(24px, 6vw, 28px);
-            background: var(--gradient-primary);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(0.875rem, 2vw, 1rem);
-            color: var(--white);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover .stat-icon {
-            transform: rotate(360deg);
+        body.light .stat-card {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.1);
         }
 
         .stat-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: var(--space-xs);
+            margin-bottom: 8px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #10b981;
+        }
+
+        body.light .stat-icon {
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .stat-value {
             font-family: var(--font-display);
-            font-size: clamp(1rem, 2.5vw, 1.25rem);
-            font-weight: 600;
-            color: var(--text-primary);
+            font-size: clamp(1.25rem, 4vw, 1.5rem);
+            font-weight: 700;
+            color: var(--white);
         }
 
         .stat-label {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--text-secondary);
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            color: #9ca3af;
         }
 
-        .quick-access-link {
-            font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--success);
-            text-decoration: none;
-            font-weight: 500;
-            transition: var(--transition-fast);
-        }
-
-        .quick-access-link:hover {
-            color: var(--electric);
-            text-decoration: underline;
-        }
-
-        .progress-bar {
-            height: 6px;
-            background: var(--glass-bg);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            margin-top: var(--space-xs);
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            transition: width 0.5s ease-in-out;
+        body.light .stat-value,
+        body.light .stat-label {
+            color: #6b7280;
         }
 
         .results-section,
         .performance-section {
-            background: var(--glass-bg);
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            margin-bottom: var(--space-lg);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
         }
 
         .results-section:hover,
         .performance-section:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .section-header {
-            border-bottom: 1px solid var(--glass-border);
-            padding: var(--space-xs) var(--space-sm);
-            background: var(--glass-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -233,21 +148,25 @@
 
         .section-title {
             font-family: var(--font-display);
-            font-size: clamp(0.875rem, 2vw, 1rem);
+            font-size: clamp(1rem, 3vw, 1.25rem);
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--white);
+        }
+
+        body.light .section-title {
+            color: #6b7280;
         }
 
         .chart-toggle {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--success);
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            color: #10b981;
             cursor: pointer;
-            transition: var(--transition-fast);
+            transition: all 0.2s ease;
         }
 
         .chart-toggle:hover {
-            color: var(--electric);
+            color: #6366f1;
             text-decoration: underline;
         }
 
@@ -263,46 +182,49 @@
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: var(--dark-card);
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        html.dark .table {
-            background: var(--dark-card);
-            --bs-table-bg: var(--dark-card) !important;
+        body.light .table {
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .table th,
         .table td {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--text-primary);
-            padding: var(--space-xs) var(--space-sm);
-            border-bottom: 1px solid var(--glass-border);
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            color: var(--white);
+            padding: 8px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             text-align: left;
             vertical-align: middle;
             white-space: nowrap;
         }
 
+        body.light .table th,
+        body.light .table td {
+            color: #6b7280;
+        }
+
         .table th {
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.05);
             position: sticky;
             top: 0;
             z-index: 10;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-primary);
             cursor: pointer;
             transition: background 0.2s ease;
         }
 
         .table th:hover {
-            background: var(--gradient-primary);
+            background: rgba(99, 102, 241, 0.7);
             color: var(--white);
         }
 
         .chart-container {
-            padding: var(--space-md);
+            padding: 16px;
             min-height: 300px;
             max-width: 100%;
             overflow-x: auto;
@@ -310,10 +232,18 @@
             position: relative;
         }
 
+        body.light .chart-container {
+            background: #f3f4f6;
+        }
+
         .chart-responsive {
             max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+        }
+
+        body.light .chart-responsive canvas {
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .chart-responsive canvas#performanceChart {
@@ -338,16 +268,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: var(--space-xs);
+            gap: 8px;
             font-family: var(--font-primary);
-            color: var(--text-secondary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            color: #9ca3af;
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        }
+
+        body.light .chart-loading {
+            color: #6b7280;
         }
 
         .spinner {
             width: 24px;
             height: 24px;
-            border: 3px solid var(--primary);
+            border: 3px solid #6366f1;
             border-top: 3px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -360,83 +294,95 @@
         }
 
         .text-error {
-            color: var(--error);
+            color: #ef4444;
         }
 
         .text-success {
-            color: var(--success);
+            color: #10b981;
         }
 
         .no-results-message {
             font-family: var(--font-primary);
-            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
-            color: var(--text-secondary);
+            font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+            color: #9ca3af;
             text-align: center;
-            padding: var(--space-sm);
+            padding: 16px;
+        }
+
+        body.light .no-results-message {
+            color: #6b7280;
         }
 
         @media (max-width: 768px) {
             .content-container {
-                padding: var(--space-sm);
+                padding: 16px;
+            }
+
+            .results-section,
+            .performance-section {
+                padding: 16px;
             }
 
             .stats-grid {
                 grid-template-columns: 1fr;
-                gap: var(--space-sm);
+                gap: 16px;
+                margin-bottom: 24px;
             }
 
             .stat-card {
-                min-height: 100px;
-                padding: var(--space-sm);
+                padding: 12px;
             }
 
             .stat-icon {
-                width: clamp(20px, 5vw, 24px);
-                height: clamp(20px, 5vw, 24px);
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
             }
 
             .stat-value {
-                font-size: clamp(0.875rem, 2vw, 1rem);
+                font-size: clamp(1rem, 3.5vw, 1.25rem);
             }
 
-            .stat-label,
-            .quick-access-link,
-            .chart-toggle {
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            .stat-label {
+                font-size: clamp(0.75rem, 2.5vw, 0.875rem);
             }
 
-            .section-title {
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            .content-header {
+                margin-bottom: 16px;
+            }
+
+            .page-title {
+                font-size: clamp(1.25rem, 4vw, 1.5rem);
+                min-height: 40px;
+            }
+
+            .page-subtitle {
+                font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+                min-height: 20px;
             }
 
             .chart-container {
-                padding: var(--space-sm);
+                padding: 12px;
                 min-height: 250px;
             }
 
-            .welcome-section {
-                padding: var(--space-sm);
-                min-height: 100px;
+            .section-title {
+                font-size: clamp(0.875rem, 2.5vw, 1rem);
             }
 
-            .welcome-header {
-                font-size: clamp(1rem, 2vw, 1.25rem);
-            }
-
-            .avatar-container {
-                width: clamp(40px, 8vw, 50px);
-                height: clamp(40px, 8vw, 50px);
-            }
-
-            .avatar-placeholder {
-                font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            .chart-toggle {
+                font-size: clamp(0.75rem, 2.5vw, 0.875rem);
             }
         }
 
         @media (max-width: 576px) {
             .content-container {
-                padding: var(--space-xs);
+                padding: 12px;
+            }
+
+            .results-section,
+            .performance-section {
+                padding: 12px;
             }
 
             .table-responsive {
@@ -451,27 +397,55 @@
             .chart-responsive canvas#subjectChart {
                 height: clamp(150px, 35vw, 200px) !important;
             }
+
+            .stats-grid {
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .stat-card {
+                padding: 8px;
+            }
+
+            .stat-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: clamp(0.875rem, 3vw, 1rem);
+            }
+
+            .stat-label {
+                font-size: clamp(0.625rem, 2vw, 0.75rem);
+            }
+
+            .page-title {
+                font-size: clamp(1rem, 3.5vw, 1.25rem);
+                min-height: 36px;
+            }
+
+            .page-subtitle {
+                font-size: clamp(0.625rem, 2vw, 0.75rem);
+                min-height: 18px;
+            }
         }
 
         @media (max-width: 360px) {
             .stats-grid {
-                gap: var(--space-xs);
+                gap: 8px;
+                margin-bottom: 12px;
             }
 
             .stat-card {
-                min-height: 90px;
-            }
-
-            .avatar-container {
-                width: clamp(36px, 7vw, 40px);
-                height: clamp(36px, 7vw, 40px);
+                min-height: 80px;
             }
         }
 
         .stat-card:focus-visible,
-        .quick-access-link:focus-visible,
         .chart-toggle:focus-visible {
-            outline: 2px solid var(--primary);
+            outline: 2px solid #6366f1;
             outline-offset: 2px;
         }
     </style>
@@ -480,29 +454,16 @@
 @section('content')
     <div class="content-container">
         <div class="row">
-            <!-- Welcome Section -->
+            <!-- Content Header -->
             <div class="col-12">
-                <div class="welcome-section" role="banner">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="avatar-container" aria-label="User profile picture">
-                            @if($student->profile_pic && Storage::disk('public')->exists('profiles/' . $student->profile_pic))
-                                <img src="{{ Storage::url('profiles/' . $student->profile_pic) . '?t=' . time() }}"
-                                    alt="{{ $student->full_name }}" class="avatar-img" loading="lazy">
-                            @else
-                                <div class="avatar-placeholder">
-                                    <span>{{ strtoupper(substr($student->first_name, 0, 1)) }}</span>
-                                </div>
-                            @endif
-                        </div>
-                        <div>
-                            <h3 class="welcome-header" id="welcomeHeader">Welcome, {{ $student->full_name }}!</h3>
-                            <p class="welcome-subtitle" id="welcomeSubtitle">Explore your academic progress, performance trends, and more.</p>
-                        </div>
-                    </div>
+                <div class="content-header" role="banner">
+                    <h2 class="page-title" id="pageTitle">Welcome, {{ $student->full_name }}!</h2>
+                    <p class="page-subtitle" id="pageSubtitle">Explore your academic progress, performance trends, and more.
+                    </p>
                 </div>
             </div>
 
-            <!-- Stats Grid -->
+            <!-- First Stats Grid -->
             <div class="col-12">
                 <div class="stats-grid">
                     <div class="stat-card" tabindex="0" role="region" aria-label="Current Class">
@@ -511,7 +472,6 @@
                         </div>
                         <h3 class="stat-value">{{ $currentClass ?? 'Not Enrolled' }}</h3>
                         <p class="stat-label">Current Class</p>
-                        <a href="{{ route('student.profile') }}" class="quick-access-link">View Profile →</a>
                     </div>
                     <div class="stat-card" tabindex="0" role="region" aria-label="Fee Status">
                         <div class="stat-header">
@@ -519,11 +479,13 @@
                         </div>
                         <h3 class="stat-value">{{ $feeStatus && $feeStatus->has_paid_fee ? 'Paid' : 'Unpaid' }}</h3>
                         <p class="stat-label">Fee Status ({{ $currentTerm->label() }})</p>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ $feeStatus && $feeStatus->has_paid_fee ? '100' : '0' }}%;"></div>
-                        </div>
-                        <a href="{{ route('student.fee_status') }}" class="quick-access-link">View Fee Details →</a>
                     </div>
+                </div>
+            </div>
+
+            <!-- Second Stats Grid -->
+            <div class="col-12">
+                <div class="stats-grid">
                     @if($hasPaidFees)
                         <div class="stat-card" tabindex="0" role="region" aria-label="Current Term Results">
                             <div class="stat-header">
@@ -531,10 +493,6 @@
                             </div>
                             <h3 class="stat-value">{{ $recentResults->count() }} Subjects</h3>
                             <p class="stat-label">Current Term Results</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ min($recentResults->count() / 10 * 100, 100) }}%;"></div>
-                            </div>
-                            <a href="{{ route('student.results') }}" class="quick-access-link">View Results →</a>
                         </div>
                         <div class="stat-card" tabindex="0" role="region" aria-label="Best Subject">
                             <div class="stat-header">
@@ -542,10 +500,6 @@
                             </div>
                             <h3 class="stat-value">{{ $bestSubject->name ?? 'N/A' }}</h3>
                             <p class="stat-label">Best Subject ({{ $currentSession->year }})</p>
-                            <p class="stat-label">Avg: {{ $bestSubject->average ?? 'N/A' }}%</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ $bestSubject->average ?? 0 }}%;"></div>
-                            </div>
                         </div>
                     @else
                         <div class="stat-card" tabindex="0" role="region" aria-label="Results Locked">
@@ -554,7 +508,13 @@
                             </div>
                             <h3 class="stat-value">Results Locked</h3>
                             <p class="stat-label">Please pay your fees to view results.</p>
-                            <a href="{{ route('student.fee_status') }}" class="quick-access-link">View Fee Details →</a>
+                        </div>
+                        <div class="stat-card" tabindex="0" role="region" aria-label="No Data">
+                            <div class="stat-header">
+                                <div class="stat-icon"><i class="fas fa-info-circle"></i></div>
+                            </div>
+                            <h3 class="stat-value">N/A</h3>
+                            <p class="stat-label">No data available</p>
                         </div>
                     @endif
                 </div>
@@ -563,10 +523,15 @@
             @if($hasPaidFees)
                 <!-- Performance Overview -->
                 <div class="col-12">
-                    <section id="performance-overview" class="performance-section" role="region" aria-label="Performance Trends">
+                    <section id="performance-overview" class="performance-section" role="region"
+                        aria-label="Performance Trends">
                         <div class="section-header">
                             <h3 class="section-title">Performance Trends ({{ $currentSession->year }})</h3>
-                            <span class="chart-toggle" onclick="toggleChartDataset('performanceChart')" role="button" aria-label="Toggle performance chart dataset">Toggle Dataset</span>
+                            <span class="chart-toggle" onclick="toggleChartDataset('performanceChart')" role="button"
+                                aria-label="Toggle performance chart dataset" tabindex="0"
+                                onkeydown="if(event.key === 'Enter') toggleChartDataset('performanceChart')">
+                                Toggle Dataset
+                            </span>
                         </div>
                         <div class="chart-container">
                             <div class="chart-responsive">
@@ -594,10 +559,16 @@
 
                 <!-- Subject Performance -->
                 <div class="col-12">
-                    <section id="subject-performance" class="performance-section" role="region" aria-label="Subject Performance">
+                    <section id="subject-performance" class="performance-section" role="region"
+                        aria-label="Subject Performance">
                         <div class="section-header">
-                            <h3 class="section-title">Subject Performance ({{ $currentSession->year }} - {{ $currentTerm->label() }})</h3>
-                            <span class="chart-toggle" onclick="toggleChartDataset('subjectChart')" role="button" aria-label="Toggle subject chart dataset">Toggle Dataset</span>
+                            <h3 class="section-title">Subject Performance ({{ $currentSession->year }} -
+                                {{ $currentTerm->label() }})</h3>
+                            <span class="chart-toggle" onclick="toggleChartDataset('subjectChart')" role="button"
+                                aria-label="Toggle subject performance chart dataset" tabindex="0"
+                                onkeydown="if(event.key === 'Enter') toggleChartDataset('subjectChart')">
+                                Toggle Dataset
+                            </span>
                         </div>
                         <div class="chart-container">
                             <div class="chart-responsive">
@@ -613,7 +584,8 @@
 
                 <!-- Areas Needing Improvement -->
                 <div class="col-12">
-                    <section id="areas-improvement" class="performance-section" role="region" aria-label="Areas Needing Improvement">
+                    <section id="areas-improvement" class="performance-section" role="region"
+                        aria-label="Areas Needing Improvement">
                         <div class="section-header">
                             <h3 class="section-title">Areas Needing Improvement</h3>
                         </div>
@@ -638,7 +610,8 @@
                 <div class="col-12">
                     <section id="recent-results" class="results-section" role="region" aria-label="Recent Results">
                         <div class="section-header">
-                            <h3 class="section-title">Recent Results ({{ $currentSession->year }} - {{ $currentTerm->label() }})</h3>
+                            <h3 class="section-title">Recent Results ({{ $currentSession->year }} - {{ $currentTerm->label() }})
+                            </h3>
                         </div>
                         <div class="p-2">
                             <div class="table-responsive">
@@ -663,7 +636,8 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="5" class="text-center stat-label">No results available for this term.</td>
+                                                <td colspan="5" class="text-center stat-label">No results available for this term.
+                                                </td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -680,8 +654,8 @@
                             <h3 class="section-title">Results Unavailable</h3>
                         </div>
                         <div class="p-2">
-                            <p class="no-results-message">Please pay your fees for {{ $currentTerm->label() }} to access your results and performance data.</p>
-                            <a href="{{ route('student.fee_status') }}" class="quick-access-link d-block text-center">View Fee Details →</a>
+                            <p class="no-results-message">Please pay your fees for {{ $currentTerm->label() }} to access your
+                                results and performance data.</p>
                         </div>
                     </section>
                 </div>
@@ -692,36 +666,36 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                // Typing Animation for Welcome Section
-                const welcomeHeader = document.getElementById('welcomeHeader');
-                const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-                const headerText = welcomeHeader.textContent;
-                const subtitleText = welcomeSubtitle.textContent;
-                welcomeHeader.textContent = '';
-                welcomeSubtitle.textContent = '';
+                // Typing Animation for Content Header
+                const pageTitle = document.getElementById('pageTitle');
+                const pageSubtitle = document.getElementById('pageSubtitle');
+                const titleText = pageTitle.textContent;
+                const subtitleText = pageSubtitle.textContent;
+                pageTitle.textContent = '';
+                pageSubtitle.textContent = '';
 
-                let headerIndex = 0;
+                let titleIndex = 0;
                 let subtitleIndex = 0;
 
-                function typeHeader() {
-                    if (headerIndex < headerText.length) {
-                        welcomeHeader.textContent += headerText[headerIndex];
-                        headerIndex++;
-                        setTimeout(typeHeader, 80);
+                function typeTitle() {
+                    if (titleIndex < titleText.length) {
+                        pageTitle.textContent += titleText[titleIndex];
+                        titleIndex++;
+                        setTimeout(typeTitle, 100);
                     } else {
-                        setTimeout(typeSubtitle, 400);
+                        setTimeout(typeSubtitle, 500);
                     }
                 }
 
                 function typeSubtitle() {
                     if (subtitleIndex < subtitleText.length) {
-                        welcomeSubtitle.textContent += subtitleText[subtitleIndex];
+                        pageSubtitle.textContent += subtitleText[subtitleIndex];
                         subtitleIndex++;
-                        setTimeout(typeSubtitle, 80);
+                        setTimeout(typeSubtitle, 100);
                     }
                 }
 
-                setTimeout(typeHeader, 400);
+                setTimeout(typeTitle, 500);
 
                 // CSS Animations for Stat Cards
                 const statCards = document.querySelectorAll('.stat-card');
@@ -801,7 +775,7 @@
                             performanceLoading.style.display = 'none';
                             const ctx = performanceCanvas.getContext('2d');
                             ctx.font = '12px Inter, sans-serif';
-                            ctx.fillStyle = 'var(--text-secondary)';
+                            ctx.fillStyle = '#9ca3af';
                             ctx.textAlign = 'center';
                             ctx.fillText('No performance data available', performanceCanvas.width / 2, performanceCanvas.height / 2);
                         } else {
@@ -814,12 +788,12 @@
                                         datasets: [{
                                             label: 'Term Average (%)',
                                             data: performanceData.averages,
-                                            borderColor: '#4b4bff',
+                                            borderColor: '#6366f1',
                                             backgroundColor: (context) => {
                                                 const ctx = context.chart.canvas.getContext('2d');
                                                 const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
-                                                gradient.addColorStop(0, 'rgba(75, 75, 255, 0.5)');
-                                                gradient.addColorStop(1, 'rgba(75, 75, 255, 0.1)');
+                                                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+                                                gradient.addColorStop(1, 'rgba(99, 102, 241, 0.1)');
                                                 return gradient;
                                             },
                                             fill: true,
@@ -827,9 +801,9 @@
                                             pointRadius: 6,
                                             pointHoverRadius: 8,
                                             pointBackgroundColor: '#ffffff',
-                                            pointBorderColor: '#8b46ff',
+                                            pointBorderColor: '#6366f1',
                                             pointBorderWidth: 4,
-                                            pointHoverBackgroundColor: '#8b46ff',
+                                            pointHoverBackgroundColor: '#6366f1',
                                             pointHoverBorderColor: '#ffffff'
                                         }]
                                     },
@@ -842,7 +816,7 @@
                                                 max: 100,
                                                 ticks: {
                                                     stepSize: 10,
-                                                    color: '#4b4bff',
+                                                    color: '#9ca3af',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -852,7 +826,7 @@
                                                 title: {
                                                     display: true,
                                                     text: 'Average Score (%)',
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Space Grotesk, sans-serif',
                                                         size: 14
@@ -867,14 +841,14 @@
                                                 title: {
                                                     display: true,
                                                     text: 'Term',
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Space Grotesk, sans-serif',
                                                         size: 14
                                                     }
                                                 },
                                                 ticks: {
-                                                    color: '#4b4bff',
+                                                    color: '#9ca3af',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -891,7 +865,7 @@
                                                 display: true,
                                                 position: 'top',
                                                 labels: {
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -904,8 +878,8 @@
                                             tooltip: {
                                                 enabled: true,
                                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                                titleColor: 'var(--white)',
-                                                bodyColor: 'var(--white)',
+                                                titleColor: '#ffffff',
+                                                bodyColor: '#ffffff',
                                                 borderColor: 'rgba(255, 255, 255, 0.1)',
                                                 borderWidth: 1,
                                                 padding: 8,
@@ -919,7 +893,7 @@
                                                     size: 11
                                                 },
                                                 callbacks: {
-                                                    label: function(context) {
+                                                    label: function (context) {
                                                         return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
                                                     }
                                                 }
@@ -928,7 +902,7 @@
                                         animation: {
                                             duration: 1500,
                                             easing: 'easeOutCubic',
-                                            onProgress: function(animation) {
+                                            onProgress: function (animation) {
                                                 const chart = animation.chart;
                                                 chart.canvas.style.opacity = animation.currentStep / animation.numSteps;
                                             }
@@ -939,7 +913,7 @@
                                         }
                                     }
                                 });
-                            }, 1000); // Simulate loading delay
+                            }, 1000);
                         }
 
                         // Subject Performance Chart (Bar Chart)
@@ -950,7 +924,7 @@
                             subjectLoading.style.display = 'none';
                             const ctx = subjectCanvas.getContext('2d');
                             ctx.font = '12px Inter, sans-serif';
-                            ctx.fillStyle = 'var(--text-secondary)';
+                            ctx.fillStyle = '#9ca3af';
                             ctx.textAlign = 'center';
                             ctx.fillText('No subject data available', subjectCanvas.width / 2, subjectCanvas.height / 2);
                         } else {
@@ -963,17 +937,10 @@
                                         datasets: [{
                                             label: 'Subject Average (%)',
                                             data: subjectData.averages,
-                                            backgroundColor: (context) => {
-                                                const ctx = context.chart.canvas.getContext('2d');
-                                                const gradient = ctx.createLinearGradient(0, 0, 0, context.chart.height);
-                                                gradient.addColorStop(0, 'rgba(75, 75, 255, 0.7)');
-                                                gradient.addColorStop(1, 'rgba(139, 70, 255, 0.3)');
-                                                return gradient;
-                                            },
-                                            borderColor: '#8b46ff',
+                                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#0ea5e9'],
+                                            borderColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#0ea5e9'],
                                             borderWidth: 1,
-                                            hoverBackgroundColor: 'rgba(139, 70, 255, 0.9)',
-                                            hoverBorderColor: '#4b4bff'
+                                            borderRadius: 8
                                         }]
                                     },
                                     options: {
@@ -985,7 +952,7 @@
                                                 max: 100,
                                                 ticks: {
                                                     stepSize: 10,
-                                                    color: '#4b4bff',
+                                                    color: '#9ca3af',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -995,7 +962,7 @@
                                                 title: {
                                                     display: true,
                                                     text: 'Average Score (%)',
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Space Grotesk, sans-serif',
                                                         size: 14
@@ -1010,14 +977,14 @@
                                                 title: {
                                                     display: true,
                                                     text: 'Subject',
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Space Grotesk, sans-serif',
                                                         size: 14
                                                     }
                                                 },
                                                 ticks: {
-                                                    color: '#4b4bff',
+                                                    color: '#9ca3af',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -1037,7 +1004,7 @@
                                                 display: true,
                                                 position: 'top',
                                                 labels: {
-                                                    color: '#4b4bff',
+                                                    color: '#ffffff',
                                                     font: {
                                                         family: 'Inter, sans-serif',
                                                         size: 12
@@ -1050,8 +1017,8 @@
                                             tooltip: {
                                                 enabled: true,
                                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                                titleColor: 'var(--white)',
-                                                bodyColor: 'var(--white)',
+                                                titleColor: '#ffffff',
+                                                bodyColor: '#ffffff',
                                                 borderColor: 'rgba(255, 255, 255, 0.1)',
                                                 borderWidth: 1,
                                                 padding: 8,
@@ -1065,7 +1032,7 @@
                                                     size: 11
                                                 },
                                                 callbacks: {
-                                                    label: function(context) {
+                                                    label: function (context) {
                                                         return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
                                                     }
                                                 }
@@ -1074,7 +1041,7 @@
                                         animation: {
                                             duration: 1500,
                                             easing: 'easeOutCubic',
-                                            onProgress: function(animation) {
+                                            onProgress: function (animation) {
                                                 const chart = animation.chart;
                                                 chart.canvas.style.opacity = animation.currentStep / animation.numSteps;
                                             }
@@ -1085,7 +1052,7 @@
                                         }
                                     }
                                 });
-                            }, 1000); // Simulate loading delay
+                            }, 1000);
                         }
                     } catch (e) {
                         console.error('Chart initialization error:', e);
@@ -1093,7 +1060,7 @@
                         subjectLoading.style.display = 'none';
                     }
                 @endif
-            });
+                    });
         </script>
     @endpush
 @endsection

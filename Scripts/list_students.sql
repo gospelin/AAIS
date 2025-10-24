@@ -197,3 +197,12 @@ mysql> SELECT
 |        128 | AAIS/0559/128 | Awesome Chigbu         |          2 | 2024/2025    | Second     | NULL     |         1 |            1 |
 +------------+---------------+------------------------+------------+--------------+------------+----------+-----------+--------------+
 98 rows in set (0.00 sec)
+
+
+
+
+=SUMPRODUCT(IF(COUNTIFS(TextbookDetails[Textbook Title], TextbookDetails[Textbook Title], TextbookDetails[Purchase ID], "<="&TextbookDetails[Purchase ID])<=VLOOKUP(TextbookDetails[Textbook Title], BookInventory, 3, FALSE),0,TextbookDetails[Line Purchase Cost]))
+
+
+=SUMPRODUCT(IF(SUMIFS(TextbookDetails[Quantity],TextbookDetails[Textbook Title],TextbookDetails[Textbook Title],TextbookDetails[Purchase ID],"<="&TextbookDetails[Purchase ID])<=IFERROR(VLOOKUP(TextbookDetails[Textbook Title],BookInventory,3,FALSE),0),0,TextbookDetails[Line Purchase Cost]))
+
