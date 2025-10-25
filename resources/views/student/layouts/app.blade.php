@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="auth-id" content="{{ auth()->id() ?? '' }}">
     <title id="pageTitle">@yield('title', 'Student Portal') | {{ config('app.name') }}</title>
@@ -362,7 +362,7 @@
             background: none;
             border: none;
             color: var(--white);
-            font-size: clamp(1.25rem, 4vw, 1.5rem);
+            font-size: clamp(1rem, 3vw, 1.25rem);
             cursor: pointer;
             padding: var(--space-sm);
             border-radius: var(--radius-md);
@@ -387,7 +387,7 @@
 
         .search-container {
             position: relative;
-            max-width: clamp(150px, 40vw, 300px);
+            max-width: clamp(200px, 50vw, 400px);
             width: 100%;
         }
 
@@ -428,7 +428,6 @@
             display: flex;
             align-items: center;
             gap: var(--space-sm);
-            flex-shrink: 0;
         }
 
         .action-btn {
@@ -701,72 +700,35 @@
             .btn-close-sidebar {
                 display: block;
             }
+
+            .main-content {
+                margin-left: 0;
+            }
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: clamp(180px, 60vw, 240px);
-            }
-
-            .top-nav {
-                flex-wrap: wrap;
-                padding: var(--space-md);
-            }
-
-            .nav-left {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .nav-right {
-                width: 100%;
-                justify-content: flex-end;
-            }
-
-            .search-container {
-                max-width: 100%;
-            }
-
-            .user-trigger {
-                min-width: clamp(100px, 25vw, 150px);
-            }
-
-            .user-avatar {
-                width: clamp(28px, 7vw, 36px);
-                height: clamp(28px, 7vw, 36px);
-            }
-
             .theme-toggle {
                 bottom: var(--space-md);
                 right: var(--space-md);
             }
         }
 
+        @media (max-width: 640px) {
+            .sidebar {
+                width: clamp(180px, 60vw, 240px);
+                padding: var(--space-md);
+            }
+            .nav-actions {
+                flex-wrap: wrap;
+                margin-right: -35px;
+            }
+
+        }
+
         @media (max-width: 576px) {
             .sidebar {
                 width: clamp(160px, 50vw, 200px);
                 padding: var(--space-md);
-            }
-
-            .search-input {
-                padding: var(--space-xs) var(--space-sm) var(--space-xs) 2rem;
-                font-size: clamp(0.625rem, 2vw, 0.75rem);
-            }
-
-            .search-icon {
-                font-size: clamp(0.625rem, 2vw, 0.75rem);
-            }
-
-            .user-trigger {
-                padding: var(--space-xs);
-            }
-
-            .user-info h4 {
-                font-size: clamp(0.625rem, 2vw, 0.75rem);
-            }
-
-            .user-info p {
-                display: none;
             }
 
             .theme-toggle {
@@ -780,14 +742,6 @@
                 width: clamp(140px, 45vw, 180px);
             }
 
-            .user-trigger {
-                min-width: clamp(80px, 20vw, 120px);
-            }
-
-            .user-avatar {
-                width: clamp(24px, 6vw, 32px);
-                height: clamp(24px, 6vw, 32px);
-            }
         }
 
         body.light .sidebar {
@@ -908,7 +862,7 @@
                                 </span>
                             </div>
                             <div class="user-info">
-                                <h4>{{ auth()->check() && auth()->user()->student ? auth()->user()->student->full_name : 'Student' }}</h4>
+                                <h4>{{ auth()->check() && auth()->user()->student ? auth()->user()->student->reg_no : '' }}</h4>
                             </div>
                             <i class="bi bi-chevron-down dropdown-icon"></i>
                         </div>
